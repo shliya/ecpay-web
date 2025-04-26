@@ -1,0 +1,113 @@
+.donation-list {
+    max-width: 800px;
+    margin: 20px auto;
+}
+
+.donation-item {
+    background: rgba(255, 255, 255, 0.9);
+    margin: 10px 0;
+    padding: 15px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.donation-item:hover {
+    transform: translateX(10px);
+}
+
+.donation-content {
+    flex: 1;
+    margin-right: 15px;
+}
+
+.donation-name {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.donation-message {
+    color: #666;
+    font-size: 0.9em;
+    margin-bottom: 5px;
+}
+
+.donation-amount {
+    font-size: 1.2em;
+    font-weight: bold;
+    padding: 5px 10px;
+    border-radius: 4px;
+}
+
+/* 不同金額區間的顏色 */
+.amount-tier-1 {
+    background-color: #ffd700;
+    color: #000;
+}
+
+.amount-tier-2 {
+    background-color: #ff6b6b;
+    color: #fff;
+}
+
+.amount-tier-3 {
+    background-color: #4caf50;
+    color: #fff;
+}
+
+.amount-tier-4 {
+    background-color: #2196f3;
+    color: #fff;
+}
+
+.amount-tier-5 {
+    background-color: #9c27b0;
+    color: #fff;
+}
+
+.settings-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.settings-btn:hover {
+    transform: rotate(45deg);
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 30px;
+    position: relative;
+}
+
+.total-amount {
+    background: #4caf50;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 20px;
+    display: inline-block;
+    margin-top: 10px;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.donation-item {
+    animation: slideIn 0.3s ease-out;
+}

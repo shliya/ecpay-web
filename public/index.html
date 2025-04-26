@@ -1,0 +1,169 @@
+<!doctype html><html lang="zh-TW"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>綠界名單</title><style>.donation-list {
+                max-width: 800px;
+                margin: 20px auto;
+            }
+
+            .donation-item {
+                background: rgba(255, 255, 255, 0.9);
+                margin: 10px 0;
+                padding: 15px;
+                border-radius: 8px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                transition: all 0.3s ease;
+            }
+
+            .donation-item:hover {
+                transform: translateX(10px);
+            }
+
+            .donation-content {
+                flex: 1;
+                margin-right: 15px;
+            }
+
+            .donation-name {
+                font-size: 1.2em;
+                font-weight: bold;
+                color: #333;
+                margin-bottom: 5px;
+            }
+
+            .donation-message {
+                color: #666;
+                font-size: 0.9em;
+                margin-bottom: 5px;
+            }
+
+            .donation-amount {
+                font-size: 1.2em;
+                font-weight: bold;
+                padding: 5px 10px;
+                border-radius: 4px;
+            }
+
+            /* 不同金額區間的顏色 */
+            .amount-tier-1 {
+                background-color: #ffd700;
+                color: #000;
+            }
+
+            .amount-tier-2 {
+                background-color: #ff6b6b;
+                color: #fff;
+            }
+
+            .amount-tier-3 {
+                background-color: #4caf50;
+                color: #fff;
+            }
+
+            .amount-tier-4 {
+                background-color: #2196f3;
+                color: #fff;
+            }
+
+            .amount-tier-5 {
+                background-color: #9c27b0;
+                color: #fff;
+            }
+
+            .settings-btn {
+                position: absolute;
+                top: 20px;
+                right: 20px;
+                cursor: pointer;
+                transition: transform 0.2s;
+            }
+
+            .settings-btn:hover {
+                transform: rotate(45deg);
+            }
+
+            .header {
+                text-align: center;
+                margin-bottom: 30px;
+                position: relative;
+            }
+
+            .total-amount {
+                background: #4caf50;
+                color: white;
+                padding: 10px 20px;
+                border-radius: 20px;
+                display: inline-block;
+                margin-top: 10px;
+            }
+
+            @keyframes slideIn {
+                from {
+                    transform: translateX(-100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+
+            .donation-item {
+                animation: slideIn 0.3s ease-out;
+            }</style><script defer="defer" src="/runtime.5f2e44b223c5c4dacc02.bundle.js"></script><script defer="defer" src="/index.494da9d103e1cdafc202.bundle.js"></script><link href="/css/index.f50a62d42d42d1a12cb9.css" rel="stylesheet"></head><body><div class="container"><div class="header"><h1>綠界名單</h1></div><div class="donation-list" id="donationList"></div></div><script>// 定義金額區間
+            const amountTiers = {
+                tier1: { min: 0, max: 100, class: 'amount-tier-1' },
+                tier2: { min: 101, max: 500, class: 'amount-tier-2' },
+                tier3: { min: 501, max: 1000, class: 'amount-tier-3' },
+                tier4: { min: 1001, max: 5000, class: 'amount-tier-4' },
+                tier5: { min: 5001, max: Infinity, class: 'amount-tier-5' },
+            };
+
+            // 獲取金額區間的 CSS 類別
+            function getAmountTierClass(amount) {
+                for (const tier in amountTiers) {
+                    if (
+                        amount >= amountTiers[tier].min &&
+                        amount <= amountTiers[tier].max
+                    ) {
+                        return amountTiers[tier].class;
+                    }
+                }
+                return 'amount-tier-1';
+            }
+
+            // 格式化金額顯示
+            function formatAmount(amount) {
+                return new Intl.NumberFormat('zh-TW', {
+                    style: 'currency',
+                    currency: 'TWD',
+                }).format(amount);
+            }
+
+            // 更新頁面內容的函數
+            function updateDonationList(donations) {
+                const donationList = document.getElementById('donationList');
+                const totalAmount = document.getElementById('totalAmount');
+
+                let total = 0;
+                donationList.innerHTML = '';
+
+                donations.forEach(donation => {
+                    total += donation.amount;
+                    const tierClass = getAmountTierClass(donation.amount);
+
+                    const donationItem = document.createElement('div');
+                    donationItem.className = 'donation-item';
+                    donationItem.innerHTML = `
+                        <div class="donation-content">
+                            <div class="donation-name">${donation.name}</div>
+                            <div class="donation-message">${donation.message || ''}</div>
+                        </div>
+                        <div class="donation-amount ${tierClass}">${formatAmount(donation.amount)}</div>
+                    `;
+
+                    donationList.appendChild(donationItem);
+                });
+
+                totalAmount.textContent = `總金額: ${formatAmount(total)}`;
+            }</script></body></html><div class="total-amount" id="totalAmount">總金額: $0</div>

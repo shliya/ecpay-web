@@ -1,0 +1,78 @@
+{
+    "name": "common-vote",
+    "version": "1.0.0",
+    "description": "shiliya common",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "dev:server": "nodemon server.js",
+        "dev:client": "webpack serve --mode development",
+        "dev-web": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+        "clean": "rimraf public/*.js public/*.html",
+        "build": "webpack",
+        "start": "npm run build && npm run dev:server",
+        "dev": "webpack serve --mode development",
+        "watch": "webpack --watch --mode development"
+    },
+    "build": {
+        "appId": "com.shiliya.commonvote",
+        "win": {
+            "target": [
+                {
+                    "target": "portable",
+                    "arch": [
+                        "x64"
+                    ]
+                }
+            ],
+            "sign": false,
+            "signingHashAlgorithms": [
+                "sha256"
+            ]
+        },
+        "portable": {
+            "artifactName": "CommonVote-portable.exe"
+        },
+        "files": [
+            "dist/**/*",
+            "public/**/*",
+            "server/**/*",
+            "main.js",
+            "index.js",
+            "preload.js",
+            "node_modules/**/*",
+            "build/**/*"
+        ],
+        "directories": {
+            "output": "release",
+            "buildResources": "build"
+        }
+    },
+    "author": "shiliyahamster",
+    "license": "ISC",
+    "dependencies": {
+        "axios": "^1.7.7",
+        "cors": "^2.8.5",
+        "crypto": "^1.0.1",
+        "dotenv": "^16.4.5",
+        "electron-store": "^10.0.1",
+        "express": "^4.21.2",
+        "lodash": "^4.17.21",
+        "path": "^0.12.7"
+    },
+    "devDependencies": {
+        "clean-webpack-plugin": "^4.0.0",
+        "concurrently": "^9.0.0",
+        "css-loader": "^7.1.2",
+        "electron": "^34.1.1",
+        "electron-builder": "^25.1.8",
+        "html-webpack-plugin": "^5.6.3",
+        "mini-css-extract-plugin": "^2.9.2",
+        "nodemon": "^3.1.4",
+        "prettier": "^3.5.3",
+        "style-loader": "^4.0.0",
+        "webpack": "^5.94.0",
+        "webpack-cli": "^5.1.4",
+        "webpack-dev-server": "^5.1.0"
+    }
+}

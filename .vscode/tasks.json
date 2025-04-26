@@ -1,0 +1,28 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "npm: dev:server",
+            "type": "npm",
+            "script": "dev:server",
+            "group": "build",
+            "isBackground": true,
+            "problemMatcher": []
+        },
+        {
+            "label": "npm: dev:client",
+            "type": "npm",
+            "script": "dev:client",
+            "group": "build",
+            "isBackground": true,
+            "problemMatcher": []
+        },
+        {
+            "type": "npm",
+            "script": "dev",
+            "problemMatcher": [],
+            "label": "npm: dev",
+            "detail": "concurrently \"npm run dev:server\" \"npm run dev:client\""
+        }
+    ]
+  }

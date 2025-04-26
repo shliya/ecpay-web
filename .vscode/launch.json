@@ -1,0 +1,41 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Launch Server",
+        "type": "node",
+        "request": "launch",
+        "program": "${workspaceFolder}/index.js",
+        "outFiles": ["${workspaceFolder}/dist/**/*.js"],
+        "console": "integratedTerminal",
+        "internalConsoleOptions": "neverOpen"
+      },
+      {
+        "name": "Attach to Server",
+        "type": "node",
+        "request": "attach",
+        "port": 9229,
+        "restart": true,
+        "protocol": "inspector",
+        "skipFiles": ["<node_internals>/**"]
+      },
+      {
+        "name": "Launch Chrome",
+        "type": "chrome",
+        "request": "launch",
+        "url": "http://localhost:9000",
+        "webRoot": "${workspaceFolder}/app",
+        "sourceMaps": true,
+        "sourceMapPathOverrides": {
+          "webpack:///./*": "${workspaceFolder}/app/*"
+        },
+        "preLaunchTask": "npm: dev:client"
+      }
+    ],
+    "compounds": [
+      {
+        "name": "Full Stack Debug",
+        "configurations": ["Launch Server", "Launch Chrome"]
+      }
+    ]
+  }
