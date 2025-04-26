@@ -27,7 +27,7 @@ import './css/ecpay-setting.css';
                 if (response.ok) {
                     messageDiv.className = 'message success';
                     messageDiv.textContent = '設定已成功儲存！';
-                    console.log(merchantId);
+                    localStorage.setItem('merchantId', formData.merchantId);
                     setTimeout(() => {
                         window.location.href = `index.html?id=${formData.merchantId}`;
                     }, 1000);
