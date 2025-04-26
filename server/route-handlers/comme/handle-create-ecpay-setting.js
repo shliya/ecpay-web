@@ -3,9 +3,9 @@ const path = require('path');
 
 module.exports = async (req, res) => {
     try {
-        const { merchantId, hashKey, hashIv } = req.body;
+        const { merchantId, hashKey, hashIV } = req.body;
 
-        if (!merchantId || !hashKey || !hashIv) {
+        if (!merchantId || !hashKey || !hashIV) {
             return res.status(400).json({ message: '所有欄位都是必填的' });
         }
         const configDir = path.join(process.cwd(), 'server/config');
@@ -18,7 +18,7 @@ module.exports = async (req, res) => {
                 {
                     merchantId,
                     hashKey,
-                    hashIv,
+                    hashIV,
                 },
                 null,
                 2

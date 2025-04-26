@@ -14,3 +14,6 @@ node_modules
 .prettierignore
 .prettierrc
 tep-custom-web
+public/*
+./public/*
+public

@@ -4,7 +4,7 @@ let isInitialized = false;
 
 // 在檔案最上方引入 CSS
 import './css/common.css';
-import './css/index.css';
+import './css/list.css';
 
 async function initializeApp() {
     if (isInitialized) {
@@ -12,14 +12,21 @@ async function initializeApp() {
         return;
     }
 
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+            // 清除 localStorage 中的 merchantId
+            localStorage.removeItem('merchantId');
+            // 跳轉到登入頁面
+            window.location.href = '/login.html';
+        });
+    }
+
     isInitialized = true;
     console.log('Initializing app...');
+    const merchantId = localStorage.getItem('merchantId');
 
-    // 正確取得 merchantId
-    const urlParams = new URLSearchParams(window.location.search);
-    const merchantId = urlParams.get('id');
-
-    if (!merchantId) {
+    if (merchantId === 'null' || merchantId === null) {
         window.location.href = '/login.html';
         return;
     }
@@ -30,12 +37,6 @@ async function initializeApp() {
             `/api/v1/comme/ecpay/check-merchant/id=${merchantId}`
         );
         const checkResult = await checkResponse.json();
-
-        if (!checkResponse.ok || !checkResult.exists) {
-            window.location.href = `/ecpay-setting.html?id=${merchantId}`;
-            return;
-        }
-
         // 載入斗內資料
         await loadDonations(merchantId);
 
@@ -72,65 +73,67 @@ async function loadDonations(merchantId) {
 
 // 更新畫面的函數
 function updateDonationList(donations) {
-    const donationList = document.getElementById('donationList');
-    const totalAmount = document.getElementById('totalAmount');
+    try {
+        const donationList = document.getElementById('donationList');
 
-    if (!donationList || !totalAmount) return;
+        if (!donationList) return;
 
-    let total = 0;
-    donationList.innerHTML = '';
+        let total = 0;
+        donationList.innerHTML = '';
 
-    // 依時間排序（最新的在前）
-    donations.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        // 依時間排序（最新的在前）
+        donations.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
-    // 只顯示最新 5 筆（由下往上推）
-    const showCount = 5;
-    const showDonations = donations.slice(0, showCount).reverse(); // 取最新5筆，reverse讓最新在下方
+        // 只顯示最新 5 筆（由下往上推）
+        const showCount = 5;
+        const showDonations = donations.slice(0, showCount).reverse(); // 取最新5筆，reverse讓最新在下方
+        console.log(showDonations);
 
-    showDonations.forEach(donation => {
-        const amount = parseInt(donation.cost) || 0;
-        total += amount;
-        const title = getSuperchatTitle(donation);
-        const tierClass = getSuperchatTierClass(donation.type, amount);
-        const message = donation.message || '';
+        showDonations.forEach(donation => {
+            const amount = parseInt(donation.cost) || 0;
+            total += amount;
+            const title = getSuperchatTitle(donation);
+            const tierClass = getSuperchatTierClass(donation.type, amount);
+            const message = donation.message || '';
 
-        // --- 改用 DOM API 動態建立卡片 ---
-        const card = document.createElement('div');
-        card.className = `superchat-card ${tierClass}`;
+            // --- 改用 DOM API 動態建立卡片 ---
+            const card = document.createElement('div');
+            card.className = `superchat-card ${tierClass}`;
 
-        const content = document.createElement('div');
-        content.className = 'superchat-content';
+            const content = document.createElement('div');
+            content.className = 'superchat-content';
 
-        const header = document.createElement('div');
-        header.className = 'superchat-header';
+            const header = document.createElement('div');
+            header.className = 'superchat-header';
 
-        const nameSpan = document.createElement('span');
-        nameSpan.className = 'superchat-name';
-        nameSpan.textContent = donation.name || '匿名';
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'superchat-name';
+            nameSpan.textContent = donation.name || '匿名';
 
-        const amountSpan = document.createElement('span');
-        amountSpan.className = 'superchat-amount';
-        amountSpan.textContent = formatAmount(amount);
+            const amountSpan = document.createElement('span');
+            amountSpan.className = 'superchat-amount';
+            amountSpan.textContent = formatAmount(amount);
 
-        header.appendChild(nameSpan);
-        header.appendChild(amountSpan);
+            header.appendChild(nameSpan);
+            header.appendChild(amountSpan);
 
-        const titleDiv = document.createElement('div');
-        titleDiv.className = 'superchat-title';
-        titleDiv.textContent = title;
+            const titleDiv = document.createElement('div');
+            titleDiv.className = 'superchat-title';
+            titleDiv.textContent = title;
 
-        const messageDiv = document.createElement('div');
-        messageDiv.className = 'superchat-message';
-        messageDiv.textContent = message;
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'superchat-message';
+            messageDiv.textContent = message;
 
-        content.appendChild(header);
-        content.appendChild(titleDiv);
-        content.appendChild(messageDiv);
-        card.appendChild(content);
-        donationList.appendChild(card);
-    });
-
-    totalAmount.textContent = `總金額: ${formatAmount(total)}`;
+            content.appendChild(header);
+            content.appendChild(titleDiv);
+            content.appendChild(messageDiv);
+            card.appendChild(content);
+            donationList.appendChild(card);
+        });
+    } catch (error) {
+        console.error('更新畫面失敗:', error);
+    }
 }
 
 function getSuperchatTitle(donation) {
@@ -177,7 +180,7 @@ function initializeEventListeners() {
         newSettingsBtn.addEventListener('click', () => {
             const merchantId = sessionStorage.getItem('merchantId');
             if (merchantId) {
-                window.location.href = `/ecpay-setting.html?id=${merchantId}`;
+                window.location.href = `/ecpay-setting.html`;
             }
         });
     }

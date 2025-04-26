@@ -1,0 +1,251 @@
+.donation-list {
+    max-width: 800px;
+    margin: 20px auto;
+}
+
+.donation-item {
+    background: rgba(255, 255, 255, 0.9);
+    margin: 10px 0;
+    padding: 15px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.donation-item:hover {
+    transform: translateX(10px);
+}
+
+.donation-content {
+    flex: 1;
+    margin-right: 15px;
+}
+
+.donation-name {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.donation-message {
+    color: #666;
+    font-size: 0.9em;
+    margin-bottom: 5px;
+}
+
+.donation-amount {
+    font-size: 1.2em;
+    font-weight: bold;
+    padding: 5px 10px;
+    border-radius: 4px;
+}
+
+/* 不同金額區間的顏色 */
+.amount-tier-1 {
+    background-color: #ffd700;
+    color: #000;
+}
+
+.amount-tier-2 {
+    background-color: #ff6b6b;
+    color: #fff;
+}
+
+.amount-tier-3 {
+    background-color: #4caf50;
+    color: #fff;
+}
+
+.amount-tier-4 {
+    background-color: #2196f3;
+    color: #fff;
+}
+
+.amount-tier-5 {
+    background-color: #9c27b0;
+    color: #fff;
+}
+
+.settings-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.settings-btn:hover {
+    transform: rotate(45deg);
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 30px;
+    position: relative;
+}
+
+.total-amount {
+    background: #4caf50;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 20px;
+    display: inline-block;
+    margin-top: 10px;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.donation-item {
+    animation: slideIn 0.3s ease-out;
+}
+
+/* YouTube Super Chat 樣式 */
+.superchat-card {
+    display: flex;
+    align-items: flex-start;
+    border-radius: 18px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+    margin: 18px 0;
+    padding: 16px 24px 12px 16px;
+    position: relative;
+    min-height: 72px;
+    font-size: 1.1em;
+    background: #fff;
+    transition:
+        transform 0.2s,
+        box-shadow 0.2s;
+    border: none;
+}
+.superchat-card:hover {
+    transform: scale(1.03);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+}
+.superchat-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    margin-right: 16px;
+    object-fit: cover;
+    border: 2.5px solid #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+.superchat-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+}
+.superchat-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 2px;
+    min-width: 0;
+}
+.superchat-name {
+    font-weight: bold;
+    font-size: 1.13em;
+    margin-right: 10px;
+    color: #222;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    max-width: 120px;
+}
+.superchat-amount {
+    font-weight: bold;
+    font-size: 1.1em;
+    margin-left: auto;
+    padding: 2px 14px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.7);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    color: #222;
+    letter-spacing: 0.5px;
+}
+.superchat-message {
+    margin-top: 4px;
+    color: #222;
+    font-size: 1.08em;
+    word-break: break-word;
+    line-height: 1.5;
+    font-weight: 500;
+}
+.superchat-icon {
+    width: 28px;
+    height: 28px;
+    margin-left: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.superchat-title {
+    font-size: 0.98em;
+    color: #555;
+    margin-top: 2px;
+    margin-bottom: 2px;
+    font-weight: 400;
+}
+
+@media (max-width: 600px) {
+    .superchat-card {
+        padding: 10px 6px;
+        min-height: 48px;
+    }
+    .superchat-avatar {
+        width: 32px;
+        height: 32px;
+        margin-right: 6px;
+    }
+    .superchat-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .superchat-amount {
+        margin-left: 0;
+        margin-top: 4px;
+    }
+}
+
+/* YouTube Super Chat 顏色區間 */
+.superchat-tier-blue {
+    background: linear-gradient(90deg, #4285f4 80%, #6ab7ff 100%);
+    border-left: 8px solid #4285f4;
+}
+.superchat-tier-green {
+    background: linear-gradient(90deg, #00c853 80%, #b2ff59 100%);
+    border-left: 8px solid #00c853;
+}
+.superchat-tier-yellow {
+    background: linear-gradient(90deg, #ffd600 80%, #fff176 100%);
+    border-left: 8px solid #ffd600;
+}
+.superchat-tier-orange {
+    background: linear-gradient(90deg, #ff9100 80%, #ffb74d 100%);
+    border-left: 8px solid #ff9100;
+}
+.superchat-tier-red {
+    background: linear-gradient(90deg, #d50000 80%, #ff5252 100%);
+    border-left: 8px solid #d50000;
+}
+.superchat-tier-member {
+    background: linear-gradient(90deg, #43e97b 80%, #38f9d7 100%);
+    border-left: 8px solid #00bfae;
+}
+.superchat-tier-gift {
+    background: linear-gradient(90deg, #fffde4 80%, #fff176 100%);
+    border-left: 8px solid #fbc02d;
+}

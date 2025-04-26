@@ -1,5 +1,5 @@
 import './css/common.css';
-
+import './css/ecpay-setting.css';
 (function () {
     document
         .getElementById('ecpaySettingForm')
