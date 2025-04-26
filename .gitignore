@@ -17,3 +17,4 @@ tep-custom-web
 public/*
 ./public/*
 public
+.vscode

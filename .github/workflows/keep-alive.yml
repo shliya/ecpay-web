@@ -1,0 +1,16 @@
+name: Keep Alive
+
+on:
+    schedule:
+        - cron: '*/5 * * * *' # 每5分鐘執行一次
+    workflow_dispatch: # 允許手動觸發
+
+jobs:
+    keep-alive:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Keep Alive
+              run: |
+                  curl -X GET ${{ secrets.RENDER_URL }}/api/v1/health
+              env:
+                  RENDER_URL: ${{ secrets.RENDER_URL }} # 使用 GitHub Secrets 儲存 URL
