@@ -30,7 +30,7 @@ import './css/ecpay-setting.css';
                     localStorage.setItem('merchantId', formData.merchantId);
                     setTimeout(() => {
                         window.location.href = `index.html?id=${formData.merchantId}`;
-                    }, 1000);
+                    }, 3000);
                 } else {
                     throw new Error(result.message || '儲存設定時發生錯誤');
                 }
