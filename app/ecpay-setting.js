@@ -28,9 +28,31 @@ import './css/ecpay-setting.css';
                     messageDiv.className = 'message success';
                     messageDiv.textContent = '設定已成功儲存！';
                     localStorage.setItem('merchantId', formData.merchantId);
-                    setTimeout(() => {
-                        window.location.href = `index.html?id=${formData.merchantId}`;
-                    }, 3000);
+
+                    messageDiv.textContent = '正在準備頁面，請稍候...';
+
+                    const waitForPage = async () => {
+                        try {
+                            const apiCheck = await fetch(`/api/v1/health`);
+                            if (!apiCheck.ok) {
+                                throw new Error('API not ready');
+                            }
+
+                            const pageCheck = await fetch(
+                                `index.html?id=${formData.merchantId}`
+                            );
+                            if (!pageCheck.ok) {
+                                throw new Error('Page not ready');
+                            }
+
+                            window.location.href = `index.html?id=${formData.merchantId}`;
+                        } catch (error) {
+                            setTimeout(waitForPage, 1000);
+                        }
+                    };
+
+                    // 開始檢查
+                    setTimeout(waitForPage, 1000);
                 } else {
                     throw new Error(result.message || '儲存設定時發生錯誤');
                 }
