@@ -160,10 +160,8 @@
     font-size: 1.13em;
     margin-right: 10px;
     color: #222;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    white-space: nowrap;
-    max-width: 120px;
+    white-space: nowrap; /* 不換行 */
+    max-width: 120px; /* 或你想要的寬度 */
 }
 .superchat-amount {
     font-weight: bold;

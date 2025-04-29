@@ -3,7 +3,7 @@ const donationModel = require('../model/donation');
 async function getDonationsByMerchantId(merchantId) {
     return donationModel.findAll({
         where: { merchantId },
-        order: [['cost', 'DESC']],
+        order: [['created_at', 'DESC']],
     });
 }
 
