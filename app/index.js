@@ -81,12 +81,9 @@ function updateDonationList(donations) {
         let total = 0;
         donationList.innerHTML = '';
 
-        // 依時間排序（最新的在前）
-        donations.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-
         // 只顯示最新 5 筆（由下往上推）
         const showCount = 5;
-        const showDonations = donations.slice(0, showCount).reverse(); // 取最新5筆，reverse讓最新在下方
+        const showDonations = donations.slice(0, showCount);
         console.log(showDonations);
 
         showDonations.forEach(donation => {
