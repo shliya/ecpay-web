@@ -1,5 +1,5 @@
-const fs = require('fs/promises');
-const path = require('path');
+const sequelize = require('../../config/database');
+const { createEcpayConfig } = require('../../store/ecpayConfig');
 
 module.exports = async (req, res) => {
     try {
@@ -8,22 +8,13 @@ module.exports = async (req, res) => {
         if (!merchantId || !hashKey || !hashIV) {
             return res.status(400).json({ message: '所有欄位都是必填的' });
         }
-        const configDir = path.join(process.cwd(), 'server/config');
-        await fs.mkdir(configDir, { recursive: true });
-
-        const configPath = path.join(configDir, `${merchantId}.json`);
-        await fs.writeFile(
-            configPath,
-            JSON.stringify(
-                {
-                    merchantId,
-                    hashKey,
-                    hashIV,
-                },
-                null,
-                2
-            )
+        // TODO: 之後會改成service層
+        const t = await sequelize.transaction();
+        await createEcpayConfig(
+            { merchantId, hashKey, hashIV },
+            { transaction: t }
         );
+        await t.commit();
 
         res.status(200).json({ message: '設定已儲存' });
     } catch (error) {

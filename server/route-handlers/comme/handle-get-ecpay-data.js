@@ -1,18 +1,12 @@
-const { getEcPayDonations } = require('../../lib/ecpayAPI');
 const { decryptDataAndUrlDecode } = require('../../service/decrypt');
 const { addDonation } = require('../../service/vtuber-chat-api');
-const fs = require('fs/promises');
-const path = require('path');
+const { getEcpayConfigByMerchantId } = require('../../store/ecpayConfig');
+const { createDonation } = require('../../store/donation');
 
 async function getConfigByMerchantId(merchantId) {
     try {
-        const configPath = path.join(
-            process.cwd(),
-            'server/config',
-            `${merchantId}.json`
-        );
-        const configData = await fs.readFile(configPath, 'utf-8');
-        return JSON.parse(configData);
+        const configData = await getEcpayConfigByMerchantId(merchantId);
+        return configData;
     } catch (error) {
         throw new Error(`無法讀取商店 ${merchantId} 的設定：${error.message}`);
     }
@@ -20,11 +14,10 @@ async function getConfigByMerchantId(merchantId) {
 
 module.exports = async (req, res) => {
     try {
-        const { Data, TransCode, TransMsg } = req.body;
         const { merchantId } = req.params;
-        console.log(merchantId);
         const { hashIV, hashKey } = await getConfigByMerchantId(merchantId);
-        console.log(hashIV, hashKey);
+        const { Data, TransCode, TransMsg } = req.body;
+
         const {
             MerchantID,
             RtnCode,
@@ -33,13 +26,19 @@ module.exports = async (req, res) => {
             PatronName,
             PatronNote,
         } = decryptDataAndUrlDecode(Data, hashKey, hashIV);
+        const t = await sequelize.transaction();
 
         if (RtnCode === 1) {
-            await addDonation(MerchantID, {
-                name: PatronName,
-                cost: OrderInfo.TradeAmt,
-                message: PatronNote,
-            });
+            await createDonation(
+                {
+                    merchantId: MerchantID,
+                    name: PatronName,
+                    cost: OrderInfo.TradeAmt,
+                    message: PatronNote,
+                },
+                { transaction: t }
+            );
+            await t.commit();
         }
 
         res.send('1|OK');

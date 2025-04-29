@@ -8,8 +8,13 @@
 .webpack-dev-server-client-overlay-overlay
 .webpack-dev-server-client-overlay-overlay-overlay
 
-server/db/3297107.json
-server/config/3297107.json
+# 排除所有 JSON 檔案，但保留特定的資料庫檔案
+*.json
+!package.json
+!package-lock.json
+!server/db/*.json
+!server/config/*.json
+
 node_modules
 .prettierignore
 .prettierrc

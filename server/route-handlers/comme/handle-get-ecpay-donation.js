@@ -1,20 +1,13 @@
-const fs = require('fs/promises');
-const path = require('path');
+const { getDonationsByMerchantId } = require('../../store/donation');
 
 module.exports = async (req, res) => {
     try {
         const { merchantId } = req.params;
-        const configPath = path.join(
-            process.cwd(),
-            'server/db',
-            `${merchantId}.json`
-        );
 
         try {
-            const fileContent = await fs.readFile(configPath, 'utf-8');
-            const donationData = JSON.parse(fileContent);
+            const donations = await getDonationsByMerchantId(merchantId);
 
-            res.json(donationData);
+            res.json(donations);
         } catch (error) {
             if (error.code === 'ENOENT') {
                 res.json([]);

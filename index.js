@@ -1,4 +1,5 @@
 require('dotenv').config();
+const sequelize = require('./server/config/database');
 const path = require('path');
 const express = require('express');
 const app = express();
@@ -25,6 +26,15 @@ app.get('/', (req, res) => {
     res.redirect('/login.html');
 });
 
-app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
-});
+sequelize
+    .authenticate()
+    .then(() => {
+        console.log('資料庫連線成功！');
+        app.listen(port, () => {
+            console.log(`Server is running on http://localhost:${port}`);
+        });
+    })
+    .catch(error => {
+        console.error('資料庫連線失敗：', error);
+        process.exit(1); // 連線失敗就結束程式
+    });

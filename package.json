@@ -12,7 +12,8 @@
         "build": "webpack",
         "start": "npm run build && npm run dev:server",
         "dev": "webpack serve --mode development",
-        "watch": "webpack --watch --mode development"
+        "watch": "webpack --watch --mode development",
+        "backup": "node backup.js"
     },
     "build": {
         "appId": "com.shiliya.commonvote",
@@ -58,7 +59,10 @@
         "electron-store": "^10.0.1",
         "express": "^4.21.2",
         "lodash": "^4.17.21",
-        "path": "^0.12.7"
+        "path": "^0.12.7",
+        "pg": "^8.15.6",
+        "pg-hstore": "^2.3.4",
+        "sequelize": "^6.37.7"
     },
     "devDependencies": {
         "clean-webpack-plugin": "^4.0.0",

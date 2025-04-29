@@ -1,17 +1,11 @@
-const fs = require('fs/promises');
-const path = require('path');
+const { getEcpayConfigByMerchantId } = require('../../store/ecpayConfig');
 
 module.exports = async (req, res) => {
     try {
         const { merchantId } = req.params;
-        const configPath = path.join(
-            process.cwd(),
-            'server/config',
-            `${merchantId}.json`
-        );
 
         try {
-            await fs.access(configPath);
+            await getEcpayConfigByMerchantId(merchantId);
             res.json({ exists: true });
         } catch {
             res.json({ exists: false });
