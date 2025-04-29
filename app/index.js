@@ -12,6 +12,11 @@ async function initializeApp() {
         return;
     }
 
+    function getQueryParam(name) {
+        const url = new URL(window.location.href);
+        return url.searchParams.get(name);
+    }
+
     const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', () => {
@@ -24,7 +29,8 @@ async function initializeApp() {
 
     isInitialized = true;
     console.log('Initializing app...');
-    const merchantId = localStorage.getItem('merchantId');
+    const urlId = getQueryParam('id');
+    const merchantId = urlId || localStorage.getItem('merchantId');
 
     if (merchantId === 'null' || merchantId === null) {
         window.location.href = '/login.html';
@@ -87,42 +93,37 @@ function updateDonationList(donations) {
         showDonations.forEach(donation => {
             const amount = parseInt(donation.cost) || 0;
             total += amount;
-            const title = getSuperchatTitle(donation);
-            const tierClass = getSuperchatTierClass(donation.type, amount);
             const message = donation.message || '';
 
+            // 取得金額區間 class 編號
+            const tier = getCustomTierClass(amount);
+
+            // 外層卡片
             const card = document.createElement('div');
-            card.className = `superchat-card ${tierClass}`;
+            card.className = 'custom-donation-card';
 
-            const content = document.createElement('div');
-            content.className = 'superchat-content';
-
+            // 上方 header（ID + 金額）
             const header = document.createElement('div');
-            header.className = 'superchat-header';
+            header.className = `custom-donation-header custom-tier-header-${tier}`;
 
-            const nameSpan = document.createElement('span');
-            nameSpan.className = 'superchat-name';
-            nameSpan.textContent = donation.name || '匿名';
+            const idSpan = document.createElement('span');
+            idSpan.className = 'custom-donation-id';
+            idSpan.textContent = donation.name ? `${donation.name}` : 'ID匿名';
 
             const amountSpan = document.createElement('span');
-            amountSpan.className = 'superchat-amount';
+            amountSpan.className = 'custom-donation-amount';
             amountSpan.textContent = formatAmount(amount);
 
-            header.appendChild(nameSpan);
+            header.appendChild(idSpan);
             header.appendChild(amountSpan);
 
-            const titleDiv = document.createElement('div');
-            titleDiv.className = 'superchat-title';
-            titleDiv.textContent = title;
-
+            // 下方留言
             const messageDiv = document.createElement('div');
-            messageDiv.className = 'superchat-message';
-            messageDiv.textContent = message;
+            messageDiv.className = `custom-donation-message custom-tier-message-${tier}`;
+            messageDiv.textContent = message ? `留言內容${message}` : '';
 
-            content.appendChild(header);
-            content.appendChild(titleDiv);
-            content.appendChild(messageDiv);
-            card.appendChild(content);
+            card.appendChild(header);
+            card.appendChild(messageDiv);
             donationList.appendChild(card);
         });
     } catch (error) {
@@ -159,6 +160,16 @@ function formatAmount(amount) {
         style: 'currency',
         currency: 'TWD',
     }).format(amount);
+}
+
+function getCustomTierClass(amount) {
+    if (amount >= 750) return 6;
+    if (amount >= 300) return 5;
+    if (amount >= 150) return 4;
+    if (amount >= 75) return 3;
+    if (amount >= 30) return 2;
+    if (amount >= 15) return 1;
+    return 1;
 }
 
 // 只有在 DOMContentLoaded 時初始化一次

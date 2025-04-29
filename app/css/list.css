@@ -247,3 +247,102 @@
     background: linear-gradient(90deg, #fffde4 80%, #fff176 100%);
     border-left: 8px solid #fbc02d;
 }
+
+.custom-donation-card {
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 18px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    width: 100%;
+}
+.custom-donation-header {
+    background: #397872;
+    color: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px 8px 12px;
+    font-size: 1.18em;
+    font-weight: 500;
+}
+.custom-donation-id {
+    font-size: 1.08em;
+    font-weight: 400;
+}
+.custom-donation-amount {
+    background: #cbd8d6;
+    color: #222;
+    border-radius: 6px;
+    padding: 2px 12px;
+    font-weight: bold;
+    font-size: 1.08em;
+    margin-left: 10px;
+}
+.custom-donation-message {
+    background: #7edddc;
+    color: #111;
+    padding: 12px 12px 14px 12px;
+    font-size: 1.08em;
+    font-weight: 500;
+    word-break: break-all;
+}
+
+.custom-tier-header-1 {
+    background: #4976a4;
+}
+.custom-tier-message-1 {
+    background: #7eb6e0;
+}
+
+.custom-tier-header-2 {
+    background: #2b8ca7;
+}
+.custom-tier-message-2 {
+    background: #6ed0e0;
+}
+
+.custom-tier-header-3 {
+    background: #397872;
+}
+.custom-tier-message-3 {
+    background: #7edddc;
+}
+
+.custom-tier-header-4 {
+    background: #704100;
+}
+.custom-tier-message-4 {
+    background: #ffe066;
+}
+
+.custom-tier-header-5 {
+    background: #e67a00;
+}
+.custom-tier-message-5 {
+    background: #ffb184;
+}
+
+.custom-tier-header-6 {
+    background: #c40000;
+}
+.custom-tier-message-6 {
+    background: #ff5c5c;
+}
+
+body {
+    background: transparent !important;
+}
+.donation-list {
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+.custom-donation-header,
+.custom-donation-id,
+.custom-donation-amount,
+.custom-donation-message {
+    font-family:
+        'Microsoft JhengHei', 'Heiti TC', '黑體', 'Arial Black', Arial,
+        sans-serif !important;
+    font-weight: 700 !important;
+}
