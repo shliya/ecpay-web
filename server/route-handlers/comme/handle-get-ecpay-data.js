@@ -18,6 +18,8 @@ module.exports = async (req, res) => {
         const { hashIV, hashKey } = await getConfigByMerchantId(merchantId);
         const { Data, TransCode, TransMsg } = req.body;
 
+        console.log(Data);
+
         const {
             MerchantID,
             RtnCode,
@@ -38,6 +40,7 @@ module.exports = async (req, res) => {
 
         res.send('1|OK');
     } catch (error) {
+        console.error(error);
         res.status(500).json({ error: error.message });
     }
 };
