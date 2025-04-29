@@ -81,10 +81,8 @@ function updateDonationList(donations) {
         let total = 0;
         donationList.innerHTML = '';
 
-        // 只顯示最新 5 筆（由下往上推）
         const showCount = 5;
         const showDonations = donations.slice(0, showCount);
-        console.log(showDonations);
 
         showDonations.forEach(donation => {
             const amount = parseInt(donation.cost) || 0;
@@ -93,7 +91,6 @@ function updateDonationList(donations) {
             const tierClass = getSuperchatTierClass(donation.type, amount);
             const message = donation.message || '';
 
-            // --- 改用 DOM API 動態建立卡片 ---
             const card = document.createElement('div');
             card.className = `superchat-card ${tierClass}`;
 

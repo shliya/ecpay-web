@@ -26,19 +26,14 @@ module.exports = async (req, res) => {
             PatronName,
             PatronNote,
         } = decryptDataAndUrlDecode(Data, hashKey, hashIV);
-        const t = await sequelize.transaction();
 
         if (RtnCode === 1) {
-            await createDonation(
-                {
-                    merchantId: MerchantID,
-                    name: PatronName,
-                    cost: OrderInfo.TradeAmt,
-                    message: PatronNote,
-                },
-                { transaction: t }
-            );
-            await t.commit();
+            await createDonation({
+                merchantId: MerchantID,
+                name: PatronName,
+                cost: OrderInfo.TradeAmt,
+                message: PatronNote,
+            });
         }
 
         res.send('1|OK');

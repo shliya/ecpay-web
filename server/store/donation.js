@@ -7,7 +7,7 @@ async function getDonationsByMerchantId(merchantId) {
     });
 }
 
-async function createDonation(row, { transaction }) {
+async function createDonation(row, { transaction } = {}) {
     return donationModel.create(row, { transaction });
 }
 module.exports = {
