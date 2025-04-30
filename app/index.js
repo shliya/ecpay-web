@@ -6,6 +6,14 @@ let isInitialized = false;
 import './css/common.css';
 import './css/list.css';
 
+// 儲存動畫狀態
+let donationScrollState = {
+    inner: null,
+    cardCount: 0,
+    animationStarted: false,
+    lastData: [],
+};
+
 async function initializeApp() {
     if (isInitialized) {
         console.log('Already initialized');
@@ -38,21 +46,17 @@ async function initializeApp() {
     }
 
     try {
-        // 確保使用正確的 URL 格式
         const checkResponse = await fetch(
             `/api/v1/comme/ecpay/check-merchant/id=${merchantId}`
         );
         const checkResult = await checkResponse.json();
-        // 載入斗內資料
         await loadDonations(merchantId);
 
-        // 設定定時更新（使用 let 以便可以清除）
         let updateInterval = setInterval(
             () => loadDonations(merchantId),
             30000
         );
 
-        // 在頁面離開時清除 interval
         window.addEventListener('beforeunload', () => {
             if (updateInterval) {
                 clearInterval(updateInterval);
@@ -81,77 +85,157 @@ async function loadDonations(merchantId) {
 function updateDonationList(donations) {
     try {
         const donationList = document.getElementById('donationList');
-
         if (!donationList) return;
 
-        let total = 0;
-        donationList.innerHTML = '';
+        // 如果已經有 inner，且卡片數量沒變（2倍資料），直接更新內容
+        let inner = donationScrollState.inner;
+        const groupSize = 5;
+        const needRebuild =
+            !inner || inner.children.length !== donations.length * 2;
 
-        const showCount = 5;
-        const showDonations = donations.slice(0, showCount);
+        if (needRebuild) {
+            donationList.innerHTML = '';
+            inner = document.createElement('div');
+            inner.className = 'donation-list-inner';
+            // 渲染所有卡片（原始資料）
+            donations.forEach(donation => {
+                inner.appendChild(createDonationCard(donation));
+            });
+            // 複製整份資料到最後
+            donations.forEach(donation => {
+                inner.appendChild(createDonationCard(donation));
+            });
+            donationList.appendChild(inner);
+            donationScrollState.inner = inner;
+            donationScrollState.cardCount = donations.length;
+            donationScrollState.lastData = donations;
+            donationScrollState.animationStarted = false;
+        } else {
+            // 只更新內容，不重建 DOM
+            for (let i = 0; i < donations.length; i++) {
+                updateDonationCard(inner.children[i], donations[i]);
+            }
+            // 複製區塊也要更新
+            for (let i = 0; i < donations.length; i++) {
+                updateDonationCard(
+                    inner.children[donations.length + i],
+                    donations[i]
+                );
+            }
+            donationScrollState.lastData = donations;
+        }
 
-        showDonations.forEach(donation => {
-            const amount = parseInt(donation.cost) || 0;
-            total += amount;
-            const message = donation.message || '';
-
-            // 取得金額區間 class 編號
-            const tier = getCustomTierClass(amount);
-
-            // 外層卡片
-            const card = document.createElement('div');
-            card.className = 'custom-donation-card';
-
-            // 上方 header（ID + 金額）
-            const header = document.createElement('div');
-            header.className = `custom-donation-header custom-tier-header-${tier}`;
-
-            const idSpan = document.createElement('span');
-            idSpan.className = 'custom-donation-id';
-            idSpan.textContent = donation.name ? `${donation.name}` : 'ID匿名';
-
-            const amountSpan = document.createElement('span');
-            amountSpan.className = 'custom-donation-amount';
-            amountSpan.textContent = formatAmount(amount);
-
-            header.appendChild(idSpan);
-            header.appendChild(amountSpan);
-
-            // 下方留言
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `custom-donation-message custom-tier-message-${tier}`;
-            messageDiv.textContent = message ? `留言內容${message}` : '';
-
-            card.appendChild(header);
-            card.appendChild(messageDiv);
-            donationList.appendChild(card);
-        });
+        // 啟動連續平滑滾動（只啟動一次）
+        if (!donationScrollState.animationStarted) {
+            startDonationContinuousScroll(inner, donations.length);
+            donationScrollState.animationStarted = true;
+        }
     } catch (error) {
         console.error('更新畫面失敗:', error);
     }
 }
 
-function getSuperchatTitle(donation) {
-    // 依據 donation.type 給標題
-    if (donation.type === 'member') {
-        return '歡迎加入會員！';
-    } else if (donation.type === 'gift') {
-        return `贈送 ${donation.giftCount || ''} 份會員`;
-    } else if (donation.type === 'renew') {
-        return `會員 ${donation.months || 1} 個月`;
-    } else if (donation.type === 'superchat') {
-        return '';
-    }
-    return '';
+function createDonationCard(donation) {
+    const amount = parseInt(donation.cost) || 0;
+    const message = donation.message || '';
+    const tier = getCustomTierClass(amount);
+
+    const card = document.createElement('div');
+    card.className = 'custom-donation-card';
+
+    const header = document.createElement('div');
+    header.className = `custom-donation-header custom-tier-header-${tier}`;
+
+    const idSpan = document.createElement('span');
+    idSpan.className = 'custom-donation-id';
+    idSpan.textContent = donation.name ? `${donation.name}` : 'ID匿名';
+
+    const amountSpan = document.createElement('span');
+    amountSpan.className = 'custom-donation-amount';
+    amountSpan.textContent = formatAmount(amount);
+
+    header.appendChild(idSpan);
+    header.appendChild(amountSpan);
+
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `custom-donation-message custom-tier-message-${tier}`;
+    messageDiv.textContent = message ? `${message}` : '';
+
+    card.appendChild(header);
+    card.appendChild(messageDiv);
+    return card;
 }
 
-function getSuperchatTierClass(type, amount) {
-    if (amount >= 750) return 'superchat-tier-red';
-    if (amount >= 300) return 'superchat-tier-orange';
-    if (amount >= 150) return 'superchat-tier-yellow';
-    if (amount >= 75) return 'superchat-tier-green';
-    if (amount >= 30) return 'superchat-tier-blue';
-    else return 'superchat-tier-blue';
+function updateDonationCard(card, donation) {
+    const amount = parseInt(donation.cost) || 0;
+    const message = donation.message || '';
+    const tier = getCustomTierClass(amount);
+
+    card.className = 'custom-donation-card';
+    card.querySelector('.custom-donation-header').className =
+        `custom-donation-header custom-tier-header-${tier}`;
+    card.querySelector('.custom-donation-id').textContent = donation.name
+        ? `${donation.name}`
+        : 'ID匿名';
+    card.querySelector('.custom-donation-amount').textContent =
+        formatAmount(amount);
+    card.querySelector('.custom-donation-message').className =
+        `custom-donation-message custom-tier-message-${tier}`;
+    card.querySelector('.custom-donation-message').textContent = message
+        ? `${message}`
+        : '';
+}
+
+// 連續平滑滾動
+function startDonationContinuousScroll(inner, dataLength) {
+    const cardEls = inner.getElementsByClassName('custom-donation-card');
+    if (cardEls.length === 0) return;
+
+    const groupSize = 5;
+    // 用 getBoundingClientRect 取得精確高度
+    const cardHeight = Math.round(cardEls[0].getBoundingClientRect().height); // 確保是整數
+    const totalCards = cardEls.length;
+    let scrollY = 0;
+
+    // 設定外層高度
+    const container = inner.parentElement;
+    container.style.overflow = 'hidden';
+    container.style.position = 'relative';
+    container.style.height = `${cardHeight * groupSize}px`;
+
+    // 初始化位置
+    inner.style.transition = 'none';
+    inner.style.transform = 'translateY(0)';
+
+    let lastTimestamp = null;
+    const speed = 30; // px/秒，可調整速度
+    const resetPoint = cardHeight * dataLength + 70; // 重置點：原始資料的總高度
+
+    function animate(timestamp) {
+        if (!lastTimestamp) lastTimestamp = timestamp;
+        const delta = timestamp - lastTimestamp;
+        lastTimestamp = timestamp;
+
+        // 計算新的滾動位置
+        scrollY += (speed * delta) / 900;
+
+        // 確保滾動位置是整數
+        const currentScroll = Math.floor(scrollY);
+
+        // 檢查是否需要重置
+        if (currentScroll >= resetPoint) {
+            // 計算超出的距離
+            const overflow = currentScroll - resetPoint;
+            // 重置位置，但保留超出的距離，確保平滑
+            scrollY = overflow;
+            inner.style.transform = `translateY(-${overflow}px)`;
+        } else {
+            inner.style.transform = `translateY(-${currentScroll}px)`;
+        }
+
+        requestAnimationFrame(animate);
+    }
+    requestAnimationFrame(animate);
 }
 
 // 格式化金額顯示
@@ -163,6 +247,7 @@ function formatAmount(amount) {
 }
 
 function getCustomTierClass(amount) {
+    if (amount >= 1500) return 7;
     if (amount >= 750) return 6;
     if (amount >= 300) return 5;
     if (amount >= 150) return 4;
