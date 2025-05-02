@@ -9,6 +9,8 @@ const Donation = sequelize.define(
             primaryKey: true,
             autoIncrement: true,
             allowNull: false,
+            field: 'id',
+            defaultValue: sequelize.literal("nextval('donations_id_seq')"),
         },
         merchantId: {
             type: DataTypes.STRING(50),
@@ -36,7 +38,17 @@ const Donation = sequelize.define(
     },
     {
         tableName: 'donations',
-        timestamps: false, // 若資料表沒有 updated_at、created_at 欄位自動維護，請設為 false
+        timestamps: false,
+        hooks: {
+            beforeCreate: async donation => {
+                if (!donation.id) {
+                    const result = await sequelize.query(
+                        "SELECT nextval('donations_id_seq') as next_id"
+                    );
+                    donation.id = result[0][0].next_id;
+                }
+            },
+        },
     }
 );
 

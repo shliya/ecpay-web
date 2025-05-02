@@ -126,10 +126,10 @@ function updateDonationList(donations) {
         }
 
         // 啟動連續平滑滾動（只啟動一次）
-        if (!donationScrollState.animationStarted) {
-            startDonationContinuousScroll(inner, donations.length);
-            donationScrollState.animationStarted = true;
-        }
+        // if (!donationScrollState.animationStarted) {
+        //     startDonationContinuousScroll(inner, donations.length);
+        //     donationScrollState.animationStarted = true;
+        // }
     } catch (error) {
         console.error('更新畫面失敗:', error);
     }
