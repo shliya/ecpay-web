@@ -102,9 +102,9 @@ function updateDonationList(donations) {
                 inner.appendChild(createDonationCard(donation));
             });
             // 複製整份資料到最後
-            donations.forEach(donation => {
-                inner.appendChild(createDonationCard(donation));
-            });
+            // donations.forEach(donation => {
+            //     inner.appendChild(createDonationCard(donation));
+            // });
             donationList.appendChild(inner);
             donationScrollState.inner = inner;
             donationScrollState.cardCount = donations.length;
@@ -116,12 +116,12 @@ function updateDonationList(donations) {
                 updateDonationCard(inner.children[i], donations[i]);
             }
             // 複製區塊也要更新
-            for (let i = 0; i < donations.length; i++) {
-                updateDonationCard(
-                    inner.children[donations.length + i],
-                    donations[i]
-                );
-            }
+            // for (let i = 0; i < donations.length; i++) {
+            //     updateDonationCard(
+            //         inner.children[donations.length + i],
+            //         donations[i]
+            //     );
+            // }
             donationScrollState.lastData = donations;
         }
 
