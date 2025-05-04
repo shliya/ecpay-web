@@ -54,7 +54,7 @@ async function initializeApp() {
 
         let updateInterval = setInterval(
             () => loadDonations(merchantId),
-            30000
+            10000
         );
 
         window.addEventListener('beforeunload', () => {
