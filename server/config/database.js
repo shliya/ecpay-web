@@ -8,7 +8,7 @@ const sequelize = new Sequelize(
     process.env.DB_PASSWORD,
     {
         host: process.env.DB_HOST,
-        port: process.env.DB_PORT || 5432,
+        port: 6543,
         dialect: 'postgres',
         logging: true,
         dialectOptions: {
@@ -16,8 +16,28 @@ const sequelize = new Sequelize(
                 require: true,
                 rejectUnauthorized: false,
             },
+            // Transaction Pooler 特定設定
+            application_name: 'transaction_pooler',
+            statement_timeout: 60000,
+            idle_in_transaction_session_timeout: 60000,
+        },
+        pool: {
+            max: 10,
+            min: 0,
+            acquire: 30000,
+            idle: 10000,
         },
     }
 );
+
+// 添加連接測試
+sequelize
+    .authenticate()
+    .then(() => {
+        console.log('資料庫連接成功');
+    })
+    .catch(err => {
+        console.error('資料庫連接失敗:', err);
+    });
 
 module.exports = sequelize;
