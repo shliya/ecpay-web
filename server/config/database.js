@@ -30,7 +30,6 @@ const sequelize = new Sequelize(
     }
 );
 
-// 添加連接測試
 sequelize
     .authenticate()
     .then(() => {
