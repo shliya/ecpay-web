@@ -135,10 +135,25 @@ function updateDonationList(donations) {
     }
 }
 
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    const taiwanDate = new Date(date.getTime() + 8 * 60 * 60 * 1000); // 轉換為台灣時區
+
+    const year = taiwanDate.getUTCFullYear();
+    const month = String(taiwanDate.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(taiwanDate.getUTCDate()).padStart(2, '0');
+    const hours = String(taiwanDate.getUTCHours()).padStart(2, '0');
+    const minutes = String(taiwanDate.getUTCMinutes()).padStart(2, '0');
+
+    return `${year}-${month}-${day} ${hours}:${minutes}`;
+}
+
 function createDonationCard(donation) {
     const amount = parseInt(donation.cost) || 0;
     const message = donation.message || '';
     const tier = getCustomTierClass(amount);
+    const createdAt = formatDate(donation.created_at || '');
+    console.log(createdAt);
 
     const card = document.createElement('div');
     card.className = 'custom-donation-card';
@@ -159,7 +174,17 @@ function createDonationCard(donation) {
 
     const messageDiv = document.createElement('div');
     messageDiv.className = `custom-donation-message custom-tier-message-${tier}`;
-    messageDiv.textContent = message ? `${message}` : '';
+
+    const messageContent = document.createElement('div');
+    messageContent.className = 'message-content';
+    messageContent.textContent = message ? `${message}` : '';
+
+    const timeSpan = document.createElement('span');
+    timeSpan.className = 'custom-donation-time';
+    timeSpan.textContent = createdAt;
+
+    messageDiv.appendChild(messageContent);
+    messageDiv.appendChild(timeSpan);
 
     card.appendChild(header);
     card.appendChild(messageDiv);

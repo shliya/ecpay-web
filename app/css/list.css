@@ -348,3 +348,20 @@ body {
     width: 100%;
     will-change: transform;
 }
+
+.custom-donation-message {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.message-content {
+    flex: 1;
+}
+
+.custom-donation-time {
+    font-size: 0.8em;
+    color: #666;
+    white-space: nowrap;
+}
