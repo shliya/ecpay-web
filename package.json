@@ -13,7 +13,8 @@
         "start": "npm run build && npm run dev:server",
         "dev": "webpack serve --mode development",
         "watch": "webpack --watch --mode development",
-        "backup": "node backup.js"
+        "backup": "node backup.js",
+        "sync": "node server/lib/script/syncDB.js"
     },
     "build": {
         "appId": "com.shiliya.commonvote",

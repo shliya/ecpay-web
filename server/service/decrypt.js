@@ -12,7 +12,9 @@ function decryptDataAndUrlDecode(encryptedData, hashKey, hashIV) {
         let decrypted = decipher.update(buff);
         decrypted = Buffer.concat([decrypted, decipher.final()]);
 
-        const urlDecodedData = decodeURIComponent(decrypted.toString('utf8'));
+        const urlDecodedData = decodeURIComponent(
+            decrypted.toString('utf8').replace(/\+/g, '%20')
+        );
         const jsonData = JSON.parse(urlDecodedData);
         return jsonData;
     } catch (error) {
