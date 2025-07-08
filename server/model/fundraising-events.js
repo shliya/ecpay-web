@@ -41,6 +41,11 @@ const FundraisingEvents = sequelize.define(
             defaultValue: 0,
             field: 'status',
         },
+        totalAmount: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            field: 'totalAmount',
+        },
         created_at: {
             type: DataTypes.DATE,
             allowNull: false,

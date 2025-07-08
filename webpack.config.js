@@ -9,6 +9,7 @@ module.exports = {
         index: path.resolve(__dirname, 'app/index.js'),
         login: path.resolve(__dirname, 'app/login.js'),
         ecpaySettings: path.resolve(__dirname, 'app/ecpay-setting.js'),
+        event: path.resolve(__dirname, 'app/event.js'),
     },
     output: {
         path: path.resolve(__dirname, 'public'),
@@ -64,6 +65,18 @@ module.exports = {
             ),
             filename: 'ecpay-setting.html',
             chunks: ['ecpaySettings'],
+            inject: true,
+            scriptLoading: 'defer',
+            minify: {
+                removeComments: true,
+                collapseWhitespace: true,
+            },
+            cache: false,
+        }),
+        new HtmlWebpackPlugin({
+            template: path.resolve(__dirname, 'app/templates/event.html'),
+            filename: 'event.html',
+            chunks: ['event'],
             inject: true,
             scriptLoading: 'defer',
             minify: {

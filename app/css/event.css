@@ -1,0 +1,146 @@
+/* 載入自定義字體 */
+@font-face {
+    font-family: 'Silver';
+    src: url('../front/Silver.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* 血條樣式 - 適合 OBS 使用 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: transparent;
+    font-family: 'Silver', 'Microsoft JhengHei', Arial, sans-serif;
+    overflow: hidden;
+}
+
+.container {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: transparent;
+}
+
+.health-bar-container {
+    width: 400px;
+    height: 40px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.health-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #ff4444, #ff6666);
+    border-radius: 18px;
+    transition: width 0.5s ease-in-out;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+}
+
+.health-text {
+    color: white;
+    font-family: 'Silver', 'Microsoft JhengHei', Arial, sans-serif;
+    font-weight: bold;
+    font-size: 26px;
+    top: 5px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+    z-index: 10;
+    position: relative;
+}
+
+.event-name {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-family: 'Silver', 'Microsoft JhengHei', Arial, sans-serif;
+    font-weight: bold;
+    font-size: 24px;
+    top: 23px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    z-index: 5;
+    pointer-events: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 350px;
+}
+
+/* 血條顏色變化 */
+.health-bar.low {
+    background: linear-gradient(90deg, #ff0000, #ff4444);
+}
+
+.health-bar.medium {
+    background: linear-gradient(90deg, #ffaa00, #ffcc44);
+}
+
+.health-bar.high {
+    background: linear-gradient(90deg, #44ff44, #66ff66);
+}
+
+/* 血條動畫效果 */
+.health-bar.damage {
+    animation: damage-flash 0.3s ease-in-out;
+}
+
+@keyframes damage-flash {
+    0% {
+        filter: brightness(1);
+    }
+    50% {
+        filter: brightness(1.5) saturate(1.5);
+    }
+    100% {
+        filter: brightness(1);
+    }
+}
+
+/* 響應式設計 */
+@media (max-width: 480px) {
+    .health-bar-container {
+        width: 300px;
+        height: 30px;
+    }
+
+    .health-text {
+        font-size: 24px;
+    }
+
+    .event-name {
+        font-size: 22px;
+        max-width: 250px;
+    }
+}
+
+/* 小尺寸版本 */
+@media (max-width: 320px) {
+    .health-bar-container {
+        width: 250px;
+        height: 25px;
+    }
+
+    .health-text {
+        font-size: 22px;
+    }
+
+    .event-name {
+        font-size: 20px;
+        max-width: 200px;
+    }
+}
