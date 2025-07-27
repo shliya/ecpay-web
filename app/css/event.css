@@ -62,25 +62,6 @@ body {
     position: relative;
 }
 
-.event-name {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: white;
-    font-family: 'Silver', 'Microsoft JhengHei', Arial, sans-serif;
-    font-weight: bold;
-    font-size: 24px;
-    top: 23px;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-    z-index: 5;
-    pointer-events: none;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 350px;
-}
-
 /* 血條顏色變化 */
 .health-bar.low {
     background: linear-gradient(90deg, #ff0000, #ff4444);
@@ -121,11 +102,6 @@ body {
     .health-text {
         font-size: 24px;
     }
-
-    .event-name {
-        font-size: 22px;
-        max-width: 250px;
-    }
 }
 
 /* 小尺寸版本 */
@@ -137,10 +113,5 @@ body {
 
     .health-text {
         font-size: 22px;
-    }
-
-    .event-name {
-        font-size: 20px;
-        max-width: 200px;
     }
 }

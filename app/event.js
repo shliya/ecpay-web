@@ -81,17 +81,16 @@ function updateHealthBar(eventData) {
             0,
             (currentHealth / totalAmount) * 100
         );
-
         const healthBar = document.getElementById('healthBar');
         const healthText = document.getElementById('healthText');
-        const eventName = document.getElementById('eventName');
+        console.log(healthText);
 
         if (healthBar && healthText) {
             // 更新血條寬度
             healthBar.style.width = `${healthPercentage}%`;
 
-            // 更新文字
-            healthText.textContent = `${Math.round(healthPercentage)}%`;
+            // 更新文字 - 顯示當前金額/總金額格式
+            healthText.textContent = `${currentHealth.toLocaleString()}/${totalAmount.toLocaleString()}`;
 
             // 更新顏色
             updateHealthBarColor(healthBar, healthPercentage);
@@ -107,11 +106,6 @@ function updateHealthBar(eventData) {
             healthBarState.lastHealth = healthPercentage;
         }
 
-        // 更新事件名稱
-        if (eventName) {
-            eventName.textContent = eventData.eventName || '募資活動';
-        }
-
         healthBarState.lastData = eventData;
     } catch (error) {
         console.error('更新血條失敗:', error);
@@ -123,12 +117,12 @@ function updateHealthBarColor(healthBar, percentage) {
     // 移除所有顏色類別
     healthBar.classList.remove('low', 'medium', 'high');
 
-    if (percentage <= 25) {
-        healthBar.classList.add('low');
-    } else if (percentage <= 50) {
-        healthBar.classList.add('medium');
+    if (percentage <= 20) {
+        healthBar.classList.add('low'); // 紅色
+    } else if (percentage <= 40) {
+        healthBar.classList.add('medium'); // 橘色
     } else {
-        healthBar.classList.add('high');
+        healthBar.classList.add('high'); // 綠色
     }
 }
 
