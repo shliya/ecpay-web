@@ -43,7 +43,7 @@ body {
     height: 100%;
     background: linear-gradient(90deg, #ff4444, #ff6666);
     border-radius: 18px;
-    transition: width 0.5s ease-in-out;
+    transition: width 0.3s ease-in-out;
     position: relative;
     display: flex;
     align-items: center;
@@ -62,17 +62,32 @@ body {
     position: relative;
 }
 
+/* healthBarGd 專用樣式 */
+#healthBarGd {
+    background: linear-gradient(90deg, #d81b60, #d81b60);
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+}
+
+/* 讓 healthBar 在上層 */
+#healthBar {
+    z-index: 2;
+    position: relative;
+}
+
 /* 血條顏色變化 */
 .health-bar.low {
-    background: linear-gradient(90deg, #ff0000, #ff4444);
+    background: linear-gradient(90deg, #d81b60, #d81b60);
 }
 
 .health-bar.medium {
-    background: linear-gradient(90deg, #ffaa00, #ffcc44);
+    background: linear-gradient(90deg, #f57c00, #f57c00);
 }
 
 .health-bar.high {
-    background: linear-gradient(90deg, #44ff44, #66ff66);
+    background: linear-gradient(90deg, #2e7d32, #2e7d32);
 }
 
 /* 血條動畫效果 */

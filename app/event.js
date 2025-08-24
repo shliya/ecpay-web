@@ -11,6 +11,7 @@ let healthBarState = {
     lastData: null,
     updateInterval: null,
     lastHealth: 100,
+    lastHealthGd: 100,
 };
 
 async function initializeHealthBar() {
@@ -82,28 +83,45 @@ function updateHealthBar(eventData) {
             (currentHealth / totalAmount) * 100
         );
         const healthBar = document.getElementById('healthBar');
-        const healthText = document.getElementById('healthText');
-        console.log(healthText);
+        const healthBarGd = document.getElementById('healthBarGd');
+        // const healthText = document.getElementById('healthText');
 
-        if (healthBar && healthText) {
-            // 更新血條寬度
-            healthBar.style.width = `${healthPercentage}%`;
+        if (healthBar && healthBarGd) {
+            // 初始化兩個血條寬度（如果還沒設定）
+            if (!healthBar.style.width) {
+                healthBar.style.width = `${healthPercentage}%`;
+            }
+            if (!healthBarGd.style.width) {
+                healthBarGd.style.width = `${healthPercentage}%`;
+            }
 
             // 更新文字 - 顯示當前金額/總金額格式
-            healthText.textContent = `${currentHealth.toLocaleString()}/${totalAmount.toLocaleString()}`;
+            // healthText.textContent = `${currentHealth.toLocaleString()}/${totalAmount.toLocaleString()}`;
 
             // 更新顏色
-            updateHealthBarColor(healthBar, healthPercentage);
+            updateHealthBarColor(
+                healthBar,
+                parseFloat(healthBar.style.width) || healthPercentage
+            );
 
             // 檢查是否受到傷害
-            if (healthBarState.lastHealth > healthPercentage) {
+            const currentHealthBarPercentage =
+                parseFloat(healthBar.style.width) || healthPercentage;
+            if (healthBarState.lastHealth > currentHealthBarPercentage) {
                 healthBar.classList.add('damage');
                 setTimeout(() => {
                     healthBar.classList.remove('damage');
                 }, 300);
             }
 
-            healthBarState.lastHealth = healthPercentage;
+            // 只在第一次初始化時更新狀態
+            if (
+                !healthBarState.lastHealth ||
+                healthBarState.lastHealth === 100
+            ) {
+                healthBarState.lastHealth = healthPercentage;
+                healthBarState.lastHealthGd = healthPercentage;
+            }
         }
 
         healthBarState.lastData = eventData;
@@ -125,6 +143,59 @@ function updateHealthBarColor(healthBar, percentage) {
         healthBar.classList.add('high'); // 綠色
     }
 }
+
+// 減少血條寬度的函數
+function reduceHealthBar() {
+    const healthBar = document.getElementById('healthBar');
+    const healthBarGd = document.getElementById('healthBarGd');
+
+    if (!healthBar || !healthBarGd) {
+        console.error('找不到血條元素');
+        return;
+    }
+
+    // 先減少 healthBar
+    reduceSpecificHealthBar(healthBar, 'healthBar');
+
+    // 延遲 0.5 秒後減少 healthBarGd
+    setTimeout(() => {
+        reduceSpecificHealthBar(healthBarGd, 'healthBarGd');
+    }, 500);
+}
+
+// 減少特定血條的函數
+function reduceSpecificHealthBar(element, barType) {
+    // 獲取當前寬度
+    const currentWidth = element.style.width;
+    const currentPercentage = parseFloat(currentWidth) || 100;
+
+    // 計算新的寬度（減少50%）
+    const newPercentage = Math.max(0, currentPercentage - 50);
+
+    // 更新血條寬度
+    element.style.width = `${newPercentage}%`;
+
+    // 觸發傷害動畫
+    element.classList.add('damage');
+    setTimeout(() => {
+        element.classList.remove('damage');
+    }, 300);
+
+    // 只有 healthBar 需要更新顏色（healthBarGd 保持固定顏色）
+    if (barType === 'healthBar') {
+        updateHealthBarColor(element, newPercentage);
+        healthBarState.lastHealth = newPercentage;
+    } else if (barType === 'healthBarGd') {
+        healthBarState.lastHealthGd = newPercentage;
+    }
+
+    console.log(
+        `${barType} 寬度從 ${currentPercentage}% 減少到 ${newPercentage}%`
+    );
+}
+
+// 將函數添加到全域範圍，讓 HTML 可以調用
+window.reduceHealthBar = reduceHealthBar;
 
 // 只有在 DOMContentLoaded 時初始化一次
 document.addEventListener('DOMContentLoaded', initializeHealthBar, {
