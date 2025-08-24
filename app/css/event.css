@@ -56,10 +56,15 @@ body {
     font-family: 'Silver', 'Microsoft JhengHei', Arial, sans-serif;
     font-weight: bold;
     font-size: 26px;
-    top: 5px;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
     z-index: 10;
-    position: relative;
+    position: absolute;
+    bottom: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    text-align: center;
+    pointer-events: none;
 }
 
 /* healthBarGd 專用樣式 */

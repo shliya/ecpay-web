@@ -84,43 +84,58 @@ function updateHealthBar(eventData) {
         );
         const healthBar = document.getElementById('healthBar');
         const healthBarGd = document.getElementById('healthBarGd');
-        // const healthText = document.getElementById('healthText');
+        const healthText = document.getElementById('healthText');
 
         if (healthBar && healthBarGd) {
-            // 初始化兩個血條寬度（如果還沒設定）
-            if (!healthBar.style.width) {
+            // 檢查是否是第一次初始化
+            const isFirstInit =
+                !healthBar.style.width && !healthBarGd.style.width;
+
+            if (isFirstInit) {
+                // 第一次初始化，直接設定
                 healthBar.style.width = `${healthPercentage}%`;
-            }
-            if (!healthBarGd.style.width) {
                 healthBarGd.style.width = `${healthPercentage}%`;
-            }
-
-            // 更新文字 - 顯示當前金額/總金額格式
-            // healthText.textContent = `${currentHealth.toLocaleString()}/${totalAmount.toLocaleString()}`;
-
-            // 更新顏色
-            updateHealthBarColor(
-                healthBar,
-                parseFloat(healthBar.style.width) || healthPercentage
-            );
-
-            // 檢查是否受到傷害
-            const currentHealthBarPercentage =
-                parseFloat(healthBar.style.width) || healthPercentage;
-            if (healthBarState.lastHealth > currentHealthBarPercentage) {
-                healthBar.classList.add('damage');
-                setTimeout(() => {
-                    healthBar.classList.remove('damage');
-                }, 300);
-            }
-
-            // 只在第一次初始化時更新狀態
-            if (
-                !healthBarState.lastHealth ||
-                healthBarState.lastHealth === 100
-            ) {
                 healthBarState.lastHealth = healthPercentage;
                 healthBarState.lastHealthGd = healthPercentage;
+            } else {
+                // 檢查金額是否有變化（受到傷害）
+                const lastData = healthBarState.lastData;
+                const lastCost = lastData ? parseInt(lastData.cost) || 0 : 0;
+
+                if (currentCost > lastCost) {
+                    // 金額增加（受到傷害），觸發延遲動畫
+                    console.log(
+                        `檢測到傷害：從 ${lastCost} 增加到 ${currentCost}`
+                    );
+
+                    // 立即更新 healthBar
+                    updateSpecificHealthBarFromAPI(
+                        healthBar,
+                        healthPercentage,
+                        'healthBar'
+                    );
+
+                    // 延遲 0.5 秒後更新 healthBarGd
+                    setTimeout(() => {
+                        updateSpecificHealthBarFromAPI(
+                            healthBarGd,
+                            healthPercentage,
+                            'healthBarGd'
+                        );
+                    }, 500);
+                } else {
+                    // 沒有傷害，直接同步更新（例如回血）
+                    healthBar.style.width = `${healthPercentage}%`;
+                    healthBarGd.style.width = `${healthPercentage}%`;
+                    updateHealthBarColor(healthBar, healthPercentage);
+                    healthBarState.lastHealth = healthPercentage;
+                    healthBarState.lastHealthGd = healthPercentage;
+                }
+            }
+
+            // 更新文字
+            if (healthText) {
+                healthText.textContent = `${currentHealth.toLocaleString()}/${totalAmount.toLocaleString()}`;
             }
         }
 
@@ -128,6 +143,34 @@ function updateHealthBar(eventData) {
     } catch (error) {
         console.error('更新血條失敗:', error);
     }
+}
+
+// 從 API 更新特定血條的函數
+function updateSpecificHealthBarFromAPI(element, targetPercentage, barType) {
+    const currentPercentage = parseFloat(element.style.width) || 100;
+
+    // 更新血條寬度
+    element.style.width = `${targetPercentage}%`;
+
+    // 如果是減少，觸發傷害動畫
+    if (targetPercentage < currentPercentage) {
+        element.classList.add('damage');
+        setTimeout(() => {
+            element.classList.remove('damage');
+        }, 300);
+    }
+
+    // 更新狀態和顏色
+    if (barType === 'healthBar') {
+        updateHealthBarColor(element, targetPercentage);
+        healthBarState.lastHealth = targetPercentage;
+    } else if (barType === 'healthBarGd') {
+        healthBarState.lastHealthGd = targetPercentage;
+    }
+
+    console.log(
+        `${barType} 從 API 更新：${currentPercentage}% -> ${targetPercentage}%`
+    );
 }
 
 // 根據血量更新顏色
@@ -144,54 +187,29 @@ function updateHealthBarColor(healthBar, percentage) {
     }
 }
 
-// 減少血條寬度的函數
+// 示範按鈕功能 - 模擬 API 傷害數據
 function reduceHealthBar() {
-    const healthBar = document.getElementById('healthBar');
-    const healthBarGd = document.getElementById('healthBarGd');
-
-    if (!healthBar || !healthBarGd) {
-        console.error('找不到血條元素');
+    // 模擬 API 回傳增加的 cost 數據
+    const currentData = healthBarState.lastData;
+    if (!currentData) {
+        console.log('尚未載入初始數據，無法進行示範');
         return;
     }
 
-    // 先減少 healthBar
-    reduceSpecificHealthBar(healthBar, 'healthBar');
+    // 模擬增加 cost（造成傷害）
+    const currentCost = parseInt(currentData.cost) || 0;
+    const newCost = currentCost + 500; // 增加 500 的傷害
 
-    // 延遲 0.5 秒後減少 healthBarGd
-    setTimeout(() => {
-        reduceSpecificHealthBar(healthBarGd, 'healthBarGd');
-    }, 500);
-}
+    // 建立模擬的事件數據
+    const simulatedEventData = {
+        ...currentData,
+        cost: newCost,
+    };
 
-// 減少特定血條的函數
-function reduceSpecificHealthBar(element, barType) {
-    // 獲取當前寬度
-    const currentWidth = element.style.width;
-    const currentPercentage = parseFloat(currentWidth) || 100;
+    console.log(`示範功能：模擬 cost 從 ${currentCost} 增加到 ${newCost}`);
 
-    // 計算新的寬度（減少50%）
-    const newPercentage = Math.max(0, currentPercentage - 50);
-
-    // 更新血條寬度
-    element.style.width = `${newPercentage}%`;
-
-    // 觸發傷害動畫
-    element.classList.add('damage');
-    setTimeout(() => {
-        element.classList.remove('damage');
-    }, 300);
-
-    // 只有 healthBar 需要更新顏色（healthBarGd 保持固定顏色）
-    if (barType === 'healthBar') {
-        updateHealthBarColor(element, newPercentage);
-        healthBarState.lastHealth = newPercentage;
-    } else if (barType === 'healthBarGd') {
-        healthBarState.lastHealthGd = newPercentage;
-    }
-
-    console.log(
-        `${barType} 寬度從 ${currentPercentage}% 減少到 ${newPercentage}%`
-    );
+    // 呼叫真正的更新函數，就像 API 資料更新一樣
+    updateHealthBar(simulatedEventData);
 }
 
 // 將函數添加到全域範圍，讓 HTML 可以調用
