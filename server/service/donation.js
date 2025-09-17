@@ -1,9 +1,10 @@
+require('dotenv').config();
 const DonationStore = require('../store/donation');
 const FundraisingEventsStore = require('../store/fundraising-events');
-const {
-    ENUM_FUNDRAISING_EVENT_TYPE,
-    SPECIAL_MESSAGE_CONDITION_MERCHANTS,
-} = require('../lib/enum');
+const { ENUM_FUNDRAISING_EVENT_TYPE } = require('../lib/enum');
+
+const SPECIAL_MESSAGE_CONDITION_MERCHANTS =
+    process.env.SPECIAL_MESSAGE_CONDITION_MERCHANTS.split(',');
 
 async function createDonation(row, { transaction } = {}) {
     const txn = await DonationStore.getTransaction();

@@ -547,6 +547,55 @@ async function handleDisableEvent(event) {
     }
 }
 
+async function handleEnableEvent(event) {
+    const merchantId = event.target.getAttribute('data-merchant-id');
+    const eventId = event.target.getAttribute('data-event-id');
+
+    if (!merchantId || !eventId) return;
+
+    const button = event.target;
+    const originalText = button.textContent;
+
+    try {
+        button.disabled = true;
+        button.textContent = '開啟中...';
+
+        console.log(`Enabling event: ${eventId} for merchant: ${merchantId}`);
+
+        const response = await fetch(
+            `/api/v1/fundraising-events/id=${encodeURIComponent(eventId)}/merchantId=${encodeURIComponent(merchantId)}/status/enable`,
+            {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    status: 0, // 設定為關閉狀態
+                }),
+            }
+        );
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(
+                errorData.message || `HTTP error! status: ${response.status}`
+            );
+        }
+
+        // 重新載入列表
+        await loadEventList(eventListState.merchantId);
+
+        showSuccess('活動已成功關閉！');
+    } catch (error) {
+        console.error('關閉活動失敗:', error);
+        showError(`關閉活動失敗：${error.message}`);
+
+        // 恢復按鈕狀態
+        button.disabled = false;
+        button.textContent = originalText;
+    }
+}
+
 // 只有在 DOMContentLoaded 時初始化一次
 document.addEventListener('DOMContentLoaded', initializeEventList, {
     once: true,

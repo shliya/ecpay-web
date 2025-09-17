@@ -66,4 +66,6 @@ module.exports = {
     updateFundraisingEventByIdAndMerchantId,
     disableFundraisingEventByIdAndMerchantId:
         FundraisingEventsStore.disableFundraisingEventByIdAndMerchantId,
+    enableFundraisingEventByIdAndMerchantId:
+        FundraisingEventsStore.enableFundraisingEventByIdAndMerchantId,
 };

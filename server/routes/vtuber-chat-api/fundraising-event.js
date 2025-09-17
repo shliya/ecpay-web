@@ -21,7 +21,7 @@ router.patch(
     handleDisableFundraisingEventRequest
 );
 router.patch(
-    '/id=:id/merchantId=:merchantId/status',
+    '/id=:id/merchantId=:merchantId/status/enable',
     handleEnableFundraisingEventRequest
 );
 
