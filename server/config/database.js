@@ -1,16 +1,25 @@
 require('dotenv').config();
 
 const { Sequelize } = require('sequelize');
+let dbUrl;
+if (process.env.NODE_ENV === 'production') {
+    dbUrl = process.env.DATABASE_URL;
+} else {
+    dbUrl = process.env.TEST_DB_URL;
+}
+let ssl =
+    process.env.NODE_ENV === 'production'
+        ? {
+              require: true,
+              rejectUnauthorized: false,
+          }
+        : false;
 
-const sequelize = new Sequelize(process.env.DATABASE_URL, {
+const sequelize = new Sequelize(dbUrl, {
     dialect: 'postgres',
-    logging: true,
+    logging: process.env.NODE_ENV === 'development' ? console.log : false,
     dialectOptions: {
-        ssl: {
-            require: true,
-            rejectUnauthorized: false,
-        },
-        // Transaction Pooler 特定設定
+        ssl,
         application_name: 'transaction_pooler',
         statement_timeout: 60000,
         idle_in_transaction_session_timeout: 60000,

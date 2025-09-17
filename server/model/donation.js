@@ -10,7 +10,6 @@ const Donation = sequelize.define(
             autoIncrement: true,
             allowNull: false,
             field: 'id',
-            defaultValue: sequelize.literal("nextval('donations_id_seq')"),
         },
         merchantId: {
             type: DataTypes.STRING(50),
@@ -39,16 +38,12 @@ const Donation = sequelize.define(
     {
         tableName: 'donations',
         timestamps: false,
-        hooks: {
-            beforeCreate: async donation => {
-                if (!donation.id) {
-                    const result = await sequelize.query(
-                        "SELECT nextval('donations_id_seq') as next_id"
-                    );
-                    donation.id = result[0][0].next_id;
-                }
+        indexes: [
+            {
+                name: 'idx_marchantId_createdAt',
+                fields: ['merchantId', 'created_at'],
             },
-        },
+        ],
     }
 );
 
