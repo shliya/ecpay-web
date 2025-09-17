@@ -1,7 +1,7 @@
 const { decryptDataAndUrlDecode } = require('../../service/decrypt');
 const { addDonation } = require('../../service/vtuber-chat-api');
 const { getEcpayConfigByMerchantId } = require('../../store/ecpayConfig');
-const { createDonation } = require('../../store/donation');
+const { createDonation } = require('../../service/donation');
 
 async function getConfigByMerchantId(merchantId) {
     try {

@@ -1,5 +1,6 @@
 const { Op } = require('sequelize');
 const donationModel = require('../model/donation');
+const sequelize = require('../config/database');
 
 async function getDonationsByMerchantId(merchantId) {
     return donationModel.findAll({
@@ -25,7 +26,12 @@ async function createDonation(row, { transaction } = {}) {
     return donationModel.create(row, { transaction });
 }
 
+function getTransaction() {
+    return sequelize.transaction();
+}
+
 module.exports = {
+    getTransaction,
     getDonationsByMerchantId,
     getDonationsByMerchantIdAndDate,
     createDonation,

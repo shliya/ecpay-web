@@ -3,15 +3,22 @@ const { createFundraisingEvent } = require('../../service/fundraising-events');
 
 module.exports = async (req, res) => {
     try {
-        const { merchantId, eventName, startMonth, endMonth, totalAmount } =
-            req.body;
+        const {
+            merchantId,
+            eventName,
+            startMonth,
+            endMonth,
+            totalAmount,
+            type,
+        } = req.body;
 
         if (
             !merchantId ||
             !eventName ||
             !startMonth ||
             !endMonth ||
-            !totalAmount
+            !totalAmount ||
+            !type
         ) {
             return res.status(400).json({ message: '所有欄位都是必填的' });
         }
@@ -22,6 +29,7 @@ module.exports = async (req, res) => {
             startMonth,
             endMonth,
             totalAmount,
+            type,
         });
 
         res.status(200).json({ message: '設定已儲存' });

@@ -5,9 +5,9 @@
     box-sizing: border-box;
 }
 
-/* OBS 色鍵背景 */
+/* OBS 透明背景 */
 body {
-    background-color: #00ff00;
+    background-color: transparent;
     color: #000000;
     font-family: 'Microsoft JhengHei', '微軟正黑體', sans-serif;
 }

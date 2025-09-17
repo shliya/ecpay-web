@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="zh-TW">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>斗內活動列表</title>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>斗內活動列表</h1>
+                <div class="header-buttons">
+                    <button id="createBtn" class="btn btn-create">
+                        + 新增活動
+                    </button>
+                    <button id="refreshBtn" class="btn btn-refresh">
+                        重新整理
+                    </button>
+                </div>
+            </div>
+            <div class="loading" id="loading">載入中...</div>
+            <div class="error" id="errorMessage" style="display: none"></div>
+            <div class="event-list" id="eventList"></div>
+        </div>
+
+        <!-- 新增活動彈出視窗 -->
+        <div id="createModal" class="modal" style="display: none">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>新增募資活動</h2>
+                    <button class="modal-close" id="closeModal">&times;</button>
+                </div>
+                <form id="createEventForm" class="modal-body">
+                    <div class="form-group">
+                        <label for="eventName"
+                            >活動名稱 <span class="required">*</span></label
+                        >
+                        <input
+                            type="text"
+                            id="eventName"
+                            name="eventName"
+                            required
+                            maxlength="100"
+                            placeholder="請輸入活動名稱"
+                        />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="eventType"
+                            >活動類型 <span class="required">*</span></label
+                        >
+                        <select id="eventType" name="type" required>
+                            <option value="1">打怪</option>
+                            <option value="2" selected>普通</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="totalAmount"
+                            >目標金額 <span class="required">*</span></label
+                        >
+                        <input
+                            type="number"
+                            id="totalAmount"
+                            name="totalAmount"
+                            required
+                            min="1"
+                            placeholder="請輸入目標金額"
+                            value="1500"
+                        />
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="startMonth"
+                                >開始日期 <span class="required">*</span></label
+                            >
+                            <input
+                                type="date"
+                                id="startMonth"
+                                name="startMonth"
+                                required
+                            />
+                        </div>
+                        <div class="form-group">
+                            <label for="endMonth"
+                                >結束日期 <span class="required">*</span></label
+                            >
+                            <input
+                                type="date"
+                                id="endMonth"
+                                name="endMonth"
+                                required
+                            />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description">活動描述</label>
+                        <textarea
+                            id="description"
+                            name="description"
+                            rows="3"
+                            placeholder="請輸入活動描述（選填）"
+                        ></textarea>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button
+                            type="button"
+                            class="btn btn-secondary"
+                            id="cancelBtn"
+                        >
+                            取消
+                        </button>
+                        <button
+                            type="submit"
+                            class="btn btn-primary"
+                            id="submitBtn"
+                        >
+                            建立活動
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <script type="module" src="../event-list.js"></script>
+    </body>
+</html>

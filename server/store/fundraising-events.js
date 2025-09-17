@@ -1,11 +1,11 @@
 const sequelize = require('../config/database');
 const FundraisingEvents = require('../model/fundraising-events');
+const { ENUM_FUNDRAISING_EVENT_STATUS } = require('../lib/enum');
 
 async function getFundraisingEventsByMerchantId(merchantId) {
-    return FundraisingEvents.findOne({
+    return FundraisingEvents.findAll({
         where: {
             merchantId,
-            status: 1,
         },
         order: [['created_at', 'DESC']],
     });
@@ -19,8 +19,93 @@ function getTransaction() {
     return sequelize.transaction();
 }
 
+async function getFundraisingEventByIdAndMerchantId(id, merchantId) {
+    return FundraisingEvents.findOne({
+        where: {
+            id,
+            merchantId,
+        },
+    });
+}
+
+async function updateFundraisingEventByIdAndMerchantId(
+    id,
+    merchantId,
+    { cost, type }
+) {
+    const where = {
+        id,
+        merchantId,
+    };
+    if (type) {
+        where.type = type;
+    }
+    return FundraisingEvents.update(
+        {
+            cost: sequelize.literal(`"cost" + ${cost}`),
+        },
+        {
+            where,
+        }
+    );
+}
+
+async function batchUpdateFundraisingEventByMerchantId(
+    merchantId,
+    { cost, type }
+) {
+    const where = {
+        merchantId,
+        status: ENUM_FUNDRAISING_EVENT_STATUS.ACTIVE,
+    };
+    if (type) {
+        where.type = type;
+    }
+    return FundraisingEvents.update(
+        {
+            cost: sequelize.literal(`"cost" + ${cost}`),
+        },
+        { where }
+    );
+}
+
+async function disableFundraisingEventByIdAndMerchantId(id, merchantId) {
+    const where = {
+        id,
+        merchantId,
+    };
+    return FundraisingEvents.update(
+        {
+            status: ENUM_FUNDRAISING_EVENT_STATUS.INACTIVE,
+        },
+        {
+            where,
+        }
+    );
+}
+
+async function enableFundraisingEventByIdAndMerchantId(id, merchantId) {
+    const where = {
+        id,
+        merchantId,
+    };
+    return FundraisingEvents.update(
+        {
+            status: ENUM_FUNDRAISING_EVENT_STATUS.ACTIVE,
+        },
+        {
+            where,
+        }
+    );
+}
+
 module.exports = {
     getFundraisingEventsByMerchantId,
     createFundraisingEvent,
     getTransaction,
+    getFundraisingEventByIdAndMerchantId,
+    updateFundraisingEventByIdAndMerchantId,
+    batchUpdateFundraisingEventByMerchantId,
+    disableFundraisingEventByIdAndMerchantId,
+    enableFundraisingEventByIdAndMerchantId,
 };

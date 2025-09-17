@@ -1,18 +1,15 @@
 const {
-    getFundraisingEventByIdAndMerchantId,
+    disableFundraisingEventByIdAndMerchantId,
 } = require('../../service/fundraising-events');
 
 module.exports = async (req, res) => {
     try {
-        const { id, merchantId } = req.params;
+        const { merchantId, id } = req.params;
 
         try {
-            const event = await getFundraisingEventByIdAndMerchantId(
-                id,
-                merchantId
-            );
+            await disableFundraisingEventByIdAndMerchantId(id, merchantId);
 
-            res.json(event);
+            res.sendStatus(201);
         } catch (error) {
             if (error.code === 'ENOENT') {
                 res.json([]);

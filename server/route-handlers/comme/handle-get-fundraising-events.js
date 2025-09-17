@@ -1,18 +1,15 @@
 const {
-    getFundraisingEventByIdAndMerchantId,
+    getFundraisingEventsByMerchantId,
 } = require('../../service/fundraising-events');
 
 module.exports = async (req, res) => {
     try {
-        const { id, merchantId } = req.params;
+        const { merchantId } = req.params;
 
         try {
-            const event = await getFundraisingEventByIdAndMerchantId(
-                id,
-                merchantId
-            );
+            const events = await getFundraisingEventsByMerchantId(merchantId);
 
-            res.json(event);
+            res.json(events);
         } catch (error) {
             if (error.code === 'ENOENT') {
                 res.json([]);

@@ -29,7 +29,9 @@ async function initializeHealthBar() {
     console.log('Initializing health bar...');
 
     const urlId = getQueryParam('id');
-    const merchantId = urlId || localStorage.getItem('merchantId');
+    const urlMerchantId = getQueryParam('merchantId');
+    const merchantId = urlMerchantId || localStorage.getItem('merchantId');
+    const id = urlId || null;
 
     if (merchantId === 'null' || merchantId === null) {
         console.error('No merchant ID found');
@@ -37,10 +39,10 @@ async function initializeHealthBar() {
     }
 
     try {
-        await loadHealthData(merchantId);
+        await loadHealthData(merchantId, id);
 
         let updateInterval = setInterval(
-            () => loadHealthData(merchantId),
+            () => loadHealthData(merchantId, id),
             5000 // 每5秒更新一次
         );
 
@@ -57,11 +59,11 @@ async function initializeHealthBar() {
 }
 
 // 載入血條資料
-async function loadHealthData(merchantId) {
+async function loadHealthData(merchantId, id) {
     try {
         console.log(`Loading health data for merchant ${merchantId}...`);
         const response = await fetch(
-            `/api/v1/fundraising-events/id=${merchantId}`
+            `/api/v1/fundraising-events/id=${id}/merchantId=${merchantId}`
         );
         const eventData = await response.json();
         updateHealthBar(eventData);
@@ -75,13 +77,28 @@ function updateHealthBar(eventData) {
     try {
         const totalAmount = parseInt(eventData.totalAmount) || 1000;
         const currentCost = parseInt(eventData.cost) || 0;
+        const eventType = parseInt(eventData.type) || 1;
 
-        // 計算血量百分比 (cost 是受到的傷害，所以血量是 totalAmount - cost)
-        const currentHealth = Math.max(0, totalAmount - currentCost);
-        const healthPercentage = Math.max(
-            0,
-            (currentHealth / totalAmount) * 100
-        );
+        let currentHealth, healthPercentage, maxHealth;
+
+        if (eventType === 1) {
+            // type = 1 (UP): 倒扣邏輯，血量從滿血開始被扣除
+            // 顯示：剩餘血量 = totalAmount - cost
+            maxHealth = totalAmount;
+            currentHealth = Math.max(0, totalAmount - currentCost);
+            healthPercentage = Math.max(0, (currentHealth / maxHealth) * 100);
+        } else if (eventType === 2) {
+            // type = 2 (DOWN): 正常加法邏輯，血量從 0 開始增加
+            // 顯示：當前血量 = cost
+            maxHealth = totalAmount;
+            currentHealth = Math.min(currentCost, totalAmount);
+            healthPercentage = Math.max(0, (currentHealth / maxHealth) * 100);
+        } else {
+            // 預設使用 type 1 的邏輯
+            maxHealth = totalAmount;
+            currentHealth = Math.max(0, totalAmount - currentCost);
+            healthPercentage = Math.max(0, (currentHealth / maxHealth) * 100);
+        }
         const healthBar = document.getElementById('healthBar');
         const healthBarGd = document.getElementById('healthBarGd');
         const healthText = document.getElementById('healthText');
@@ -98,15 +115,18 @@ function updateHealthBar(eventData) {
                 healthBarState.lastHealth = healthPercentage;
                 healthBarState.lastHealthGd = healthPercentage;
             } else {
-                // 檢查金額是否有變化（受到傷害）
+                // 檢查 cost 是否有變化
                 const lastData = healthBarState.lastData;
                 const lastCost = lastData ? parseInt(lastData.cost) || 0 : 0;
 
                 if (currentCost > lastCost) {
-                    // 金額增加（受到傷害），觸發延遲動畫
-                    console.log(
-                        `檢測到傷害：從 ${lastCost} 增加到 ${currentCost}`
-                    );
+                    // cost 增加，觸發動畫
+                    const changeMessage =
+                        eventType === 1
+                            ? `檢測到傷害 (type 1)：cost 從 ${lastCost} 增加到 ${currentCost}，血量減少`
+                            : `檢測到增長 (type 2)：cost 從 ${lastCost} 增加到 ${currentCost}，血量增加`;
+
+                    console.log(changeMessage);
 
                     // 立即更新 healthBar
                     updateSpecificHealthBarFromAPI(
@@ -124,7 +144,7 @@ function updateHealthBar(eventData) {
                         );
                     }, 500);
                 } else {
-                    // 沒有傷害，直接同步更新（例如回血）
+                    // 沒有變化，直接同步更新
                     healthBar.style.width = `${healthPercentage}%`;
                     healthBarGd.style.width = `${healthPercentage}%`;
                     updateHealthBarColor(healthBar, healthPercentage);
@@ -135,7 +155,7 @@ function updateHealthBar(eventData) {
 
             // 更新文字
             if (healthText) {
-                healthText.textContent = `${currentHealth.toLocaleString()}/${totalAmount.toLocaleString()}`;
+                healthText.textContent = `${currentHealth.toLocaleString()}/${maxHealth.toLocaleString()}`;
             }
         }
 
