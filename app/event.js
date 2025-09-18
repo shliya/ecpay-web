@@ -43,7 +43,7 @@ async function initializeHealthBar() {
 
         let updateInterval = setInterval(
             () => loadHealthData(merchantId, id),
-            5000 // 每5秒更新一次
+            1000 // 每秒更新一次
         );
 
         healthBarState.updateInterval = updateInterval;
@@ -83,13 +83,11 @@ function updateHealthBar(eventData) {
 
         if (eventType === 1) {
             // type = 1 (UP): 倒扣邏輯，血量從滿血開始被扣除
-            // 顯示：剩餘血量 = totalAmount - cost
             maxHealth = totalAmount;
             currentHealth = Math.max(0, totalAmount - currentCost);
             healthPercentage = Math.max(0, (currentHealth / maxHealth) * 100);
-        } else if (eventType === 2) {
+        } else if (eventType === 2 || eventType === 3) {
             // type = 2 (DOWN): 正常加法邏輯，血量從 0 開始增加
-            // 顯示：當前血量 = cost
             maxHealth = totalAmount;
             currentHealth = Math.min(currentCost, totalAmount);
             healthPercentage = Math.max(0, (currentHealth / maxHealth) * 100);

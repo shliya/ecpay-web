@@ -16,13 +16,13 @@ async function createDonation(row, { transaction } = {}) {
 
         row.message = '';
 
-        if (
-            row.message === '' &&
-            SPECIAL_MESSAGE_CONDITION_MERCHANTS.includes(row.merchantId)
-        ) {
+        if (row.message === '') {
             await FundraisingEventsStore.batchUpdateFundraisingEventByMerchantId(
                 row.merchantId,
-                { cost: row.cost, type: ENUM_FUNDRAISING_EVENT_TYPE.UP }
+                {
+                    cost: row.cost,
+                    type: ENUM_FUNDRAISING_EVENT_TYPE.BLOOD_PRESSURE,
+                }
             );
         } else {
             await FundraisingEventsStore.batchUpdateFundraisingEventByMerchantId(

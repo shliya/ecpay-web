@@ -49,7 +49,6 @@ async function initializeEventList() {
     }
 }
 
-// 綁定事件監聽器
 function bindEventListeners() {
     const refreshBtn = document.getElementById('refreshBtn');
     const createBtn = document.getElementById('createBtn');
@@ -77,7 +76,6 @@ function bindEventListeners() {
         createForm.addEventListener('submit', handleCreateEvent);
     }
 
-    // 點擊模態背景關閉
     const modal = document.getElementById('createModal');
     if (modal) {
         modal.addEventListener('click', e => {
@@ -88,7 +86,6 @@ function bindEventListeners() {
     }
 }
 
-// 載入事件列表
 async function loadEventList(merchantId) {
     if (eventListState.isLoading) return;
 
@@ -111,15 +108,14 @@ async function loadEventList(merchantId) {
 
         renderEventList(eventListState.events);
     } catch (error) {
-        console.error('載入事件列表失敗:', error);
-        showError('載入事件列表失敗，請稍後再試');
+        console.error('載入斗內活動列表失敗:', error);
+        showError('載入斗內活動列表失敗，請稍後再試');
     } finally {
         eventListState.isLoading = false;
         showLoading(false);
     }
 }
 
-// 渲染事件列表
 function renderEventList(events) {
     const eventListContainer = document.getElementById('eventList');
 
@@ -131,7 +127,7 @@ function renderEventList(events) {
     if (!events || events.length === 0) {
         eventListContainer.innerHTML = `
             <div class="empty-state">
-                <p>目前沒有募資活動</p>
+                <p>目前沒有斗內活動</p>
             </div>
         `;
         return;
@@ -153,12 +149,10 @@ function createEventCard(event) {
     let currentHealth, healthPercentage;
 
     if (eventType === 1) {
-        // type = 1 (UP): 倒扣邏輯
         currentHealth = Math.max(0, totalAmount - currentCost);
         healthPercentage =
             totalAmount > 0 ? (currentHealth / totalAmount) * 100 : 0;
     } else {
-        // type = 2 (DOWN): 正常邏輯
         currentHealth = Math.min(currentCost, totalAmount);
         healthPercentage =
             totalAmount > 0 ? (currentHealth / totalAmount) * 100 : 0;
@@ -266,10 +260,8 @@ function handleShowCreateModal() {
     const form = document.getElementById('createEventForm');
 
     if (modal && form) {
-        // 重置表單
         form.reset();
 
-        // 設定預設日期
         const today = new Date();
         const nextMonth = new Date(
             today.getFullYear(),
@@ -284,7 +276,6 @@ function handleShowCreateModal() {
 
         modal.style.display = 'block';
 
-        // 聚焦到活動名稱輸入框
         setTimeout(() => {
             document.getElementById('eventName').focus();
         }, 100);
@@ -308,7 +299,6 @@ async function handleCreateEvent(event) {
     const form = event.target;
     const formData = new FormData(form);
 
-    // 建立請求資料
     const eventData = {
         merchantId: eventListState.merchantId,
         eventName: formData.get('eventName').trim(),
@@ -436,7 +426,6 @@ function hideError() {
 
 // 顯示成功訊息
 function showSuccess(message) {
-    // 可以使用現有的錯誤元素來顯示成功訊息
     const errorElement = document.getElementById('errorMessage');
     if (errorElement) {
         errorElement.textContent = message;
@@ -445,10 +434,8 @@ function showSuccess(message) {
         errorElement.style.color = '#2e7d32';
         errorElement.style.borderLeftColor = '#4caf50';
 
-        // 3秒後自動隱藏
         setTimeout(() => {
             hideError();
-            // 重置樣式
             errorElement.style.backgroundColor = '#ffebee';
             errorElement.style.color = '#c62828';
             errorElement.style.borderLeftColor = '#c62828';
@@ -456,7 +443,6 @@ function showSuccess(message) {
     }
 }
 
-// 格式化日期
 function formatDate(dateString) {
     if (!dateString) return '未設定';
 
@@ -472,7 +458,6 @@ function formatDate(dateString) {
     }
 }
 
-// 格式化日期供 input[type="date"] 使用
 function formatDateForInput(date) {
     if (!date) return '';
 

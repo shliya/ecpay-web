@@ -23,7 +23,7 @@ const FundraisingEvents = sequelize.define(
             validate: {
                 isIn: {
                     args: [Object.values(ENUM_FUNDRAISING_EVENT_TYPE)],
-                    msg: 'type 必須是有效的募資活動類型',
+                    msg: '類型錯誤',
                 },
             },
         },
@@ -59,7 +59,7 @@ const FundraisingEvents = sequelize.define(
             validate: {
                 isIn: {
                     args: [Object.values(ENUM_FUNDRAISING_EVENT_STATUS)],
-                    msg: 'status 必須是有效的募資活動狀態',
+                    msg: '狀態錯誤',
                 },
             },
         },
