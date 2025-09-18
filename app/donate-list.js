@@ -38,7 +38,8 @@ async function initializeApp() {
     isInitialized = true;
     console.log('Initializing app...');
     const urlId = getQueryParam('id');
-    const merchantId = urlId || localStorage.getItem('merchantId');
+    const urlMerchantId = getQueryParam('merchantId');
+    const merchantId = urlMerchantId || localStorage.getItem('merchantId');
 
     if (merchantId === 'null' || merchantId === null) {
         window.location.href = '/login.html';
