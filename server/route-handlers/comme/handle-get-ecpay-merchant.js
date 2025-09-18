@@ -5,7 +5,10 @@ module.exports = async (req, res) => {
         const { merchantId } = req.params;
 
         try {
-            await getEcpayConfigByMerchantId(merchantId);
+            const result = await getEcpayConfigByMerchantId(merchantId);
+            if (result === null) {
+                throw new Error('商店不存在');
+            }
             res.json({ exists: true });
         } catch {
             res.json({ exists: false });

@@ -19,6 +19,9 @@ import './css/login.css';
             if (response.ok && result.exists) {
                 localStorage.setItem('merchantId', merchantId);
                 window.location.href = `index.html?id=${merchantId}`;
+            } else {
+                alert('商店不存在，給我去填那個很麻煩的綠界資料');
+                window.location.href = 'ecpay-setting.html';
             }
         } catch (error) {
             messageDiv.className = 'message error';
