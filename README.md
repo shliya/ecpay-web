@@ -27,7 +27,17 @@
 
     ![綠界後台設定](ex1.png)
 
-2. **使用功能**
+2. **因為我忘記補這個了**
+
+    綠界後台
+
+    付款完成通知回傳網址
+    輸入https://ecpay-web.onrender.com/api/v1/comme/ecpay/id=
+
+    id=你的商店代號
+    ![首頁](image.png)
+
+3. **使用功能**
 
     - **首頁**
       ![首頁](ex-index.png)
