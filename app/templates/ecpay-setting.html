@@ -1,23 +1,23 @@
-<!-- public/ecpay-setting.html -->
 <!doctype html>
 <html lang="zh-TW">
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <link rel="stylesheet" href="../css/common.css" />
         <title>ECPay 設定</title>
+        <link rel="stylesheet" href="../css/ecpay-setting.css" />
     </head>
     <body>
         <div class="setting-container">
             <h1>ECPay 金流設定</h1>
             <form id="ecpaySettingForm">
                 <div class="form-group">
-                    <label for="merchantId">特店編號</label>
+                    <label for="merchantId">商店代號</label>
                     <input
                         type="text"
                         id="merchantId"
                         name="merchantId"
                         required
+                        placeholder="請輸入商店代號"
                     />
                 </div>
                 <div class="form-group">
@@ -27,17 +27,24 @@
                         id="hashKey"
                         name="hashKey"
                         required
+                        placeholder="請輸入 Hash Key"
                     />
                 </div>
                 <div class="form-group">
                     <label for="hashIV">Hash IV</label>
-                    <input type="password" id="hashIV" name="hashIV" required />
+                    <input
+                        type="password"
+                        id="hashIV"
+                        name="hashIV"
+                        required
+                        placeholder="請輸入 Hash IV"
+                    />
                 </div>
                 <button type="submit" class="btn-submit">儲存設定</button>
             </form>
             <div id="message" class="message" style="display: none"></div>
         </div>
 
-        <script></script>
+        <script type="module" src="../ecpay-setting.js"></script>
     </body>
 </html>

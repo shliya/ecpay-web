@@ -50,11 +50,16 @@ async function initializeEventList() {
 }
 
 function bindEventListeners() {
+    const homeBtn = document.getElementById('homeBtn');
     const refreshBtn = document.getElementById('refreshBtn');
     const createBtn = document.getElementById('createBtn');
     const closeModal = document.getElementById('closeModal');
     const cancelBtn = document.getElementById('cancelBtn');
     const createForm = document.getElementById('createEventForm');
+
+    if (homeBtn) {
+        homeBtn.addEventListener('click', handleGoHome);
+    }
 
     if (refreshBtn) {
         refreshBtn.addEventListener('click', handleRefresh);
@@ -245,6 +250,22 @@ function handleViewEvent(event) {
         const eventUrl = `event.html?merchantId=${encodeURIComponent(merchantId)}&id=${encodeURIComponent(eventId)}`;
         window.open(eventUrl, '_blank');
     }
+}
+
+// 處理回首頁
+function handleGoHome() {
+    if (!eventListState.merchantId) {
+        console.warn('No merchant ID found, redirecting to login');
+        window.location.href = 'login.html';
+        return;
+    }
+
+    console.log(
+        'Navigating to home with merchantId:',
+        eventListState.merchantId
+    );
+    const homeUrl = `index.html?merchantId=${encodeURIComponent(eventListState.merchantId)}`;
+    window.location.href = homeUrl;
 }
 
 // 處理重新整理

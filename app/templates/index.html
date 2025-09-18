@@ -3,15 +3,52 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>綠界名單</title>
+        <title>綠界管理中心</title>
+        <link rel="stylesheet" href="../css/index.css" />
     </head>
     <body>
         <div class="container">
             <div class="header">
-                <!-- <h1>綠界名單</h1>
-                <button id="logoutBtn" class="btn btn-logout">登出</button> -->
+                <h1>鼠做小工具</h1>
+                <div class="merchant-info">
+                    <span>商店代號：</span>
+                    <span id="merchantId" class="merchant-id">載入中...</span>
+                </div>
             </div>
-            <div class="donation-list" id="donationList"></div>
+
+            <div class="main-content">
+                <div class="welcome-section">
+                    <p>下面是目前的功能</p>
+                </div>
+
+                <div class="feature-cards">
+                    <div class="feature-card" id="donateCard">
+                        <div class="card-icon"><img alt="尋求富婆" /></div>
+                        <div class="card-content">
+                            <h3>綠界斗內條</h3>
+                            <p>現在只有綠界的嗚嗚</p>
+                        </div>
+                        <div class="card-arrow">→</div>
+                    </div>
+
+                    <div class="feature-card" id="eventCard">
+                        <div class="card-icon"><img alt="尋求富婆" /></div>
+                        <div class="card-content">
+                            <h3>血條/募資條/血壓條</h3>
+                            <p>現在只有綠...</p>
+                        </div>
+                        <div class="card-arrow">→</div>
+                    </div>
+                </div>
+            </div>
+            <div class="footer">
+                <p>不介意可以給鼠一點錢拉嘿嘿</p>
+                <a target="_blank" href="https://p.ecpay.com.tw/9C1A29E"
+                    >養我</a
+                >
+            </div>
         </div>
+
+        <script type="module" src="../index.js"></script>
     </body>
 </html>

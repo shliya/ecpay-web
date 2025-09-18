@@ -11,6 +11,29 @@ jobs:
         steps:
             - name: Keep Alive
               run: |
-                  curl -X GET ${{ secrets.RENDER_URL }}/api/v1/health
+                  echo "開始執行 Keep Alive 工作流程..."
+                  echo "當前時間: $(date)"
+
+                  # 檢查 URL 是否存在
+                  if [ -z "${{ secrets.RENDER_URL }}" ]; then
+                    echo "錯誤: RENDER_URL 未設定"
+                    exit 1
+                  fi
+
+                  # 發送請求並記錄回應
+                  response=$(curl -s -w "\n%{http_code}" -X GET ${{ secrets.RENDER_URL }}/api/v1/health)
+                  status_code=$(echo "$response" | tail -n1)
+                  body=$(echo "$response" | sed '$d')
+
+                  echo "回應狀態碼: $status_code"
+                  echo "回應內容: $body"
+
+                  # 檢查回應
+                  if [ "$status_code" -eq 200 ]; then
+                    echo "服務正常運作"
+                  else
+                    echo "警告: 服務回應異常"
+                    exit 1
+                  fi
               env:
-                  RENDER_URL: ${{ secrets.RENDER_URL }} # 使用 GitHub Secrets 儲存 URL
+                  RENDER_URL: ${{ secrets.RENDER_URL }}

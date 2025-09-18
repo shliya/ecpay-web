@@ -11,6 +11,7 @@ module.exports = {
         ecpaySettings: path.resolve(__dirname, 'app/ecpay-setting.js'),
         event: path.resolve(__dirname, 'app/event.js'),
         eventList: path.resolve(__dirname, 'app/event-list.js'),
+        donateList: path.resolve(__dirname, 'app/donate-list.js'),
     },
     output: {
         path: path.resolve(__dirname, 'public'),
@@ -27,6 +28,13 @@ module.exports = {
             {
                 test: /\.css$/,
                 use: [MiniCssExtractPlugin.loader, 'css-loader'],
+            },
+            {
+                test: /\.(png|jpe?g|gif|svg)$/i,
+                type: 'asset/resource',
+                generator: {
+                    filename: 'images/[name].[contenthash][ext]',
+                },
             },
         ],
     },
@@ -90,6 +98,18 @@ module.exports = {
             template: path.resolve(__dirname, 'app/templates/event-list.html'),
             filename: 'event-list.html',
             chunks: ['eventList'],
+            inject: true,
+            scriptLoading: 'defer',
+            minify: {
+                removeComments: true,
+                collapseWhitespace: true,
+            },
+            cache: false,
+        }),
+        new HtmlWebpackPlugin({
+            template: path.resolve(__dirname, 'app/templates/donate-list.html'),
+            filename: 'donate-list.html',
+            chunks: ['donateList'],
             inject: true,
             scriptLoading: 'defer',
             minify: {

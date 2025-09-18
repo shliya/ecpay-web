@@ -43,7 +43,8 @@
             "index.js",
             "preload.js",
             "node_modules/**/*",
-            "build/**/*"
+            "build/**/*",
+            "assest/**/*"
         ],
         "directories": {
             "output": "release",

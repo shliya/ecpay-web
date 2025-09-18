@@ -2,21 +2,20 @@
 // 使用一個標記來防止重複初始化
 let isInitialized = false;
 
-// 在檔案最上方引入 CSS
+// 在檔案最上方引入 CSS 和圖片
 import './css/common.css';
-import './css/list.css';
+import './css/index.css';
+import richWomanImg from './assest/13.png';
 
-// 儲存動畫狀態
-let donationScrollState = {
-    inner: null,
-    cardCount: 0,
-    animationStarted: false,
-    lastData: [],
+// 儲存主頁狀態
+let indexState = {
+    merchantId: null,
+    isLoading: false,
 };
 
-async function initializeApp() {
+async function initializeIndex() {
     if (isInitialized) {
-        console.log('Already initialized');
+        console.log('Index already initialized');
         return;
     }
 
@@ -25,278 +24,233 @@ async function initializeApp() {
         return url.searchParams.get(name);
     }
 
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', () => {
-            // 清除 localStorage 中的 merchantId
-            localStorage.removeItem('merchantId');
-            // 跳轉到登入頁面
-            window.location.href = '/login.html';
-        });
-    }
-
     isInitialized = true;
-    console.log('Initializing app...');
-    const urlId = getQueryParam('id');
-    const merchantId = urlId || localStorage.getItem('merchantId');
+    console.log('Initializing index...');
+
+    // 從 URL 或 localStorage 獲取 merchantId
+    const urlMerchantId = getQueryParam('merchantId');
+    const merchantId = urlMerchantId || localStorage.getItem('merchantId');
 
     if (merchantId === 'null' || merchantId === null) {
-        window.location.href = '/login.html';
+        console.error('No merchant ID found, redirecting to login');
+        redirectToLogin();
         return;
     }
 
-    try {
-        const checkResponse = await fetch(
-            `/api/v1/comme/ecpay/check-merchant/id=${merchantId}`
-        );
-        const checkResult = await checkResponse.json();
-        await loadDonations(merchantId);
+    indexState.merchantId = merchantId;
 
-        let updateInterval = setInterval(
-            () => loadDonations(merchantId),
-            10000
-        );
+    // 顯示 merchant ID
+    displayMerchantId(merchantId);
 
-        window.addEventListener('beforeunload', () => {
-            if (updateInterval) {
-                clearInterval(updateInterval);
-            }
-        });
-    } catch (error) {
-        console.error('初始化失敗:', error);
+    // 設置圖片
+    setupImages();
+
+    // 綁定事件監聽器
+    bindEventListeners();
+
+    // 儲存到 localStorage
+    localStorage.setItem('merchantId', merchantId);
+
+    console.log('Index initialized successfully');
+}
+
+function displayMerchantId(merchantId) {
+    const merchantIdElement = document.getElementById('merchantId');
+    if (merchantIdElement) {
+        merchantIdElement.textContent = merchantId;
+        merchantIdElement.classList.remove('loading');
     }
 }
 
-// 將載入捐款資料的邏輯抽出成獨立函數
-async function loadDonations(merchantId) {
-    try {
-        console.log(`Loading donations for merchant ${merchantId}...`);
-        const response = await fetch(
-            `/api/v1/comme/ecpay/donations/id=${merchantId}`
-        );
-        const donations = await response.json();
-        updateDonationList(donations);
-    } catch (error) {
-        console.error('載入斗內資料失敗:', error);
+function setupImages() {
+    // 設置卡片圖片
+    const cardImages = document.querySelectorAll('.card-icon img');
+    cardImages.forEach(img => {
+        img.src = richWomanImg;
+    });
+}
+
+function bindEventListeners() {
+    // 綠界斗內條卡片點擊事件
+    const donateCard = document.getElementById('donateCard');
+    if (donateCard) {
+        donateCard.addEventListener('click', handleDonateCardClick);
     }
-}
 
-// 更新畫面的函數
-function updateDonationList(donations) {
-    try {
-        const donationList = document.getElementById('donationList');
-        if (!donationList) return;
-
-        // 如果已經有 inner，且卡片數量沒變（2倍資料），直接更新內容
-        let inner = donationScrollState.inner;
-        const groupSize = 5;
-        const needRebuild =
-            !inner || inner.children.length !== donations.length * 2;
-
-        if (needRebuild) {
-            donationList.innerHTML = '';
-            inner = document.createElement('div');
-            inner.className = 'donation-list-inner';
-            // 渲染所有卡片（原始資料）
-            donations.forEach(donation => {
-                inner.appendChild(createDonationCard(donation));
-            });
-            // 複製整份資料到最後
-            // donations.forEach(donation => {
-            //     inner.appendChild(createDonationCard(donation));
-            // });
-            donationList.appendChild(inner);
-            donationScrollState.inner = inner;
-            donationScrollState.cardCount = donations.length;
-            donationScrollState.lastData = donations;
-            donationScrollState.animationStarted = false;
-        } else {
-            // 只更新內容，不重建 DOM
-            for (let i = 0; i < donations.length; i++) {
-                updateDonationCard(inner.children[i], donations[i]);
-            }
-            // 複製區塊也要更新
-            // for (let i = 0; i < donations.length; i++) {
-            //     updateDonationCard(
-            //         inner.children[donations.length + i],
-            //         donations[i]
-            //     );
-            // }
-            donationScrollState.lastData = donations;
-        }
-
-        // 啟動連續平滑滾動（只啟動一次）
-        // if (!donationScrollState.animationStarted) {
-        //     startDonationContinuousScroll(inner, donations.length);
-        //     donationScrollState.animationStarted = true;
-        // }
-    } catch (error) {
-        console.error('更新畫面失敗:', error);
+    // 斗內活動卡片點擊事件
+    const eventCard = document.getElementById('eventCard');
+    if (eventCard) {
+        eventCard.addEventListener('click', handleEventCardClick);
     }
-}
 
-function formatDate(dateString) {
-    const date = new Date(dateString);
-    const taiwanDate = new Date(date.getTime() + 8 * 60 * 60 * 1000); // 轉換為台灣時區
-
-    const year = taiwanDate.getUTCFullYear();
-    const month = String(taiwanDate.getUTCMonth() + 1).padStart(2, '0');
-    const day = String(taiwanDate.getUTCDate()).padStart(2, '0');
-    const hours = String(taiwanDate.getUTCHours()).padStart(2, '0');
-    const minutes = String(taiwanDate.getUTCMinutes()).padStart(2, '0');
-
-    return `${year}-${month}-${day} ${hours}:${minutes}`;
-}
-
-function createDonationCard(donation) {
-    const amount = parseInt(donation.cost) || 0;
-    const message = donation.message || '';
-    const tier = getCustomTierClass(amount);
-    const createdAt = formatDate(donation.created_at || '');
-    console.log(createdAt);
-
-    const card = document.createElement('div');
-    card.className = 'custom-donation-card';
-
-    const header = document.createElement('div');
-    header.className = `custom-donation-header custom-tier-header-${tier}`;
-
-    const idSpan = document.createElement('span');
-    idSpan.className = 'custom-donation-id';
-    idSpan.textContent = donation.name ? `${donation.name}` : 'ID匿名';
-
-    const amountSpan = document.createElement('span');
-    amountSpan.className = 'custom-donation-amount';
-    amountSpan.textContent = formatAmount(amount);
-
-    header.appendChild(idSpan);
-    header.appendChild(amountSpan);
-
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `custom-donation-message custom-tier-message-${tier}`;
-
-    const messageContent = document.createElement('div');
-    messageContent.className = 'message-content';
-    messageContent.textContent = message ? `${message}` : '';
-
-    const timeSpan = document.createElement('span');
-    timeSpan.className = 'custom-donation-time';
-    timeSpan.textContent = createdAt;
-
-    messageDiv.appendChild(messageContent);
-    messageDiv.appendChild(timeSpan);
-
-    card.appendChild(header);
-    card.appendChild(messageDiv);
-    return card;
-}
-
-function updateDonationCard(card, donation) {
-    const amount = parseInt(donation.cost) || 0;
-    const message = donation.message || '';
-    const tier = getCustomTierClass(amount);
-
-    card.className = 'custom-donation-card';
-    card.querySelector('.custom-donation-header').className =
-        `custom-donation-header custom-tier-header-${tier}`;
-    card.querySelector('.custom-donation-id').textContent = donation.name
-        ? `${donation.name}`
-        : 'ID匿名';
-    card.querySelector('.custom-donation-amount').textContent =
-        formatAmount(amount);
-    card.querySelector('.custom-donation-message').className =
-        `custom-donation-message custom-tier-message-${tier}`;
-    card.querySelector('.custom-donation-message').textContent = message
-        ? `${message}`
-        : '';
-}
-
-// 連續平滑滾動
-function startDonationContinuousScroll(inner, dataLength) {
-    const cardEls = inner.getElementsByClassName('custom-donation-card');
-    if (cardEls.length === 0) return;
-
-    const groupSize = 5;
-    // 用 getBoundingClientRect 取得精確高度
-    const cardHeight = Math.round(cardEls[0].getBoundingClientRect().height); // 確保是整數
-    const totalCards = cardEls.length;
-    let scrollY = 0;
-
-    // 設定外層高度
-    const container = inner.parentElement;
-    container.style.overflow = 'hidden';
-    container.style.position = 'relative';
-    container.style.height = `${cardHeight * groupSize}px`;
-
-    // 初始化位置
-    inner.style.transition = 'none';
-    inner.style.transform = 'translateY(0)';
-
-    let lastTimestamp = null;
-    const speed = 30; // px/秒，可調整速度
-    const resetPoint = cardHeight * dataLength + 70; // 重置點：原始資料的總高度
-
-    function animate(timestamp) {
-        if (!lastTimestamp) lastTimestamp = timestamp;
-        const delta = timestamp - lastTimestamp;
-        lastTimestamp = timestamp;
-
-        // 計算新的滾動位置
-        scrollY += (speed * delta) / 900;
-
-        // 確保滾動位置是整數
-        const currentScroll = Math.floor(scrollY);
-
-        // 檢查是否需要重置
-        if (currentScroll >= resetPoint) {
-            // 計算超出的距離
-            const overflow = currentScroll - resetPoint;
-            // 重置位置，但保留超出的距離，確保平滑
-            scrollY = overflow;
-            inner.style.transform = `translateY(-${overflow}px)`;
-        } else {
-            inner.style.transform = `translateY(-${currentScroll}px)`;
-        }
-
-        requestAnimationFrame(animate);
+    // 登出按鈕
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', handleLogout);
     }
-    requestAnimationFrame(animate);
-}
 
-// 格式化金額顯示
-function formatAmount(amount) {
-    return new Intl.NumberFormat('zh-TW', {
-        style: 'currency',
-        currency: 'TWD',
-    }).format(amount);
-}
-
-function getCustomTierClass(amount) {
-    if (amount >= 1500) return 7;
-    if (amount >= 750) return 6;
-    if (amount >= 300) return 5;
-    if (amount >= 150) return 4;
-    if (amount >= 75) return 3;
-    if (amount >= 30) return 2;
-    if (amount >= 15) return 1;
-    return 1;
-}
-
-// 只有在 DOMContentLoaded 時初始化一次
-document.addEventListener('DOMContentLoaded', initializeApp, { once: true });
-
-// 如果有其他事件監聽器，確保它們也只註冊一次
-function initializeEventListeners() {
+    // 設定按鈕
     const settingsBtn = document.getElementById('settingsBtn');
     if (settingsBtn) {
-        // 移除舊的事件監聽器（如果有的話）
-        settingsBtn.replaceWith(settingsBtn.cloneNode(true));
-        const newSettingsBtn = document.getElementById('settingsBtn');
-        newSettingsBtn.addEventListener('click', () => {
-            const merchantId = sessionStorage.getItem('merchantId');
-            if (merchantId) {
-                window.location.href = `/ecpay-setting.html`;
-            }
-        });
+        settingsBtn.addEventListener('click', handleSettings);
     }
 }
+
+function handleDonateCardClick() {
+    if (!indexState.merchantId) {
+        showError('商店代號不存在，請重新登入');
+        return;
+    }
+
+    console.log(
+        'Navigating to donate-list with merchantId:',
+        indexState.merchantId
+    );
+    const donateUrl = `donate-list.html?merchantId=${encodeURIComponent(indexState.merchantId)}`;
+    window.open(donateUrl, '_blank');
+}
+
+function handleEventCardClick() {
+    if (!indexState.merchantId) {
+        showError('商店代號不存在，請重新登入');
+        return;
+    }
+
+    console.log(
+        'Navigating to event-list with merchantId:',
+        indexState.merchantId
+    );
+    const eventUrl = `event-list.html?merchantId=${encodeURIComponent(indexState.merchantId)}`;
+    window.location.href = eventUrl;
+}
+
+function handleLogout() {
+    // 清除儲存的資料
+    localStorage.removeItem('merchantId');
+
+    // 顯示確認訊息
+    if (confirm('確定要登出嗎？')) {
+        redirectToLogin();
+    }
+}
+
+function handleSettings() {
+    console.log('Navigating to settings');
+    window.location.href = 'ecpay-setting.html';
+}
+
+function redirectToLogin() {
+    console.log('Redirecting to login');
+    window.location.href = 'login.html';
+}
+
+function showError(message) {
+    // 創建臨時錯誤訊息元素
+    const errorElement = document.createElement('div');
+    errorElement.className = 'error-message';
+    errorElement.textContent = message;
+    errorElement.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background-color: #ffebee;
+        color: #c62828;
+        padding: 15px 20px;
+        border-radius: 6px;
+        border-left: 4px solid #c62828;
+        z-index: 1000;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        animation: slideIn 0.3s ease-out;
+    `;
+
+    // 添加動畫樣式
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+    `;
+    document.head.appendChild(style);
+
+    document.body.appendChild(errorElement);
+
+    // 3秒後自動移除
+    setTimeout(() => {
+        if (errorElement.parentNode) {
+            errorElement.parentNode.removeChild(errorElement);
+        }
+        if (style.parentNode) {
+            style.parentNode.removeChild(style);
+        }
+    }, 3000);
+}
+
+// 添加卡片點擊效果
+function addCardClickEffect(element) {
+    element.addEventListener('mousedown', () => {
+        element.style.transform = 'translateY(-3px) scale(0.98)';
+    });
+
+    element.addEventListener('mouseup', () => {
+        element.style.transform = 'translateY(-5px) scale(1)';
+    });
+
+    element.addEventListener('mouseleave', () => {
+        element.style.transform = 'translateY(0) scale(1)';
+    });
+}
+
+// 頁面載入完成時初始化
+document.addEventListener(
+    'DOMContentLoaded',
+    () => {
+        initializeIndex();
+
+        // 為卡片添加點擊效果
+        const cards = document.querySelectorAll('.feature-card');
+        cards.forEach(card => {
+            addCardClickEffect(card);
+        });
+    },
+    { once: true }
+);
+
+// 處理頁面可見性變化
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && indexState.merchantId) {
+        console.log('Page became visible, refreshing merchant info');
+        displayMerchantId(indexState.merchantId);
+    }
+});
+
+// 處理瀏覽器返回事件
+window.addEventListener('popstate', event => {
+    console.log('Browser back/forward detected');
+    // 重新初始化以確保狀態正確
+    isInitialized = false;
+    initializeIndex();
+});
+
+// 防止意外離開頁面（開發時可移除）
+window.addEventListener('beforeunload', event => {
+    if (indexState.merchantId) {
+        // 在開發環境下可以註解掉這行
+        // event.preventDefault();
+        // event.returnValue = '';
+    }
+});
+
+// 導出一些有用的函數供其他模組使用
+window.indexUtils = {
+    getMerchantId: () => indexState.merchantId,
+    navigateToDonate: handleDonateCardClick,
+    navigateToEvent: handleEventCardClick,
+    logout: handleLogout,
+};
