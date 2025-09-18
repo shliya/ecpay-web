@@ -9,4 +9,5 @@ module.exports = {
     handleUpdateFundraisingEventRequest: require('./handle-update-fundraising-event'),
     handleDisableFundraisingEventRequest: require('./handle-disable-fundraising-event'),
     handleEnableFundraisingEventRequest: require('./handle-enable-fundraising-event'),
+    handleExpireEventsRequest: require('./handle-expire-events'),
 };

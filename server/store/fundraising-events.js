@@ -1,4 +1,5 @@
 const sequelize = require('../config/database');
+const { Op } = require('sequelize');
 const FundraisingEvents = require('../model/fundraising-events');
 const { ENUM_FUNDRAISING_EVENT_STATUS } = require('../lib/enum');
 
@@ -99,6 +100,26 @@ async function enableFundraisingEventByIdAndMerchantId(id, merchantId) {
     );
 }
 
+async function expireOutdatedEvents() {
+    const currentDate = new Date();
+
+    const [updatedRowsCount] = await FundraisingEvents.update(
+        {
+            status: ENUM_FUNDRAISING_EVENT_STATUS.INACTIVE,
+        },
+        {
+            where: {
+                status: ENUM_FUNDRAISING_EVENT_STATUS.ACTIVE,
+                endMonth: {
+                    [Op.lt]: currentDate,
+                },
+            },
+        }
+    );
+
+    return updatedRowsCount;
+}
+
 module.exports = {
     getFundraisingEventsByMerchantId,
     createFundraisingEvent,
@@ -108,4 +129,5 @@ module.exports = {
     batchUpdateFundraisingEventByMerchantId,
     disableFundraisingEventByIdAndMerchantId,
     enableFundraisingEventByIdAndMerchantId,
+    expireOutdatedEvents,
 };

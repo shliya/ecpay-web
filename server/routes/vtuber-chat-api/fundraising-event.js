@@ -7,6 +7,7 @@ const {
     handleUpdateFundraisingEventRequest,
     handleDisableFundraisingEventRequest,
     handleEnableFundraisingEventRequest,
+    handleExpireEventsRequest,
 } = require('../../route-handlers/comme');
 
 router.get('/merchantId=:merchantId', handleGetFundraisingEventsRequest);
@@ -24,5 +25,8 @@ router.patch(
     '/id=:id/merchantId=:merchantId/status/enable',
     handleEnableFundraisingEventRequest
 );
+
+// 手動觸發過期檢查
+router.post('/expire-check', handleExpireEventsRequest);
 
 module.exports = router;

@@ -6,6 +6,7 @@ const server = express();
 const PORT = 3001;
 const apiRoute = require('./server/routes/vtuber-chat-api/index');
 const cors = require('cors');
+const { scheduler } = require('./server/lib/scheduler');
 
 server.use(cors());
 server.use(express.json());
@@ -163,6 +164,10 @@ app.whenReady().then(async () => {
     try {
         await initialize();
         await startServer();
+
+        // 啟動定時任務排程器
+        scheduler.start();
+
         createMainWindow();
     } catch (error) {
         console.error('應用程式啟動失敗:', error);
@@ -172,6 +177,9 @@ app.whenReady().then(async () => {
 
 // 關閉時清理
 app.on('window-all-closed', () => {
+    // 停止定時任務排程器
+    scheduler.stop();
+
     if (expressServer) {
         expressServer.close(() => {
             console.log('Express 伺服器已關閉');
@@ -180,4 +188,9 @@ app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
         app.quit();
     }
+});
+
+app.on('before-quit', () => {
+    // 應用程式即將退出時停止排程器
+    scheduler.stop();
 });
