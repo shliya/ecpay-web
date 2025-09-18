@@ -27,7 +27,7 @@ module.exports = async (req, res) => {
             OrderInfo,
             PatronName,
             PatronNote,
-        } = decryptDataAndUrlDecode(Data, hashKey, hashIV);
+        } = decryptDataAndUrlDecode(Data, hashKey.trim(), hashIV.trim());
 
         if (RtnCode === 1) {
             await createDonation({
