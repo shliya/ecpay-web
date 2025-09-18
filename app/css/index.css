@@ -197,6 +197,15 @@ body {
     background-color: #555;
 }
 
+.btn-logout {
+    background-color: #dc2626;
+    color: white;
+}
+
+.btn-logout:hover {
+    background-color: #b91c1c;
+}
+
 /* Footer 樣式 */
 .footer {
     text-align: center;
@@ -208,7 +217,23 @@ body {
 .footer p {
     color: #666;
     font-size: 12px;
-    margin: 0;
+    margin: 0 0 8px 0;
+}
+
+.footer a {
+    color: #2196f3;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    display: inline-block;
+}
+
+.footer a:hover {
+    background-color: rgba(33, 150, 243, 0.1);
+    transform: translateY(-1px);
 }
 
 /* 載入狀態樣式 */

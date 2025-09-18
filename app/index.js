@@ -125,11 +125,15 @@ function handleEventCardClick() {
 }
 
 function handleLogout() {
-    // 清除儲存的資料
-    localStorage.removeItem('merchantId');
-
     // 顯示確認訊息
     if (confirm('確定要登出嗎？')) {
+        // 清除儲存的資料
+        localStorage.removeItem('merchantId');
+
+        // 清除當前狀態
+        indexState.merchantId = null;
+
+        console.log('User logged out, clearing session data');
         redirectToLogin();
     }
 }
