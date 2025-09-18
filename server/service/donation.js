@@ -14,9 +14,10 @@ async function createDonation(row, { transaction } = {}) {
             transaction: txn,
         });
 
-        row.message = '';
-
-        if (row.message === '') {
+        if (
+            row.message === '' &&
+            SPECIAL_MESSAGE_CONDITION_MERCHANTS.includes(row.merchantId)
+        ) {
             await FundraisingEventsStore.batchUpdateFundraisingEventByMerchantId(
                 row.merchantId,
                 {
