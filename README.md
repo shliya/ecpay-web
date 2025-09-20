@@ -29,13 +29,18 @@
 
 2. **因為我忘記補這個了**
 
-    綠界後台
+進入綠界後台:
 
-    付款完成通知回傳網址
-    輸入https://ecpay-web.onrender.com/api/v1/comme/ecpay/id=
+- 選擇收款工具
+- 選擇實況主連結
+
+- 付款完成通知回傳網址
+  輸入https://ecpay-web.onrender.com/api/v1/comme/ecpay/id=
+
 
     id=你的商店代號
     ![首頁](image.png)
+    ![付款完成通知回傳網址](ex-url.png)
 
 3. **使用功能**
 
