@@ -1,11 +1,3 @@
-/* 載入自定義字體 */
-@font-face {
-    font-family: 'Silver';
-    src: url('../front/Silver.ttf') format('truetype');
-    font-weight: normal;
-    font-style: normal;
-}
-
 /* 血條樣式 - 適合 OBS 使用 */
 * {
     margin: 0;
@@ -15,7 +7,6 @@
 
 body {
     background: transparent;
-    font-family: 'Silver', 'Microsoft JhengHei', Arial, sans-serif;
     overflow: hidden;
 }
 
@@ -53,7 +44,6 @@ body {
 
 .health-text {
     color: white;
-    font-family: 'Silver', 'Microsoft JhengHei', Arial, sans-serif;
     font-weight: bold;
     font-size: 26px;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);

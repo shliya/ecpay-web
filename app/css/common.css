@@ -1,3 +1,12 @@
+/* 載入自定義字體 */
+@font-face {
+    font-family: 'Silver';
+    src: url('../front/Silver.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    unicode-range: U+00-7F; /* ASCII */
+}
+
 /* 基礎重置樣式 */
 * {
     margin: 0;
@@ -9,7 +18,7 @@
 body {
     background-color: transparent;
     color: #000000;
-    font-family: 'Microsoft JhengHei', '微軟正黑體', sans-serif;
+    font-family: 'Silver', -apple-system, BlinkMacSystemFont, 'Microsoft JhengHei', '微軟正黑體', 'Segoe UI', Roboto, Arial, sans-serif;
 }
 
 /* 通用容器樣式 */
