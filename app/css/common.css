@@ -1,7 +1,7 @@
 /* 載入自定義字體 */
 @font-face {
     font-family: 'Silver';
-    src: url('../front/Silver.ttf') format('truetype');
+    src: url('../front/Saira-Italic-VariableFon.ttf') format('truetype');
     font-weight: normal;
     font-style: normal;
     unicode-range: U+00-7F; /* ASCII */
@@ -18,7 +18,16 @@
 body {
     background-color: transparent;
     color: #000000;
-    font-family: 'Silver', -apple-system, BlinkMacSystemFont, 'Microsoft JhengHei', '微軟正黑體', 'Segoe UI', Roboto, Arial, sans-serif;
+    font-family:
+        'Silver',
+        -apple-system,
+        BlinkMacSystemFont,
+        'Microsoft JhengHei',
+        '微軟正黑體',
+        'Segoe UI',
+        Roboto,
+        Arial,
+        sans-serif;
 }
 
 /* 通用容器樣式 */
