@@ -18,11 +18,6 @@ async function autoExpireFundraisingEvents() {
 
         result.success = true;
         result.expiredCount = expiredCount;
-        result.message = `成功將 ${expiredCount} 個過期募資活動設為 INACTIVE`;
-
-        if (expiredCount > 0) {
-            console.log(`[${new Date().toISOString()}] ${result.message}`);
-        }
 
         return result;
     } catch (error) {

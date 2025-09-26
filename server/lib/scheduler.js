@@ -1,6 +1,4 @@
-const {
-    autoExpireFundraisingEvents,
-} = require('../service/auto-expire-fundraising-events');
+const { handleAutoExpireEventsWorker } = require('../schedule/event');
 
 class TaskScheduler {
     constructor() {
@@ -22,11 +20,11 @@ class TaskScheduler {
 
         this.scheduleTask(
             'auto-expire-events',
-            this.handleAutoExpireEvents.bind(this),
-            60 * 60 * 1000 // 1小時
+            handleAutoExpireEventsWorker,
+            // 60 * 60 * 1000 // 1小時
+            1000 // 1秒
         );
-
-        this.handleAutoExpireEvents();
+        handleAutoExpireEventsWorker;
     }
 
     /**
@@ -62,7 +60,7 @@ class TaskScheduler {
 
         const intervalId = setInterval(async () => {
             try {
-                await taskFunction();
+                await taskFunction(taskName);
             } catch (error) {
                 console.error(`任務 ${taskName} 執行失敗:`, error);
             }
@@ -70,29 +68,6 @@ class TaskScheduler {
 
         this.intervals.set(taskName, intervalId);
         console.log(`已排程任務: ${taskName}，執行間隔: ${intervalMs}ms`);
-    }
-
-    /**
-     * 處理自動過期募資活動
-     */
-    async handleAutoExpireEvents() {
-        try {
-            const result = await autoExpireFundraisingEvents();
-
-            if (result.expiredCount > 0) {
-                console.log(`[定時任務] ${result.message}`);
-            }
-        } catch (error) {
-            console.error('[定時任務] 自動過期處理失敗:', error);
-        }
-    }
-
-    /**
-     * 手動執行過期檢查
-     */
-    async runExpireCheck() {
-        console.log(`[${new Date().toISOString()}] 手動執行過期檢查`);
-        return this.handleAutoExpireEvents();
     }
 
     /**
