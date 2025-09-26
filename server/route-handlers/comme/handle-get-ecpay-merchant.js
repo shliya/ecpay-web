@@ -1,4 +1,4 @@
-const { getEcpayConfigByMerchantId } = require('../../store/ecpayConfig');
+const { getEcpayConfigByMerchantId } = require('../../store/ecpay-config');
 
 module.exports = async (req, res) => {
     try {

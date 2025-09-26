@@ -8,7 +8,7 @@ const {
     handleDisableFundraisingEventRequest,
     handleEnableFundraisingEventRequest,
     handleExpireEventsRequest,
-} = require('../../route-handlers/comme');
+} = require('../../route-handlers/fundraising-event');
 
 router.get('/merchantId=:merchantId', handleGetFundraisingEventsRequest);
 router.post('/', handleCreateFundraisingEventRequest);

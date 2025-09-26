@@ -14,6 +14,7 @@ const EcpayConfig = sequelize.define(
             type: DataTypes.STRING(50),
             allowNull: false,
             field: 'merchantId',
+            unique: true,
         },
         hashKey: {
             type: DataTypes.STRING(100),

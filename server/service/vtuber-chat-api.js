@@ -39,7 +39,7 @@ async function addDonation(vtuberName, { name, cost, message }) {
 
         return 'success';
     } catch (error) {
-        console.error('儲存打賞記錄時發生錯誤:', error);
+        console.error('儲存記錄時發生錯誤:', error);
     }
 }
 

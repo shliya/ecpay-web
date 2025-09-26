@@ -1,6 +1,5 @@
 const { decryptDataAndUrlDecode } = require('../../service/decrypt');
-const { addDonation } = require('../../service/vtuber-chat-api');
-const { getEcpayConfigByMerchantId } = require('../../store/ecpayConfig');
+const { getEcpayConfigByMerchantId } = require('../../store/ecpay-config');
 const { createDonation } = require('../../service/donation');
 
 async function getConfigByMerchantId(merchantId) {

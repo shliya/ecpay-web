@@ -21,8 +21,8 @@ class TaskScheduler {
         this.scheduleTask(
             'auto-expire-events',
             handleAutoExpireEventsWorker,
-            // 60 * 60 * 1000 // 1小時
-            1000 // 1秒
+            60 * 60 * 1000 // 1小時
+            // 1000 // 1秒
         );
         handleAutoExpireEventsWorker;
     }
