@@ -53,6 +53,10 @@ async function initializeHealthBar() {
                 clearInterval(healthBarState.updateInterval);
             }
         });
+
+        window.addEventListener('resize', () => {
+            calculateTextPositions();
+        });
     } catch (error) {
         console.error('初始化失敗:', error);
     }
@@ -100,6 +104,7 @@ function updateHealthBar(eventData) {
         const healthBar = document.getElementById('healthBar');
         const healthBarGd = document.getElementById('healthBarGd');
         const healthText = document.getElementById('healthText');
+        const healthTitle = document.getElementById('healthTitle');
 
         if (healthBar && healthBarGd) {
             // 檢查是否是第一次初始化
@@ -155,6 +160,10 @@ function updateHealthBar(eventData) {
             if (healthText) {
                 healthText.textContent = `${currentHealth.toLocaleString()}/${maxHealth.toLocaleString()}`;
             }
+            if (healthTitle) {
+                healthTitle.textContent = eventData.eventName;
+            }
+            calculateTextPositions();
         }
 
         healthBarState.lastData = eventData;
@@ -203,6 +212,62 @@ function updateHealthBarColor(healthBar, percentage) {
     } else {
         healthBar.classList.add('high'); // 綠色
     }
+}
+
+// 動態計算文字位置，確保 10px 間距
+function calculateTextPositions() {
+    const healthTitle = document.getElementById('healthTitle');
+    const healthText = document.getElementById('healthText');
+    const container = document.querySelector('.health-bar-container');
+
+    if (!healthTitle || !healthText || !container) {
+        return;
+    }
+
+    // 獲取容器寬度
+    const containerWidth = container.offsetWidth;
+    const minGap = 10;
+    const padding = 20;
+
+    healthTitle.style.left = '0px';
+    healthTitle.style.transform = 'none';
+    healthText.style.left = '0px';
+    healthText.style.transform = 'none';
+
+    requestAnimationFrame(() => {
+        const titleWidth = healthTitle.offsetWidth;
+        const textWidth = healthText.offsetWidth;
+
+        const totalWidth = titleWidth + textWidth + minGap;
+        const availableWidth = containerWidth - padding * 2;
+
+        let titleLeft, textLeft;
+
+        if (totalWidth <= availableWidth) {
+            const startX = (containerWidth - totalWidth) / 2;
+            titleLeft = startX;
+            textLeft = startX + titleWidth + minGap;
+        } else {
+            const gap = Math.max(
+                5,
+                Math.min(minGap, (availableWidth - titleWidth - textWidth) / 2)
+            );
+            titleLeft = padding;
+            textLeft = Math.min(
+                containerWidth - textWidth - padding,
+                titleLeft + titleWidth + gap
+            );
+        }
+
+        healthTitle.style.left = `${titleLeft}px`;
+        healthTitle.style.transform = 'none';
+        healthText.style.left = `${textLeft}px`;
+        healthText.style.transform = 'none';
+
+        console.log(
+            `文字位置計算: title=${titleLeft}px, text=${textLeft}px, gap=${textLeft - titleLeft - titleWidth}px`
+        );
+    });
 }
 
 // 示範按鈕功能 - 模擬 API 傷害數據

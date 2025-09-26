@@ -45,16 +45,33 @@ body {
 .health-text {
     color: white;
     font-weight: bold;
-    font-size: 26px;
+    font-size: 20px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+    z-index: 10;
+    position: absolute;
+    bottom: 0px;
+    left: 80%;
+    transform: translateX(-50%);
+    width: auto;
+    text-align: left;
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+.health-title {
+    color: white;
+    font-weight: bold;
+    font-size: 20px;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
     z-index: 10;
     position: absolute;
     bottom: 0px;
     left: 50%;
     transform: translateX(-50%);
-    width: 100%;
-    text-align: center;
+    width: auto;
+    text-align: left;
     pointer-events: none;
+    white-space: nowrap;
 }
 
 /* healthBarGd 專用樣式 */
