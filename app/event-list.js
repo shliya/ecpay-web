@@ -11,6 +11,7 @@ let eventListState = {
     events: [],
     isLoading: false,
     merchantId: null,
+    editingEvent: null,
 };
 
 async function initializeEventList() {
@@ -56,6 +57,9 @@ function bindEventListeners() {
     const closeModal = document.getElementById('closeModal');
     const cancelBtn = document.getElementById('cancelBtn');
     const createForm = document.getElementById('createEventForm');
+    const closeEditTitleModal = document.getElementById('closeEditTitleModal');
+    const cancelEditTitleBtn = document.getElementById('cancelEditTitleBtn');
+    const editTitleForm = document.getElementById('editTitleForm');
 
     if (homeBtn) {
         homeBtn.addEventListener('click', handleGoHome);
@@ -86,6 +90,27 @@ function bindEventListeners() {
         modal.addEventListener('click', e => {
             if (e.target === modal) {
                 handleHideCreateModal();
+            }
+        });
+    }
+
+    if (closeEditTitleModal) {
+        closeEditTitleModal.addEventListener('click', handleHideEditTitleModal);
+    }
+
+    if (cancelEditTitleBtn) {
+        cancelEditTitleBtn.addEventListener('click', handleHideEditTitleModal);
+    }
+
+    if (editTitleForm) {
+        editTitleForm.addEventListener('submit', handleEditTitle);
+    }
+
+    const editTitleModal = document.getElementById('editTitleModal');
+    if (editTitleModal) {
+        editTitleModal.addEventListener('click', e => {
+            if (e.target === editTitleModal) {
+                handleHideEditTitleModal();
             }
         });
     }
@@ -200,6 +225,12 @@ function createEventCard(event) {
                         data-event-id="${event.id}">
                     查看
                 </button>
+                <button class="btn btn-secondary edit-title-btn" 
+                        data-merchant-id="${event.merchantId}" 
+                        data-event-id="${event.id}"
+                        data-event-name="${escapeHtml(event.eventName)}">
+                    編輯標題
+                </button>
                 ${
                     event.status === 1
                         ? `
@@ -230,6 +261,8 @@ function bindEventCardListeners() {
     const viewEventBtns = document.querySelectorAll('.view-event-btn');
     const disableEventBtns = document.querySelectorAll('.disable-event-btn');
     const enableEventBtns = document.querySelectorAll('.enable-event-btn');
+    const editTitleBtns = document.querySelectorAll('.edit-title-btn');
+
     viewEventBtns.forEach(btn => {
         btn.addEventListener('click', handleViewEvent);
     });
@@ -238,6 +271,9 @@ function bindEventCardListeners() {
     });
     enableEventBtns.forEach(btn => {
         btn.addEventListener('click', handleEnableEvent);
+    });
+    editTitleBtns.forEach(btn => {
+        btn.addEventListener('click', handleShowEditTitleModal);
     });
 }
 
@@ -599,6 +635,125 @@ async function handleEnableEvent(event) {
         // 恢復按鈕狀態
         button.disabled = false;
         button.textContent = originalText;
+    }
+}
+
+// 顯示編輯標題彈出視窗
+function handleShowEditTitleModal(event) {
+    const merchantId = event.target.getAttribute('data-merchant-id');
+    const eventId = event.target.getAttribute('data-event-id');
+    const eventName = event.target.getAttribute('data-event-name');
+
+    if (!merchantId || !eventId) return;
+
+    eventListState.editingEvent = {
+        merchantId,
+        eventId,
+        originalName: eventName,
+    };
+
+    const modal = document.getElementById('editTitleModal');
+    const input = document.getElementById('editEventName');
+
+    if (modal && input) {
+        input.value = eventName || '';
+        modal.style.display = 'block';
+
+        setTimeout(() => {
+            input.focus();
+            input.select();
+        }, 100);
+    }
+}
+
+// 隱藏編輯標題彈出視窗
+function handleHideEditTitleModal() {
+    const modal = document.getElementById('editTitleModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+    eventListState.editingEvent = null;
+}
+
+// 處理編輯標題
+async function handleEditTitle(event) {
+    event.preventDefault();
+
+    if (!eventListState.editingEvent || eventListState.isLoading) return;
+
+    const form = event.target;
+    const formData = new FormData(form);
+    const newEventName = formData.get('eventName').trim();
+
+    // 驗證輸入
+    if (!newEventName) {
+        showError('請輸入活動名稱');
+        return;
+    }
+
+    if (newEventName.length > 100) {
+        showError('活動名稱不能超過 100 個字元');
+        return;
+    }
+
+    if (newEventName === eventListState.editingEvent.originalName) {
+        handleHideEditTitleModal();
+        return;
+    }
+
+    const { merchantId, eventId } = eventListState.editingEvent;
+
+    try {
+        eventListState.isLoading = true;
+        const submitBtn = document.getElementById('submitEditTitleBtn');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = '修改中...';
+        }
+
+        console.log(
+            `Updating event title: ${eventId} for merchant: ${merchantId}`
+        );
+
+        const response = await fetch(
+            `/api/v1/fundraising-events/id=${encodeURIComponent(eventId)}/merchantId=${encodeURIComponent(merchantId)}`,
+            {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    eventName: newEventName,
+                }),
+            }
+        );
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(
+                errorData.message || `HTTP error! status: ${response.status}`
+            );
+        }
+
+        handleHideEditTitleModal();
+
+        await loadEventList(eventListState.merchantId);
+
+        showSuccess('活動標題修改成功！');
+
+        setTimeout(() => {
+            window.location.reload();
+        }, 1500);
+    } catch (error) {
+        console.error('修改活動標題失敗:', error);
+        showError(`修改活動標題失敗：${error.message}`);
+    } finally {
+        eventListState.isLoading = false;
+        const submitBtn = document.getElementById('submitEditTitleBtn');
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = '確認修改';
+        }
     }
 }
 

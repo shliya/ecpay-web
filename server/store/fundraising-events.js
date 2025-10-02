@@ -3,10 +3,11 @@ const { Op } = require('sequelize');
 const FundraisingEvents = require('../model/fundraising-events');
 const { ENUM_FUNDRAISING_EVENT_STATUS } = require('../lib/enum');
 
-async function getFundraisingEventsByMerchantId(merchantId) {
+async function getActiveFundraisingEventsByMerchantId(merchantId) {
     return FundraisingEvents.findAll({
         where: {
             merchantId,
+            status: ENUM_FUNDRAISING_EVENT_STATUS.ACTIVE,
         },
         order: [['created_at', 'DESC']],
     });
@@ -32,23 +33,25 @@ async function getFundraisingEventByIdAndMerchantId(id, merchantId) {
 async function updateFundraisingEventByIdAndMerchantId(
     id,
     merchantId,
-    { cost, type }
+    { cost, type, eventName }
 ) {
     const where = {
         id,
         merchantId,
     };
+    const update = {};
+    if (eventName) {
+        update.eventName = eventName;
+    }
     if (type) {
         where.type = type;
     }
-    return FundraisingEvents.update(
-        {
-            cost: sequelize.literal(`"cost" + ${cost}`),
-        },
-        {
-            where,
-        }
-    );
+    if (cost) {
+        update.cost = sequelize.literal(`"cost" + ${cost}`);
+    }
+    return FundraisingEvents.update(update, {
+        where,
+    });
 }
 
 async function batchUpdateFundraisingEventByMerchantId(
@@ -121,7 +124,7 @@ async function expireOutdatedEvents() {
 }
 
 module.exports = {
-    getFundraisingEventsByMerchantId,
+    getActiveFundraisingEventsByMerchantId,
     createFundraisingEvent,
     getTransaction,
     getFundraisingEventByIdAndMerchantId,

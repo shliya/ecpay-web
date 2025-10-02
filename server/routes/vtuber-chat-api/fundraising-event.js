@@ -5,6 +5,7 @@ const {
     handleCreateFundraisingEventRequest,
     handleGetFundraisingEventRequest,
     handleUpdateFundraisingEventRequest,
+    handleUpdateFundraisingEventCostRequest,
     handleDisableFundraisingEventRequest,
     handleEnableFundraisingEventRequest,
     handleExpireEventsRequest,
@@ -13,9 +14,13 @@ const {
 router.get('/merchantId=:merchantId', handleGetFundraisingEventsRequest);
 router.post('/', handleCreateFundraisingEventRequest);
 router.get('/id=:id/merchantId=:merchantId', handleGetFundraisingEventRequest);
-router.put(
+router.patch(
     '/id=:id/merchantId=:merchantId',
     handleUpdateFundraisingEventRequest
+);
+router.put(
+    '/id=:id/merchantId=:merchantId/cost',
+    handleUpdateFundraisingEventCostRequest
 );
 router.patch(
     '/id=:id/merchantId=:merchantId/status',

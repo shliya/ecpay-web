@@ -3,7 +3,7 @@ const DonationStore = require('../store/donation');
 
 async function getFundraisingEventsByMerchantId(merchantId) {
     const events =
-        await FundraisingEventsStore.getFundraisingEventsByMerchantId(
+        await FundraisingEventsStore.getActiveFundraisingEventsByMerchantId(
             merchantId
         );
 
@@ -48,15 +48,19 @@ async function getFundraisingEventByIdAndMerchantId(id, merchantId) {
 async function updateFundraisingEventByIdAndMerchantId(
     id,
     merchantId,
-    { cost }
+    { cost, eventName }
 ) {
-    const event =
-        await FundraisingEventsStore.updateFundraisingEventByIdAndMerchantId(
-            id,
-            merchantId,
-            { cost }
-        );
-    return event;
+    try {
+        const event =
+            await FundraisingEventsStore.updateFundraisingEventByIdAndMerchantId(
+                id,
+                merchantId,
+                { cost, eventName }
+            );
+        return event;
+    } catch (error) {
+        throw error;
+    }
 }
 
 module.exports = {

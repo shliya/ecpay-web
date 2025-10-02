@@ -129,6 +129,49 @@
             </div>
         </div>
 
+        <div id="editTitleModal" class="modal" style="display: none">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>修改活動標題</h2>
+                    <button class="modal-close" id="closeEditTitleModal">
+                        &times;
+                    </button>
+                </div>
+                <form id="editTitleForm" class="modal-body">
+                    <div class="form-group">
+                        <label for="editEventName"
+                            >活動名稱 <span class="required">*</span></label
+                        >
+                        <input
+                            type="text"
+                            id="editEventName"
+                            name="eventName"
+                            required
+                            maxlength="100"
+                            placeholder="請輸入新的活動名稱"
+                        />
+                    </div>
+
+                    <div class="modal-footer">
+                        <button
+                            type="button"
+                            class="btn btn-secondary"
+                            id="cancelEditTitleBtn"
+                        >
+                            取消
+                        </button>
+                        <button
+                            type="submit"
+                            class="btn btn-primary"
+                            id="submitEditTitleBtn"
+                        >
+                            確認修改
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <script type="module" src="../event-list.js"></script>
     </body>
 </html>

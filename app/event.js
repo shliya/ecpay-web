@@ -263,40 +263,8 @@ function calculateTextPositions() {
         healthTitle.style.transform = 'none';
         healthText.style.left = `${textLeft}px`;
         healthText.style.transform = 'none';
-
-        console.log(
-            `文字位置計算: title=${titleLeft}px, text=${textLeft}px, gap=${textLeft - titleLeft - titleWidth}px`
-        );
     });
 }
-
-// 示範按鈕功能 - 模擬 API 傷害數據
-function reduceHealthBar() {
-    // 模擬 API 回傳增加的 cost 數據
-    const currentData = healthBarState.lastData;
-    if (!currentData) {
-        console.log('尚未載入初始數據，無法進行示範');
-        return;
-    }
-
-    // 模擬增加 cost（造成傷害）
-    const currentCost = parseInt(currentData.cost) || 0;
-    const newCost = currentCost + 500; // 增加 500 的傷害
-
-    // 建立模擬的事件數據
-    const simulatedEventData = {
-        ...currentData,
-        cost: newCost,
-    };
-
-    console.log(`示範功能：模擬 cost 從 ${currentCost} 增加到 ${newCost}`);
-
-    // 呼叫真正的更新函數，就像 API 資料更新一樣
-    updateHealthBar(simulatedEventData);
-}
-
-// 將函數添加到全域範圍，讓 HTML 可以調用
-window.reduceHealthBar = reduceHealthBar;
 
 // 只有在 DOMContentLoaded 時初始化一次
 document.addEventListener('DOMContentLoaded', initializeHealthBar, {

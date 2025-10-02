@@ -5,14 +5,18 @@ const {
 module.exports = async (req, res) => {
     try {
         const { merchantId, id } = req.params;
-        const { eventName } = req.body;
+        const { cost } = req.body;
 
         try {
-            await updateFundraisingEventByIdAndMerchantId(id, merchantId, {
-                eventName,
-            });
+            const event = await updateFundraisingEventByIdAndMerchantId(
+                id,
+                merchantId,
+                {
+                    cost,
+                }
+            );
 
-            res.sendStatus(201);
+            res.sendStatus(200);
         } catch (error) {
             if (error.code === 'ENOENT') {
                 res.json([]);
