@@ -1,6 +1,7 @@
 const ENUM_FUNDRAISING_EVENT_STATUS = {
-    ACTIVE: 1, //啟動
     INACTIVE: 0, //關閉
+    ACTIVE: 1, //啟動
+    PAUSE: 2, //暫停
 };
 const ENUM_FUNDRAISING_EVENT_TYPE = {
     DOWN: 1, // 下降

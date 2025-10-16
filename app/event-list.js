@@ -188,8 +188,18 @@ function createEventCard(event) {
             totalAmount > 0 ? (currentHealth / totalAmount) * 100 : 0;
     }
 
-    const statusText = event.status === 1 ? '進行中' : '已結束';
-    const statusClass = event.status === 1 ? 'active' : 'inactive';
+    const statusText =
+        event.status === 1
+            ? '進行中'
+            : event.status === 2
+              ? '已暫停'
+              : '已結束';
+    const statusClass =
+        event.status === 1
+            ? 'active'
+            : event.status === 2
+              ? 'pause'
+              : 'inactive';
     const typeText = eventType === 1 ? '倒扣模式' : '累積模式';
 
     return `
@@ -234,17 +244,35 @@ function createEventCard(event) {
                 ${
                     event.status === 1
                         ? `
+    <button class="btn btn-warning pause-event-btn" 
+            data-merchant-id="${event.merchantId}" 
+            data-event-id="${event.id}">
+        暫停活動
+    </button>
     <button class="btn btn-danger disable-event-btn" 
             data-merchant-id="${event.merchantId}" 
             data-event-id="${event.id}">
-        關閉
+        關閉活動
     </button>
     `
-                        : `
+                        : event.status === 2
+                          ? `
+    <button class="btn btn-success resume-event-btn" 
+            data-merchant-id="${event.merchantId}" 
+            data-event-id="${event.id}">
+        恢復活動
+    </button>
+    <button class="btn btn-danger disable-event-btn" 
+            data-merchant-id="${event.merchantId}" 
+            data-event-id="${event.id}">
+        關閉活動
+    </button>
+    `
+                          : `
     <button class="btn btn-secondary enable-event-btn" 
             data-merchant-id="${event.merchantId}" 
             data-event-id="${event.id}">
-        開啟
+        開啟活動
     </button>
     <button class="btn btn-secondary" disabled>
         已關閉
@@ -261,6 +289,8 @@ function bindEventCardListeners() {
     const viewEventBtns = document.querySelectorAll('.view-event-btn');
     const disableEventBtns = document.querySelectorAll('.disable-event-btn');
     const enableEventBtns = document.querySelectorAll('.enable-event-btn');
+    const pauseEventBtns = document.querySelectorAll('.pause-event-btn');
+    const resumeEventBtns = document.querySelectorAll('.resume-event-btn');
     const editTitleBtns = document.querySelectorAll('.edit-title-btn');
 
     viewEventBtns.forEach(btn => {
@@ -271,6 +301,12 @@ function bindEventCardListeners() {
     });
     enableEventBtns.forEach(btn => {
         btn.addEventListener('click', handleEnableEvent);
+    });
+    pauseEventBtns.forEach(btn => {
+        btn.addEventListener('click', handlePauseEvent);
+    });
+    resumeEventBtns.forEach(btn => {
+        btn.addEventListener('click', handleResumeEvent);
     });
     editTitleBtns.forEach(btn => {
         btn.addEventListener('click', handleShowEditTitleModal);
@@ -612,7 +648,7 @@ async function handleEnableEvent(event) {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    status: 0, // 設定為關閉狀態
+                    status: 1, // 設定為啟動狀態
                 }),
             }
         );
@@ -627,10 +663,105 @@ async function handleEnableEvent(event) {
         // 重新載入列表
         await loadEventList(eventListState.merchantId);
 
-        showSuccess('活動已成功關閉！');
+        showSuccess('活動已成功開啟！');
     } catch (error) {
-        console.error('關閉活動失敗:', error);
-        showError(`關閉活動失敗：${error.message}`);
+        console.error('開啟活動失敗:', error);
+        showError(`開啟活動失敗：${error.message}`);
+
+        // 恢復按鈕狀態
+        button.disabled = false;
+        button.textContent = originalText;
+    }
+}
+
+async function handlePauseEvent(event) {
+    const merchantId = event.target.getAttribute('data-merchant-id');
+    const eventId = event.target.getAttribute('data-event-id');
+
+    if (!merchantId || !eventId) return;
+
+    const button = event.target;
+    const originalText = button.textContent;
+
+    try {
+        button.disabled = true;
+        button.textContent = '暫停中...';
+
+        console.log(`Pausing event: ${eventId} for merchant: ${merchantId}`);
+
+        const response = await fetch(
+            `/api/v1/fundraising-events/id=${encodeURIComponent(eventId)}/merchantId=${encodeURIComponent(merchantId)}/status/pause`,
+            {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }
+        );
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(
+                errorData.message || `HTTP error! status: ${response.status}`
+            );
+        }
+
+        // 重新載入列表
+        await loadEventList(eventListState.merchantId);
+
+        showSuccess('活動已成功暫停！');
+    } catch (error) {
+        console.error('暫停活動失敗:', error);
+        showError(`暫停活動失敗：${error.message}`);
+
+        // 恢復按鈕狀態
+        button.disabled = false;
+        button.textContent = originalText;
+    }
+}
+
+async function handleResumeEvent(event) {
+    const merchantId = event.target.getAttribute('data-merchant-id');
+    const eventId = event.target.getAttribute('data-event-id');
+
+    if (!merchantId || !eventId) return;
+
+    const button = event.target;
+    const originalText = button.textContent;
+
+    try {
+        button.disabled = true;
+        button.textContent = '恢復中...';
+
+        console.log(`Resuming event: ${eventId} for merchant: ${merchantId}`);
+
+        const response = await fetch(
+            `/api/v1/fundraising-events/id=${encodeURIComponent(eventId)}/merchantId=${encodeURIComponent(merchantId)}/status/enable`,
+            {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    status: 1, // 設定為啟動狀態
+                }),
+            }
+        );
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(
+                errorData.message || `HTTP error! status: ${response.status}`
+            );
+        }
+
+        // 重新載入列表
+        await loadEventList(eventListState.merchantId);
+
+        showSuccess('活動已成功恢復！');
+    } catch (error) {
+        console.error('恢復活動失敗:', error);
+        showError(`恢復活動失敗：${error.message}`);
 
         // 恢復按鈕狀態
         button.disabled = false;

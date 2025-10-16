@@ -165,6 +165,11 @@ body {
     color: #c62828;
 }
 
+.event-status.pause {
+    background-color: #fff3e0;
+    color: #f57c00;
+}
+
 .event-info {
     margin-bottom: 16px;
 }
@@ -423,6 +428,24 @@ body {
 
 .btn-danger:hover:not(:disabled) {
     background-color: #d32f2f;
+}
+
+.btn-warning {
+    background-color: #ff9800;
+    color: white;
+}
+
+.btn-warning:hover:not(:disabled) {
+    background-color: #f57c00;
+}
+
+.btn-success {
+    background-color: #4caf50;
+    color: white;
+}
+
+.btn-success:hover:not(:disabled) {
+    background-color: #45a049;
 }
 
 .event-actions {

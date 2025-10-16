@@ -9,6 +9,7 @@ const {
     handleDisableFundraisingEventRequest,
     handleEnableFundraisingEventRequest,
     handleExpireEventsRequest,
+    handlePauseFundraisingEventRequest,
 } = require('../../route-handlers/fundraising-event');
 
 router.get('/merchantId=:merchantId', handleGetFundraisingEventsRequest);
@@ -29,6 +30,10 @@ router.patch(
 router.patch(
     '/id=:id/merchantId=:merchantId/status/enable',
     handleEnableFundraisingEventRequest
+);
+router.patch(
+    '/id=:id/merchantId=:merchantId/status/pause',
+    handlePauseFundraisingEventRequest
 );
 
 // 手動觸發過期檢查

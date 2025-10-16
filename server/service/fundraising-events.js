@@ -72,4 +72,6 @@ module.exports = {
         FundraisingEventsStore.disableFundraisingEventByIdAndMerchantId,
     enableFundraisingEventByIdAndMerchantId:
         FundraisingEventsStore.enableFundraisingEventByIdAndMerchantId,
+    pauseFundraisingEventByIdAndMerchantId:
+        FundraisingEventsStore.pauseFundraisingEventByIdAndMerchantId,
 };

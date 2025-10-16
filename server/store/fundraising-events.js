@@ -7,7 +7,12 @@ async function getActiveFundraisingEventsByMerchantId(merchantId) {
     return FundraisingEvents.findAll({
         where: {
             merchantId,
-            status: ENUM_FUNDRAISING_EVENT_STATUS.ACTIVE,
+            status: {
+                [Op.or]: [
+                    ENUM_FUNDRAISING_EVENT_STATUS.ACTIVE,
+                    ENUM_FUNDRAISING_EVENT_STATUS.PAUSE,
+                ],
+            },
         },
         order: [['created_at', 'DESC']],
     });
@@ -103,6 +108,21 @@ async function enableFundraisingEventByIdAndMerchantId(id, merchantId) {
     );
 }
 
+async function pauseFundraisingEventByIdAndMerchantId(id, merchantId) {
+    const where = {
+        id,
+        merchantId,
+    };
+    return FundraisingEvents.update(
+        {
+            status: ENUM_FUNDRAISING_EVENT_STATUS.PAUSE,
+        },
+        {
+            where,
+        }
+    );
+}
+
 async function expireOutdatedEvents() {
     const currentDate = new Date();
 
@@ -132,5 +152,6 @@ module.exports = {
     batchUpdateFundraisingEventByMerchantId,
     disableFundraisingEventByIdAndMerchantId,
     enableFundraisingEventByIdAndMerchantId,
+    pauseFundraisingEventByIdAndMerchantId,
     expireOutdatedEvents,
 };
