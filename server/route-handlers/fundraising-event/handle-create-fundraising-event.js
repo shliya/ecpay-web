@@ -1,4 +1,3 @@
-const sequelize = require('../../config/database');
 const { createFundraisingEvent } = require('../../service/fundraising-events');
 
 module.exports = async (req, res) => {
