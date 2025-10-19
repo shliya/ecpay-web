@@ -37,7 +37,7 @@ const IchibanPrize = sequelize.define(
         timestamps: false,
         indexes: [
             {
-                name: 'idx_event_id',
+                name: 'idx_prize_event_id',
                 fields: ['event_id'],
             },
         ],

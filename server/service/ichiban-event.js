@@ -14,6 +14,7 @@ async function createIchibanEvent({
     startTime,
     endTime,
     prizes,
+    cost,
 }) {
     const txn = await IchibanEventStore.getTransaction();
 
@@ -28,6 +29,7 @@ async function createIchibanEvent({
                 startTime: startTime || null,
                 endTime: endTime || null,
                 status: ENUM_ICHIBAN_EVENT_STATUS.ACTIVE,
+                cost,
             },
             { transaction: txn }
         );

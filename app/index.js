@@ -71,25 +71,26 @@ function setupImages() {
 }
 
 function bindEventListeners() {
-    // 綠界斗內條卡片點擊事件
     const donateCard = document.getElementById('donateCard');
     if (donateCard) {
         donateCard.addEventListener('click', handleDonateCardClick);
     }
 
-    // 斗內活動卡片點擊事件
     const eventCard = document.getElementById('eventCard');
     if (eventCard) {
         eventCard.addEventListener('click', handleEventCardClick);
     }
 
-    // 登出按鈕
+    const ichibanCard = document.getElementById('ichibanCard');
+    if (ichibanCard) {
+        ichibanCard.addEventListener('click', handleIchibanCardClick);
+    }
+
     const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', handleLogout);
     }
 
-    // 設定按鈕
     const settingsBtn = document.getElementById('settingsBtn');
     if (settingsBtn) {
         settingsBtn.addEventListener('click', handleSettings);
@@ -122,6 +123,20 @@ function handleEventCardClick() {
     );
     const eventUrl = `event-list.html?merchantId=${encodeURIComponent(indexState.merchantId)}`;
     window.location.href = eventUrl;
+}
+
+function handleIchibanCardClick() {
+    if (!indexState.merchantId) {
+        showError('商店代號不存在，請重新登入');
+        return;
+    }
+
+    console.log(
+        'Navigating to ichiban management with merchantId:',
+        indexState.merchantId
+    );
+    const ichibanUrl = `ichiban.html?merchantId=${encodeURIComponent(indexState.merchantId)}`;
+    window.location.href = ichibanUrl;
 }
 
 function handleLogout() {
@@ -256,5 +271,6 @@ window.indexUtils = {
     getMerchantId: () => indexState.merchantId,
     navigateToDonate: handleDonateCardClick,
     navigateToEvent: handleEventCardClick,
+    navigateToIchiban: handleIchibanCardClick,
     logout: handleLogout,
 };

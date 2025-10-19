@@ -70,6 +70,12 @@ const IchibanEvent = sequelize.define(
             defaultValue: DataTypes.NOW,
             field: 'updated_at',
         },
+        cost: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            defaultValue: 0,
+            field: 'cost',
+        },
     },
     {
         tableName: 'ichiban_events',

@@ -6,16 +6,24 @@ module.exports = async (req, res) => {
     try {
         const { id, merchantId } = req.params;
 
+        if (!merchantId) {
+            return res.status(400).json({ error: 'merchantId is required' });
+        }
+
         try {
-            const events = await getIchibanEventByIdAndMerchantId(
+            const event = await getIchibanEventByIdAndMerchantId(
                 id,
                 merchantId
             );
 
-            res.json(events);
+            if (!event) {
+                return res.status(404).json({ error: 'Event not found' });
+            }
+
+            res.json(event);
         } catch (error) {
             if (error.code === 'ENOENT') {
-                res.json([]);
+                res.status(404).json({ error: 'Event not found' });
             } else {
                 throw error;
             }

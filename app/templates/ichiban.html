@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="zh-TW">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>一番賞 - 管理端</title>
+        <link rel="stylesheet" href="../css/ichiban.css" />
+    </head>
+    <body>
+        <div class="container">
+            <header class="header">
+                <h1 class="page-title">一番賞管理系統</h1>
+                <div class="header-controls">
+                    <button class="btn btn-success" id="createEventBtn">
+                        新增活動
+                    </button>
+                    <button class="btn btn-primary" id="refreshBtn">
+                        重新整理
+                    </button>
+                    <div class="connection-status" id="connectionStatus">
+                        <span class="status-indicator"></span>
+                        <span class="status-text">連線中...</span>
+                    </div>
+                </div>
+            </header>
+
+            <div class="events-section">
+                <h2>活動列表</h2>
+                <div class="events-grid" id="eventsGrid">
+                    <div class="loading">載入活動中...</div>
+                </div>
+            </div>
+
+            <div class="event-details" id="eventDetails" style="display: none">
+                <div class="event-header">
+                    <h3 id="selectedEventName">選擇活動</h3>
+                    <div class="event-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">總卡片數:</span>
+                            <span class="stat-value" id="totalCards">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">已開啟:</span>
+                            <span class="stat-value" id="openedCards">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">剩餘:</span>
+                            <span class="stat-value" id="remainingCards"
+                                >0</span
+                            >
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">完成度:</span>
+                            <span class="stat-value" id="completionRate"
+                                >0%</span
+                            >
+                        </div>
+                    </div>
+                </div>
+
+                <div class="cards-management">
+                    <div class="cards-header">
+                        <h4>卡片管理</h4>
+                        <div class="cards-controls"></div>
+                    </div>
+
+                    <div class="cards-grid" id="cardsGrid">
+                        <!-- 卡片將在這裡動態生成 -->
+                    </div>
+                </div>
+
+                <div class="recent-activity">
+                    <h4>最近活動</h4>
+                    <div class="activity-list" id="activityList">
+                        <div class="no-activity">尚無活動記錄</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal" id="confirmModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="modalTitle">確認操作</h3>
+                    <button class="close-btn" id="closeModal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p id="modalMessage">您確定要執行此操作嗎？</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" id="cancelBtn">
+                        取消
+                    </button>
+                    <button class="btn btn-primary" id="confirmBtn">
+                        確認
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal" id="cardDetailModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>卡片詳情</h3>
+                    <button class="close-btn" id="closeCardModal">
+                        &times;
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="card-detail-info">
+                        <div class="detail-item">
+                            <label>卡片編號:</label>
+                            <span id="detailCardIndex">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>獎品名稱:</label>
+                            <span id="detailPrizeName">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>狀態:</label>
+                            <span id="detailStatus">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>開啟時間:</label>
+                            <span id="detailOpenedAt">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>開啟者:</label>
+                            <span id="detailOpenedBy">-</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" id="closeCardDetailBtn">
+                        關閉
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal" id="createEventModal">
+            <div class="modal-content large-modal">
+                <div class="modal-header">
+                    <h3>新增一番賞活動</h3>
+                    <button class="close-btn" id="closeCreateModal">
+                        &times;
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="createEventForm">
+                        <div class="form-group">
+                            <label for="eventName">活動名稱 *</label>
+                            <input
+                                type="text"
+                                id="eventName"
+                                name="eventName"
+                                required
+                            />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="description">活動描述</label>
+                            <textarea
+                                id="description"
+                                name="description"
+                                rows="3"
+                            ></textarea>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="totalCards">總卡片數 *</label>
+                                <input
+                                    type="number"
+                                    id="totalCards"
+                                    name="totalCards"
+                                    min="1"
+                                    max="100"
+                                    required
+                                />
+                            </div>
+
+                            <div class="form-group">
+                                <label for="cost">抽卡價格 *</label>
+                                <input
+                                    type="number"
+                                    id="cost"
+                                    name="cost"
+                                    min="1"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="startTime">開始時間</label>
+                                <input
+                                    type="datetime-local"
+                                    id="startTime"
+                                    name="startTime"
+                                />
+                            </div>
+
+                            <div class="form-group">
+                                <label for="endTime">結束時間</label>
+                                <input
+                                    type="datetime-local"
+                                    id="endTime"
+                                    name="endTime"
+                                />
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>獎品設定</label>
+                            <div class="prizes-container" id="prizesContainer">
+                                <div class="prize-item">
+                                    <input
+                                        type="text"
+                                        name="prizeName"
+                                        placeholder="獎品名稱"
+                                        required
+                                    />
+                                    <input
+                                        type="number"
+                                        name="prizeQuantity"
+                                        placeholder="數量"
+                                        min="1"
+                                        value="1"
+                                        required
+                                    />
+                                    <button
+                                        type="button"
+                                        class="btn btn-danger btn-sm remove-prize"
+                                    >
+                                        移除
+                                    </button>
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                class="btn btn-secondary btn-sm"
+                                id="addPrizeBtn"
+                            >
+                                新增獎品
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" id="cancelCreateBtn">
+                        取消
+                    </button>
+                    <button class="btn btn-primary" id="confirmCreateBtn">
+                        創建活動
+                    </button>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

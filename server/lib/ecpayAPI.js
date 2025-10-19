@@ -1,28 +1,43 @@
 const axios = require('axios');
 const path = require('path');
 const crypto = require('crypto');
+const dayjs = require('dayjs');
+const qs = require('qs');
+const { getEcpayConfigByMerchantId } = require('../store/ecpay-config');
 require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
 
 const ecpayConfig = {
-    MerchantID: process.env.ECPAY_MERCHANT_ID,
-    HashKey: process.env.ECPAY_HASH_KEY,
-    HashIV: process.env.ECPAY_HASH_IV,
     DonateApiUrl: 'https://payment.ecpay.com.tw/Broadcaster/CheckDonate',
-    PaymentApiUrl: 'https://payment.ecpay.com.tw/Cashier/AioCheckOut/V5',
+    PaymentApiUrl:
+        process.env.NODE_ENV === 'production'
+            ? process.env.ECPAY_PAYMENT_API_URL
+            : 'https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5',
 };
 
-function generateCheckMacValue(data) {
-    const keys = Object.keys(data).sort();
-    let checkString = '';
-    keys.forEach(key => {
-        checkString += `${key}=${data[key]}&`;
-    });
-    checkString = `HashKey=${ecpayConfig.HashKey}&${checkString}HashIV=${ecpayConfig.HashIV}`;
-    return crypto
+function genCheckMacValue(params, HashKey, HashIV) {
+    const sortedParams = Object.keys(params)
+        .sort()
+        .reduce((r, k) => ({ ...r, [k]: params[k] }), {});
+
+    const query = qs.stringify(sortedParams, { encode: false });
+
+    let raw = `HashKey=${HashKey}&${query}&HashIV=${HashIV}`;
+
+    raw = encodeURIComponent(raw)
+        .toLowerCase()
+        .replace(/%20/g, '+')
+        .replace(/%21/g, '!')
+        .replace(/%28/g, '(')
+        .replace(/%29/g, ')')
+        .replace(/%2a/g, '*');
+
+    const hash = crypto
         .createHash('sha256')
-        .update(checkString)
+        .update(raw)
         .digest('hex')
         .toUpperCase();
+
+    return hash;
 }
 
 async function getEcPayDonations(ecPayKey) {
@@ -47,40 +62,41 @@ async function getEcPayDonations(ecPayKey) {
     }
 }
 
-async function createPayment(orderData) {
+async function createPayment(merchantId, orderData) {
     try {
+        const MerchantTradeDate = dayjs().format('YYYY/MM/DD HH:mm:ss');
+        const MerchantTradeNo = `ECPAY${Date.now()}`;
+        const { hashKey, hashIV } =
+            await getEcpayConfigByMerchantId(merchantId);
+
         const data = {
-            MerchantID: ecpayConfig.MerchantID,
-            MerchantTradeNo: `ECPAY${Date.now()}`,
-            MerchantTradeDate: new Date()
-                .toLocaleString('zh-TW', {
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit',
-                    hour12: false,
-                })
-                .replace(/\//g, '/'),
+            MerchantID: merchantId,
+            MerchantTradeNo,
+            MerchantTradeDate,
             PaymentType: 'aio',
             TotalAmount: orderData.amount,
-            TradeDesc: orderData.description || '備註:',
-            ItemName: orderData.itemName || '多少錢',
-            ReturnURL: process.env.ECPAY_RETURN_URL,
+            TradeDesc: orderData.description || '一番賞活動',
+            ItemName: orderData.itemName || '卡片',
+            ReturnURL:
+                process.env.NODE_ENV === 'production'
+                    ? `${process.env.ECPAY_RETURN_URL}/api/v1/payment/ecpay-success`
+                    : 'https://a91f6501d7b6.ngrok-free.app/api/v1/payment/ecpay-success',
             ChoosePayment: 'ALL',
             EncryptType: 1,
+            ClientBackURL:
+                process.env.NODE_ENV === 'production'
+                    ? `${process.env.ECPAY_RETURN_URL}`
+                    : 'https://a91f6501d7b6.ngrok-free.app',
         };
 
-        data.CheckMacValue = generateCheckMacValue(data);
+        data.CheckMacValue = genCheckMacValue(data, hashKey, hashIV);
 
-        const response = await axios.post(ecpayConfig.PaymentApiUrl, data, {
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-        });
-
-        return response.data;
+        // 回傳付款參數和訂單號
+        return {
+            params: data,
+            merchantTradeNo: MerchantTradeNo,
+            paymentUrl: ecpayConfig.PaymentApiUrl,
+        };
     } catch (error) {
         console.error('建立付款訂單失敗:', error);
         throw error;

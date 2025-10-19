@@ -10,9 +10,10 @@ module.exports = async (req, res) => {
             startTime,
             endTime,
             prizes,
+            cost,
         } = req.body;
 
-        if (!merchantId || !eventName || !totalCards || !prizes) {
+        if (!merchantId || !eventName || !totalCards || !prizes || !cost) {
             return res.status(400).json({ message: '有缺的欄位' });
         }
 
@@ -24,6 +25,7 @@ module.exports = async (req, res) => {
             startTime,
             endTime,
             prizes,
+            cost,
         });
 
         res.status(200).json({ message: '設定已儲存' });

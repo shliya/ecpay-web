@@ -4,9 +4,15 @@ const path = require('path');
 const express = require('express');
 const app = express();
 const port = process.env.PORT;
-const apiRoute = require('./server/routes/vtuber-chat-api/index');
 const cors = require('cors');
 const { scheduler } = require('./server/lib/scheduler');
+const IchibanWebSocketServer = require('./server/web-socket/server');
+const ichibanWebSocketServer = new IchibanWebSocketServer();
+
+// 設置全域 WebSocket 服務器實例
+global.ichibanWebSocketServer = ichibanWebSocketServer;
+
+const apiRoute = require('./server/routes/vtuber-chat-api/index');
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use((req, res, next) => {
@@ -35,6 +41,8 @@ sequelize
         // 啟動定時任務排程器
         scheduler.start();
 
+        ichibanWebSocketServer.start();
+
         app.listen(port, () => {
             console.log(`Server is running on http://localhost:${port}`);
         });
@@ -57,6 +65,7 @@ process.on('SIGINT', () => {
 process.on('SIGTERM', () => {
     console.log('\n接收到 SIGTERM，正在優雅關閉...');
     scheduler.stop();
+    ichibanWebSocketServer.stop();
     sequelize.close().then(() => {
         console.log('資料庫連線已關閉');
         process.exit(0);

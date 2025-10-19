@@ -1,10 +1,6 @@
 const FundraisingEventsStore = require('../store/fundraising-events');
 const { ENUM_FUNDRAISING_EVENT_STATUS } = require('../lib/enum');
 
-/**
- * 自動將過期的募資活動狀態設為 INACTIVE
- * @returns {Promise<{success: boolean, expiredCount: number, message: string}>}
- */
 async function autoExpireFundraisingEvents() {
     const result = {
         success: false,
