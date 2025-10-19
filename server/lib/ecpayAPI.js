@@ -10,7 +10,7 @@ const ecpayConfig = {
     DonateApiUrl: 'https://payment.ecpay.com.tw/Broadcaster/CheckDonate',
     PaymentApiUrl:
         process.env.NODE_ENV === 'production'
-            ? process.env.ECPAY_PAYMENT_API_URL
+            ? process.env.ECPAY_PAYMENT_URL
             : 'https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5',
 };
 

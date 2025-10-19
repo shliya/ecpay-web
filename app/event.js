@@ -181,10 +181,14 @@ function updateSpecificHealthBarFromAPI(element, targetPercentage, barType) {
 
     // 如果是減少，觸發傷害動畫
     if (targetPercentage < currentPercentage) {
-        element.classList.add('damage');
-        setTimeout(() => {
-            element.classList.remove('damage');
-        }, 300);
+        if (element) {
+            element.classList.add('damage');
+            setTimeout(() => {
+                if (element) {
+                    element.classList.remove('damage');
+                }
+            }, 300);
+        }
     }
 
     // 更新狀態和顏色
@@ -202,6 +206,8 @@ function updateSpecificHealthBarFromAPI(element, targetPercentage, barType) {
 
 // 根據血量更新顏色
 function updateHealthBarColor(healthBar, percentage) {
+    if (!healthBar) return;
+
     // 移除所有顏色類別
     healthBar.classList.remove('low', 'medium', 'high');
 

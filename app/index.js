@@ -58,7 +58,9 @@ function displayMerchantId(merchantId) {
     const merchantIdElement = document.getElementById('merchantId');
     if (merchantIdElement) {
         merchantIdElement.textContent = merchantId;
-        merchantIdElement.classList.remove('loading');
+        if (merchantIdElement) {
+            merchantIdElement.classList.remove('loading');
+        }
     }
 }
 
@@ -136,7 +138,7 @@ function handleIchibanCardClick() {
         indexState.merchantId
     );
     const ichibanUrl = `ichiban.html?merchantId=${encodeURIComponent(indexState.merchantId)}`;
-    window.location.href = ichibanUrl;
+    window.open(ichibanUrl, '_blank');
 }
 
 function handleLogout() {

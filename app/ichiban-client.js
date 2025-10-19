@@ -12,6 +12,8 @@ class IchibanClient {
         this.reconnectAttempts = 0;
         this.maxReconnectAttempts = 5;
         this.clientId = this.generateClientId(); // 生成固定的客戶端ID
+        this.paymentTimeout = null; // 付款超時計時器
+        this.paymentTimeoutDuration = 5 * 60 * 1000; // 5分鐘超時
 
         this.init();
     }
@@ -121,12 +123,14 @@ class IchibanClient {
         const statusIndicator = document.querySelector('.status-indicator');
         const statusText = document.querySelector('.status-text');
 
-        if (connected) {
-            statusIndicator.classList.add('connected');
-            statusText.textContent = '已連線';
-        } else {
-            statusIndicator.classList.remove('connected');
-            statusText.textContent = '連線中斷';
+        if (statusIndicator && statusText) {
+            if (connected) {
+                statusIndicator.classList.add('connected');
+                statusText.textContent = '已連線';
+            } else {
+                statusIndicator.classList.remove('connected');
+                statusText.textContent = '連線中斷';
+            }
         }
     }
 
@@ -205,6 +209,8 @@ class IchibanClient {
         // 如果是自己抽的卡，顯示獎品模態框
         if (message.openedBy === this.getClientId()) {
             this.showPrizeModal(message.prizeName);
+            // 付款成功，清除超時計時器
+            this.clearPaymentTimeout();
         }
 
         // 更新事件統計
@@ -292,11 +298,16 @@ class IchibanClient {
 
     handlePaymentRedirect(message) {
         // 顯示付款確認對話框
-        const confirmMessage = `即將跳轉到付款頁面\n金額: $${message.amount}\n卡片: ${message.cardIndex + 1}`;
+        const confirmMessage = `即將跳轉到付款頁面\n金額: $${message.amount}\n卡片: ${message.cardIndex + 1}\n\n注意：請在5分鐘內完成付款，否則卡片將自動解鎖`;
 
         if (confirm(confirmMessage)) {
             // 用戶確認後，創建並提交綠界付款表單
-            this.submitEcpayForm(message.params, message.paymentUrl);
+            this.submitEcpayForm(
+                message.params,
+                message.paymentUrl,
+                message.eventId,
+                message.cardIndex
+            );
         } else {
             // 用戶取消付款，發送取消付款訊息到後端
             this.cancelPayment(message.eventId, message.cardIndex);
@@ -320,9 +331,12 @@ class IchibanClient {
         console.log('已發送取消付款訊息');
     }
 
-    submitEcpayForm(params, paymentUrl) {
+    submitEcpayForm(params, paymentUrl, eventId, cardIndex) {
         console.log('收到的付款參數:', params);
         console.log('付款URL:', paymentUrl);
+
+        // 清除之前的超時計時器
+        this.clearPaymentTimeout();
 
         // 創建表單元素
         const form = document.createElement('form');
@@ -341,18 +355,18 @@ class IchibanClient {
 
         // 將表單添加到頁面並自動提交
         document.body.appendChild(form);
-        console.log('表單已添加到頁面，準備提交');
 
         form.submit();
-        console.log('表單已提交');
 
         // 提交後移除表單
         setTimeout(() => {
             if (document.body.contains(form)) {
                 document.body.removeChild(form);
-                console.log('表單已移除');
             }
         }, 1000);
+
+        // 啟動付款超時計時器
+        this.startPaymentTimeout(eventId, cardIndex);
     }
 
     async loadEventData() {
@@ -847,6 +861,28 @@ class IchibanClient {
         console.log(`成功: ${message}`);
         // 暫時使用 alert，之後可以改為更好的 UI 提示
         // alert(`成功: ${message}`);
+    }
+
+    // 啟動付款超時計時器
+    startPaymentTimeout(eventId, cardIndex) {
+        console.log(
+            `啟動付款超時計時器，${this.paymentTimeoutDuration / 1000}秒後將自動取消`
+        );
+
+        this.paymentTimeout = setTimeout(() => {
+            console.log('付款超時，自動取消付款');
+            this.cancelPayment(eventId, cardIndex);
+            this.showError('付款超時，卡片已自動解鎖');
+        }, this.paymentTimeoutDuration);
+    }
+
+    // 清除付款超時計時器
+    clearPaymentTimeout() {
+        if (this.paymentTimeout) {
+            clearTimeout(this.paymentTimeout);
+            this.paymentTimeout = null;
+            console.log('付款超時計時器已清除');
+        }
     }
 
     // 定期發送心跳

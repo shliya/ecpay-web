@@ -12,6 +12,8 @@ class IchibanWebSocketServer {
         this.port = port;
         this.clients = new Map();
         this.rooms = new Map();
+        this.paymentTimeouts = new Map(); // 存儲付款超時計時器
+        this.paymentTimeoutDuration = 5 * 60 * 1000; // 5分鐘超時
 
         this.server = http.createServer();
         this.wss = new WebSocket.Server({
@@ -193,6 +195,8 @@ class IchibanWebSocketServer {
                 openedBy: clientId,
             });
 
+            this.clearPaymentTimeout(clientId, eventId, cardIndex);
+
             const eventUpdated =
                 await IchibanEventStore.incrementOpenedCards(eventId);
 
@@ -356,6 +360,8 @@ class IchibanWebSocketServer {
                 cardIndex: cardIndex,
                 amount: orderData.amount,
             });
+
+            this.startPaymentTimeout(clientId, eventId, cardIndex);
         } catch (error) {
             console.error('Error processing payment:', error);
             this.sendError(clientId, 'Failed to process payment');
@@ -386,6 +392,8 @@ class IchibanWebSocketServer {
                 openedAt: null,
                 openedBy: null,
             });
+
+            this.clearPaymentTimeout(clientId, eventId, cardIndex);
 
             console.log(
                 `Card ${cardIndex} payment cancelled in event ${eventId} by ${clientId} (merchant: ${client.merchantId})`
@@ -506,6 +514,13 @@ class IchibanWebSocketServer {
         const client = this.clients.get(clientId);
         if (!client) return;
 
+        for (const [timeoutKey, timeout] of this.paymentTimeouts.entries()) {
+            if (timeoutKey.startsWith(`${clientId}-`)) {
+                clearTimeout(timeout);
+                this.paymentTimeouts.delete(timeoutKey);
+            }
+        }
+
         client.rooms.forEach(roomName => {
             this.leaveRoom(clientId, roomName);
         });
@@ -516,6 +531,76 @@ class IchibanWebSocketServer {
 
     generateClientId() {
         return `client_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    }
+
+    startPaymentTimeout(clientId, eventId, cardIndex) {
+        const timeoutKey = `${clientId}-${eventId}-${cardIndex}`;
+        const timeout = setTimeout(async () => {
+            try {
+                // 找到對應的卡片
+                const card =
+                    await IchibanCardStore.getIchibanCardByEventIdAndCardIndexAndStatus(
+                        eventId,
+                        cardIndex,
+                        ENUM_ICHIBAN_CARD_STATUS.LOCKED
+                    );
+
+                if (card) {
+                    // 恢復卡片狀態為可點擊
+                    await IchibanCardStore.updateIchibanCardByIdAndStatus(
+                        card.id,
+                        {
+                            status: ENUM_ICHIBAN_CARD_STATUS.CLOSED,
+                            openedAt: null,
+                            openedBy: null,
+                        }
+                    );
+
+                    // 廣播付款超時訊息
+                    this.broadcastToRoom(`event-${eventId}`, {
+                        type: 'card-payment-failed',
+                        eventId: eventId,
+                        cardIndex: cardIndex,
+                        clientId: clientId,
+                        timestamp: new Date().toISOString(),
+                        reason: 'payment-timeout',
+                    });
+
+                    const client = this.clients.get(clientId);
+                    if (client) {
+                        this.broadcastToRoom(`merchant-${client.merchantId}`, {
+                            type: 'card-payment-failed-notification',
+                            eventId: eventId,
+                            cardIndex: cardIndex,
+                            clientId: clientId,
+                            timestamp: new Date().toISOString(),
+                            reason: 'payment-timeout',
+                        });
+                    }
+
+                    console.log(
+                        `Card ${cardIndex} payment timeout in event ${eventId} by ${clientId}`
+                    );
+                }
+            } catch (error) {
+                console.error('Error handling payment timeout:', error);
+            } finally {
+                this.paymentTimeouts.delete(timeoutKey);
+            }
+        }, this.paymentTimeoutDuration);
+
+        this.paymentTimeouts.set(timeoutKey, timeout);
+    }
+
+    // 清除付款超時計時器
+    clearPaymentTimeout(clientId, eventId, cardIndex) {
+        const timeoutKey = `${clientId}-${eventId}-${cardIndex}`;
+        const timeout = this.paymentTimeouts.get(timeoutKey);
+
+        if (timeout) {
+            clearTimeout(timeout);
+            this.paymentTimeouts.delete(timeoutKey);
+        }
     }
 
     start() {

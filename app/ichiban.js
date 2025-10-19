@@ -169,12 +169,14 @@ class IchibanAdmin {
         const statusIndicator = document.querySelector('.status-indicator');
         const statusText = document.querySelector('.status-text');
 
-        if (connected) {
-            statusIndicator.classList.add('connected');
-            statusText.textContent = '已連線';
-        } else {
-            statusIndicator.classList.remove('connected');
-            statusText.textContent = '連線中斷';
+        if (statusIndicator && statusText) {
+            if (connected) {
+                statusIndicator.classList.add('connected');
+                statusText.textContent = '已連線';
+            } else {
+                statusIndicator.classList.remove('connected');
+                statusText.textContent = '連線中斷';
+            }
         }
     }
 
@@ -309,8 +311,11 @@ class IchibanAdmin {
         if (this.selectedEvent && this.selectedEvent.id === message.eventId) {
             this.updateCardStatus(message.cardIndex, 'closed');
             this.updateEventStats();
+
+            const reason =
+                message.reason === 'payment-timeout' ? '（付款超時）' : '';
             this.addActivityRecord(
-                `卡片 ${message.cardIndex + 1} 付款失敗，已恢復為可點擊狀態`
+                `卡片 ${message.cardIndex + 1} 付款失敗${reason}，已恢復為可點擊狀態`
             );
         }
     }
@@ -320,8 +325,11 @@ class IchibanAdmin {
             this.updateCardStatus(message.cardIndex, 'closed');
             this.updateEventStats();
         }
+
+        const reason =
+            message.reason === 'payment-timeout' ? '（付款超時）' : '';
         this.addActivityRecord(
-            `卡片 ${message.cardIndex + 1} 付款失敗，已恢復為可點擊狀態`
+            `卡片 ${message.cardIndex + 1} 付款失敗${reason}，已恢復為可點擊狀態`
         );
     }
 
@@ -447,9 +455,12 @@ class IchibanAdmin {
         document.querySelectorAll('.event-card').forEach(card => {
             card.classList.remove('selected');
         });
-        document
-            .querySelector(`[data-event-id="${event.id}"]`)
-            .classList.add('selected');
+        const selectedCard = document.querySelector(
+            `[data-event-id="${event.id}"]`
+        );
+        if (selectedCard) {
+            selectedCard.classList.add('selected');
+        }
 
         this.selectedEvent = event;
 
@@ -588,7 +599,10 @@ class IchibanAdmin {
         document.getElementById('detailOpenedBy').textContent =
             card.openedBy || '未開啟';
 
-        document.getElementById('cardDetailModal').classList.add('show');
+        const cardDetailModal = document.getElementById('cardDetailModal');
+        if (cardDetailModal) {
+            cardDetailModal.classList.add('show');
+        }
     }
 
     getCardStatusText(status) {
@@ -601,19 +615,28 @@ class IchibanAdmin {
     }
 
     closeCardDetailModal() {
-        document.getElementById('cardDetailModal').classList.remove('show');
+        const cardDetailModal = document.getElementById('cardDetailModal');
+        if (cardDetailModal) {
+            cardDetailModal.classList.remove('show');
+        }
     }
 
     showConfirmModal(title, message, callback) {
         document.getElementById('modalTitle').textContent = title;
         document.getElementById('modalMessage').textContent = message;
-        document.getElementById('confirmModal').classList.add('show');
+        const confirmModal = document.getElementById('confirmModal');
+        if (confirmModal) {
+            confirmModal.classList.add('show');
+        }
 
         this.confirmCallback = callback;
     }
 
     closeConfirmModal() {
-        document.getElementById('confirmModal').classList.remove('show');
+        const confirmModal = document.getElementById('confirmModal');
+        if (confirmModal) {
+            confirmModal.classList.remove('show');
+        }
         this.confirmCallback = null;
     }
 
@@ -665,12 +688,18 @@ class IchibanAdmin {
 
     // 新增活動相關方法
     showCreateEventModal() {
-        document.getElementById('createEventModal').classList.add('show');
+        const createEventModal = document.getElementById('createEventModal');
+        if (createEventModal) {
+            createEventModal.classList.add('show');
+        }
         this.resetCreateEventForm();
     }
 
     closeCreateEventModal() {
-        document.getElementById('createEventModal').classList.remove('show');
+        const createEventModal = document.getElementById('createEventModal');
+        if (createEventModal) {
+            createEventModal.classList.remove('show');
+        }
     }
 
     resetCreateEventForm() {

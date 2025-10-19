@@ -6,12 +6,14 @@ EcpayConfig.hasMany(IchibanEvent, {
     foreignKey: 'merchantId',
     sourceKey: 'merchantId',
     as: 'ichibanEvents',
+    constraints: false, // 禁用外鍵約束
 });
 
 EcpayConfig.hasMany(Donation, {
     foreignKey: 'merchantId',
     sourceKey: 'merchantId',
     as: 'donations',
+    constraints: false, // 禁用外鍵約束
 });
 
 module.exports = EcpayConfig;
