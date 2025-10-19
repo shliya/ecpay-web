@@ -5,6 +5,7 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 module.exports = {
     mode: 'production', // 1. 改為 production
+    cache: false, // 禁用緩存
     entry: {
         index: path.resolve(__dirname, 'app/index.js'),
         login: path.resolve(__dirname, 'app/login.js'),

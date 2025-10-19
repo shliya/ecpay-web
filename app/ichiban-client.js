@@ -63,7 +63,11 @@ class IchibanClient {
     }
 
     connectWebSocket() {
-        const wsUrl = `ws://localhost:3002?merchantId=${this.merchantId}`;
+        // 根據環境決定 WebSocket URL
+        const isProduction = window.location.protocol === 'https:';
+        const wsProtocol = isProduction ? 'wss:' : 'ws:';
+        const wsHost = isProduction ? window.location.host : 'localhost:3002';
+        const wsUrl = `${wsProtocol}//${wsHost}?merchantId=${this.merchantId}`;
 
         try {
             this.ws = new WebSocket(wsUrl);

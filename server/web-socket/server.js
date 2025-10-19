@@ -8,18 +8,27 @@ const { setPaymentOrder } = require('../store/payment-order');
 const { ENUM_ICHIBAN_EVENT_STATUS } = require('../lib/enum');
 
 class IchibanWebSocketServer {
-    constructor(port = 3002) {
-        this.port = port;
+    constructor(server = null) {
+        this.server = server;
         this.clients = new Map();
         this.rooms = new Map();
         this.paymentTimeouts = new Map(); // 存儲付款超時計時器
         this.paymentTimeoutDuration = 5 * 60 * 1000; // 5分鐘超時
 
-        this.server = http.createServer();
-        this.wss = new WebSocket.Server({
-            server: this.server,
-            verifyClient: this.verifyClient.bind(this),
-        });
+        if (this.server) {
+            this.wss = new WebSocket.Server({
+                server: this.server,
+                verifyClient: this.verifyClient.bind(this),
+            });
+        } else {
+            const port = process.env.WEBSOCKET_PORT || 3002;
+            this.server = http.createServer();
+            this.wss = new WebSocket.Server({
+                server: this.server,
+                verifyClient: this.verifyClient.bind(this),
+            });
+            this.port = port;
+        }
 
         this.setupEventHandlers();
     }
@@ -604,11 +613,17 @@ class IchibanWebSocketServer {
     }
 
     start() {
-        this.server.listen(this.port, () => {
+        if (this.port) {
+            this.server.listen(this.port, () => {
+                console.log(
+                    `🎰 Ichiban WebSocket server running on port ${this.port}`
+                );
+            });
+        } else {
             console.log(
-                `🎰 Ichiban WebSocket server running on port ${this.port}`
+                '🎰 Ichiban WebSocket server attached to existing HTTP server'
             );
-        });
+        }
 
         setInterval(() => {
             this.clients.forEach((client, clientId) => {

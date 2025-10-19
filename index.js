@@ -2,12 +2,16 @@ require('dotenv').config();
 const sequelize = require('./server/config/database');
 const path = require('path');
 const express = require('express');
+const http = require('http');
 const app = express();
-const port = process.env.PORT;
+const port = process.env.PORT || 3001;
 const cors = require('cors');
 const { scheduler } = require('./server/lib/scheduler');
 const IchibanWebSocketServer = require('./server/web-socket/server');
-const ichibanWebSocketServer = new IchibanWebSocketServer();
+
+const server = http.createServer(app);
+
+const ichibanWebSocketServer = new IchibanWebSocketServer(server);
 
 // 設置全域 WebSocket 服務器實例
 global.ichibanWebSocketServer = ichibanWebSocketServer;
@@ -43,7 +47,7 @@ sequelize
 
         ichibanWebSocketServer.start();
 
-        app.listen(port, () => {
+        server.listen(port, () => {
             console.log(`Server is running on http://localhost:${port}`);
         });
     })
