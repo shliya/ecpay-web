@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>抽獎系統 Gacha System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        .main-layout {
+            display: flex;
+            gap: 30px;
+            min-height: 500px;
+        }
+
+        .left-panel {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .right-panel {
+            flex: 1;
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .panel-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .prizes-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            overflow-y: auto;
+            max-height: 600px;
+            padding-right: 10px;
+        }
+
+        .prizes-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .prizes-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .prizes-list::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 10px;
+        }
+
+        .prize-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            border: 3px solid #ddd;
+            transition: all 0.3s ease;
+            position: relative;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .prize-card.drawn {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+            border-color: #fdcb6e;
+            box-shadow: 0 0 30px rgba(253, 203, 110, 0.6);
+            transform: scale(1.02);
+        }
+
+        .prize-card.drawn::before {
+            content: '✨';
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 2em;
+            animation: sparkle 1s infinite;
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+
+        .prize-card.just-drawn {
+            animation: prizeWin 0.6s ease;
+        }
+
+        @keyframes prizeWin {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1) rotate(2deg); }
+            100% { transform: scale(1.02); }
+        }
+
+        .prize-card-content {
+            flex: 1;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .prize-card input {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            font-family: inherit;
+        }
+
+        .prize-card input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .prize-name-input {
+            flex: 2;
+            max-width: calc(100% - 150px);
+        }
+
+        .prize-probability-input {
+            width: 80px;
+            text-align: center;
+        }
+
+        .delete-btn {
+            background: #ff7675;
+            color: white;
+            border: none;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .delete-btn:hover {
+            background: #d63031;
+            transform: scale(1.1);
+        }
+
+        .prize-status {
+            font-weight: bold;
+            padding: 6px 12px;
+            border-radius: 5px;
+            font-size: 0.9em;
+            white-space: nowrap;
+        }
+
+        .prize-status.available {
+            background: #dfe6e9;
+            color: #636e72;
+        }
+
+        .prize-status.won {
+            background: #55efc4;
+            color: #00b894;
+        }
+
+        button {
+            padding: 12px 24px;
+            font-size: 1em;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            width: 100%;
+        }
+
+        .add-prize-btn {
+            background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%);
+            color: white;
+        }
+
+        .add-prize-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 20px rgba(108, 92, 231, 0.4);
+        }
+
+        .donate-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .donate-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 20px rgba(245, 87, 108, 0.4);
+        }
+
+        .reset-btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .reset-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 20px rgba(79, 172, 254, 0.4);
+        }
+
+        .reset-all-btn {
+            background: linear-gradient(135deg, #fd79a8 0%, #e84393 100%);
+            color: white;
+        }
+
+        .reset-all-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 20px rgba(232, 67, 147, 0.4);
+        }
+
+        .status {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            font-size: 1em;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .status-item {
+            margin: 5px 0;
+        }
+
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .divider {
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #ddd, transparent);
+            margin: 10px 0;
+        }
+
+        .message {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+            z-index: 1000;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                bottom: -50px;
+                opacity: 0;
+            }
+            to {
+                bottom: 30px;
+                opacity: 1;
+            }
+        }
+
+        .message.success {
+            background: #55efc4;
+            color: #00b894;
+        }
+
+        .message.error {
+            background: #ff7675;
+            color: #d63031;
+        }
+
+        .message.info {
+            background: #74b9ff;
+            color: #0984e3;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* API Integration Styles */
+        .config-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .config-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .config-group {
+            margin-bottom: 15px;
+        }
+
+        .config-label {
+            display: block;
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .config-input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.95em;
+            font-family: inherit;
+            transition: border-color 0.3s ease;
+        }
+
+        .config-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .config-input:disabled {
+            background: #e9ecef;
+            cursor: not-allowed;
+        }
+
+        .monitoring-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 2px solid #ddd;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.active {
+            background: #00b894;
+            box-shadow: 0 0 10px rgba(0, 184, 148, 0.6);
+        }
+
+        .status-dot.inactive {
+            background: #dfe6e9;
+            animation: none;
+        }
+
+        .status-dot.error {
+            background: #d63031;
+            box-shadow: 0 0 10px rgba(214, 48, 49, 0.6);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.1); }
+        }
+
+        .status-text {
+            flex: 1;
+            font-size: 0.9em;
+        }
+
+        .status-text strong {
+            display: block;
+            font-size: 1em;
+            margin-bottom: 3px;
+        }
+
+        .status-text small {
+            color: #999;
+            font-size: 0.85em;
+        }
+
+        .toggle-btn {
+            background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
+            color: white;
+        }
+
+        .toggle-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 20px rgba(0, 184, 148, 0.4);
+        }
+
+        .toggle-btn.stop {
+            background: linear-gradient(135deg, #fd79a8 0%, #e84393 100%);
+        }
+
+        .simulate-btn {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+            color: #2d3436;
+        }
+
+        .simulate-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 20px rgba(253, 203, 110, 0.4);
+        }
+
+        .force-check-btn {
+            background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+            color: white;
+        }
+
+        .force-check-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 20px rgba(9, 132, 227, 0.4);
+        }
+
+        .activity-log {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 0.85em;
+            margin-bottom: 15px;
+        }
+
+        .activity-log::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .activity-log::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .activity-log::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 10px;
+        }
+
+        .log-entry {
+            padding: 8px;
+            margin-bottom: 5px;
+            border-left: 3px solid #ddd;
+            padding-left: 10px;
+        }
+
+        .log-entry.success {
+            border-left-color: #00b894;
+            background: #f0fdf9;
+        }
+
+        .log-entry.error {
+            border-left-color: #d63031;
+            background: #fef2f2;
+        }
+
+        .log-entry.info {
+            border-left-color: #0984e3;
+            background: #f0f9ff;
+        }
+
+        .log-time {
+            color: #999;
+            font-size: 0.85em;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-row .config-group {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎰 抽獎系統</h1>
+
+        <div class="main-layout">
+            <!-- Left Panel: Prize List -->
+            <div class="left-panel">
+                <div class="panel-title">挑戰列表</div>
+                <div style="font-size: 0.9em; color: #666; margin-bottom: 15px;">若全數抽中，請等下一次挑戰再斗內挑戰轉盤！</div>
+                <div class="prizes-list" id="prizesList"></div>
+            </div>
+
+            <!-- Right Panel: Controls -->
+            <div class="right-panel">
+                <div class="panel-title">控制面板</div>
+
+                <div class="status">
+                    <div class="status-item">總獎項: <strong><span id="total">0</span></strong></div>
+                    <div class="status-item">剩餘獎項: <strong><span id="remaining">0</span></strong></div>
+                    <div class="status-item">總機率: <strong><span id="totalProbability">0</span>%</strong></div>
+                </div>
+
+                <div class="button-group">
+                    <button class="add-prize-btn" onclick="addPrize()">➕ 新增獎項</button>
+                    <button class="donate-btn" onclick="simulateDonate()">🎲 開始抽獎</button>
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="button-group">
+                    <button class="reset-btn" onclick="resetDrawStatus()">🔄 重置抽抽狀態</button>
+                    <button class="reset-all-btn" onclick="resetAll()">🗑️ 重置全部</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- API Integration Configuration Section -->
+        <div class="config-section">
+            <div class="config-title">🔗 API 自動抽獎設定</div>
+
+            <!-- Monitoring Status -->
+            <div class="monitoring-status">
+                <div class="status-dot inactive" id="statusDot"></div>
+                <div class="status-text">
+                    <strong id="statusTitle">監控已停止</strong>
+                    <small id="statusDetail">點擊「開始監控」來啟動自動抽獎</small>
+                </div>
+            </div>
+
+            <!-- Activity Log -->
+            <div class="config-group">
+                <label class="config-label">活動日誌</label>
+                <div class="activity-log" id="activityLog">
+                    <div class="log-entry info">
+                        <span class="log-time">等待中...</span> 系統已就緒，等待開始監控
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configuration Inputs -->
+            <div class="input-row">
+                <div class="config-group">
+                    <label class="config-label">商店代號 (Merchant ID)</label>
+                    <input type="text" id="merchantId" class="config-input" value="3461558" placeholder="輸入您的綠界商店代號">
+                </div>
+                <div class="config-group">
+                    <label class="config-label">最低斗內金額 (TWD)</label>
+                    <input type="number" id="minAmount" class="config-input" value="100" placeholder="100">
+                </div>
+            </div>
+
+            <div class="input-row">
+                <div class="config-group">
+                    <label class="config-label">必須包含訊息 (關鍵字)</label>
+                    <input type="text" id="requiredKeyword" class="config-input" value="抽抽" placeholder="例如: 抽抽!">
+                </div>
+                <div class="config-group">
+                    <label class="config-label">檢查間隔 (秒)</label>
+                    <input type="number" id="pollingInterval" class="config-input" value="3" min="1" max="60" placeholder="3">
+                </div>
+            </div>
+
+            <div class="config-group">
+                <label class="config-label">API Base URL</label>
+                <input type="text" id="apiBaseUrl" class="config-input" value="https://ecpay-web.onrender.com" placeholder="https://ecpay-web.onrender.com">
+            </div>
+
+            <!-- Control Buttons -->
+            <div class="button-group">
+                <button class="toggle-btn" id="toggleMonitoring" onclick="toggleMonitoring()">▶️ 開始監控</button>
+                <button class="force-check-btn" onclick="forceCheckDonations()">🔍 立即檢查斗內</button>
+                <button class="simulate-btn" onclick="simulateNewDonation()">🧪 模擬新斗內 (測試用)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Message notification at bottom -->
+    <div id="message" class="message hidden"></div>
+
+    <script>
+        // 獎項池
+        let prizes = [
+            { id: 1, name: '一等獎 - 頭獎', probability: 10, drawn: false },
+            { id: 2, name: '二等獎 - 大獎', probability: 20, drawn: false },
+            { id: 3, name: '三等獎 - 中獎', probability: 30, drawn: false },
+            { id: 4, name: '參加獎 - 小獎', probability: 25, drawn: false },
+            { id: 5, name: '安慰獎', probability: 15, drawn: false }
+        ];
+
+        let nextPrizeId = 6;
+
+        // ========== API Integration Variables ==========
+        let isMonitoring = false;
+        let pollingTimer = null;
+        let lastCheckedDonations = [];
+        let retryCount = 0;
+        let maxRetries = 5;
+        let baseRetryDelay = 2000; // 2 seconds
+
+        // API Configuration
+        const API_CONFIG_KEY = 'gachaApiConfig';
+        const PRIZES_KEY = 'gachaPrizes';
+        const LAST_DONATION_KEY = 'gachaLastDonation';
+
+        // ========== LocalStorage Management ==========
+        function saveToLocalStorage() {
+            try {
+                // Save prizes
+                localStorage.setItem(PRIZES_KEY, JSON.stringify(prizes));
+
+                // Save config
+                const config = {
+                    merchantId: document.getElementById('merchantId').value,
+                    minAmount: document.getElementById('minAmount').value,
+                    requiredKeyword: document.getElementById('requiredKeyword').value,
+                    pollingInterval: document.getElementById('pollingInterval').value,
+                    apiBaseUrl: document.getElementById('apiBaseUrl').value,
+                };
+                localStorage.setItem(API_CONFIG_KEY, JSON.stringify(config));
+
+                // Save last checked donations
+                localStorage.setItem(LAST_DONATION_KEY, JSON.stringify(lastCheckedDonations));
+            } catch (error) {
+                console.error('保存到 localStorage 失敗:', error);
+            }
+        }
+
+        function loadFromLocalStorage() {
+            try {
+                // Load prizes
+                const savedPrizes = localStorage.getItem(PRIZES_KEY);
+                if (savedPrizes) {
+                    prizes = JSON.parse(savedPrizes);
+                    // Find the highest ID to set nextPrizeId
+                    const maxId = Math.max(...prizes.map(p => p.id), 0);
+                    nextPrizeId = maxId + 1;
+                }
+
+                // Load config
+                const savedConfig = localStorage.getItem(API_CONFIG_KEY);
+                if (savedConfig) {
+                    const config = JSON.parse(savedConfig);
+                    document.getElementById('merchantId').value = config.merchantId || '3461558';
+                    document.getElementById('minAmount').value = config.minAmount || '100';
+                    document.getElementById('requiredKeyword').value = config.requiredKeyword || '抽抽';
+                    document.getElementById('pollingInterval').value = config.pollingInterval || '3';
+                    document.getElementById('apiBaseUrl').value = config.apiBaseUrl || 'https://ecpay-web.onrender.com';
+                }
+
+                // Load last checked donations
+                const savedDonations = localStorage.getItem(LAST_DONATION_KEY);
+                if (savedDonations) {
+                    lastCheckedDonations = JSON.parse(savedDonations);
+                }
+            } catch (error) {
+                console.error('從 localStorage 載入失敗:', error);
+            }
+        }
+
+        // ========== Activity Log Functions ==========
+        function addLog(message, type = 'info') {
+            const logContainer = document.getElementById('activityLog');
+            const now = new Date();
+            const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${type}`;
+            logEntry.innerHTML = `<span class="log-time">${timeStr}</span> ${message}`;
+
+            logContainer.insertBefore(logEntry, logContainer.firstChild);
+
+            // Keep only last 50 entries
+            while (logContainer.children.length > 50) {
+                logContainer.removeChild(logContainer.lastChild);
+            }
+
+            // Auto scroll to top
+            logContainer.scrollTop = 0;
+        }
+
+        function updateStatus(status, title, detail) {
+            const statusDot = document.getElementById('statusDot');
+            const statusTitle = document.getElementById('statusTitle');
+            const statusDetail = document.getElementById('statusDetail');
+
+            statusDot.className = `status-dot ${status}`;
+            statusTitle.textContent = title;
+            statusDetail.textContent = detail;
+        }
+
+        // ========== API Functions ==========
+        async function fetchDonations() {
+            const merchantId = document.getElementById('merchantId').value.trim();
+            const apiBaseUrl = document.getElementById('apiBaseUrl').value.trim();
+
+            if (!merchantId) {
+                throw new Error('商店代號不能為空');
+            }
+
+            const url = `${apiBaseUrl}/api/v1/comme/ecpay/donations/id=${merchantId}`;
+
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                throw new Error(`API 請求失敗: ${response.status} ${response.statusText}`);
+            }
+
+            const donations = await response.json();
+            return donations;
+        }
+
+        function findNewDonations(currentDonations) {
+            if (lastCheckedDonations.length === 0) {
+                // First time - don't process old donations, just record them
+                return [];
+            }
+
+            const lastIds = new Set(lastCheckedDonations.map(d => d.id));
+            const newDonations = currentDonations.filter(d => !lastIds.has(d.id));
+
+            return newDonations;
+        }
+
+        function validateDonation(donation) {
+            const minAmount = parseFloat(document.getElementById('minAmount').value) || 0;
+            const requiredKeyword = document.getElementById('requiredKeyword').value.trim();
+
+            const amountValid = donation.cost >= minAmount;
+            const keywordValid = !requiredKeyword || (donation.message && donation.message.includes(requiredKeyword));
+
+            return {
+                valid: amountValid && keywordValid,
+                amountValid,
+                keywordValid,
+                reason: !amountValid ? `金額不足 (需要 ${minAmount}, 實際 ${donation.cost})` :
+                        !keywordValid ? `訊息不包含關鍵字 "${requiredKeyword}"` : '通過驗證'
+            };
+        }
+
+        async function checkDonationsAndDraw() {
+            try {
+                updateStatus('active', '檢查中...', '正在查詢斗內記錄');
+
+                const donations = await fetchDonations();
+                const newDonations = findNewDonations(donations);
+
+                if (newDonations.length > 0) {
+                    addLog(`發現 ${newDonations.length} 筆新斗內`, 'info');
+
+                    for (const donation of newDonations) {
+                        const validation = validateDonation(donation);
+
+                        if (validation.valid) {
+                            addLog(`✓ ${donation.name} 斗內 $${donation.cost} - ${validation.reason}`, 'success');
+
+                            // Check if there are prizes available
+                            const availablePrizes = prizes.filter(p => !p.drawn);
+                            if (availablePrizes.length > 0) {
+                                // Trigger auto-draw
+                                const wonPrize = drawPrizeAuto();
+                                if (wonPrize) {
+                                    showMessage(`🎉 ${donation.name} 抽中：${wonPrize.name}！`, 'success');
+                                    addLog(`🎊 ${donation.name} 獲得獎項：${wonPrize.name}`, 'success');
+                                }
+                            } else {
+                                addLog(`⚠️ 所有獎項已抽完，${donation.name} 的斗內無法觸發抽獎`, 'error');
+                                showMessage('所有獎項已抽完！請重置抽抽狀態', 'error');
+                            }
+                        } else {
+                            addLog(`✗ ${donation.name} 斗內 $${donation.cost} - ${validation.reason}`, 'error');
+                        }
+                    }
+                }
+
+                // Update last checked donations
+                lastCheckedDonations = donations;
+                saveToLocalStorage();
+
+                // Reset retry count on success
+                retryCount = 0;
+
+                const now = new Date().toLocaleTimeString('zh-TW');
+                updateStatus('active', '監控中', `最後檢查: ${now}`);
+
+            } catch (error) {
+                console.error('檢查斗內時發生錯誤:', error);
+                handleApiError(error);
+            }
+        }
+
+        function handleApiError(error) {
+            retryCount++;
+
+            if (retryCount >= maxRetries) {
+                updateStatus('error', 'API 錯誤', `已達最大重試次數 (${maxRetries})`);
+                addLog(`❌ API 連線失敗: ${error.message}`, 'error');
+                stopMonitoring();
+            } else {
+                const delay = Math.min(baseRetryDelay * Math.pow(2, retryCount - 1), 30000);
+                updateStatus('error', 'API 錯誤 - 將重試', `${retryCount}/${maxRetries} - ${(delay/1000).toFixed(0)}秒後重試`);
+                addLog(`⚠️ API 錯誤，${(delay/1000).toFixed(0)}秒後重試 (${retryCount}/${maxRetries}): ${error.message}`, 'error');
+            }
+        }
+
+        // ========== Auto-Draw Function ==========
+        function drawPrizeAuto() {
+            const availablePrizes = prizes.filter(p => !p.drawn);
+
+            if (availablePrizes.length === 0) {
+                return null;
+            }
+
+            // Calculate total available probability
+            const totalAvailableProbability = availablePrizes.reduce((sum, prize) => sum + prize.probability, 0);
+
+            // Generate random number
+            const random = Math.random() * totalAvailableProbability;
+
+            // Select prize based on probability
+            let cumulativeProbability = 0;
+            let selectedPrize = null;
+
+            for (const prize of availablePrizes) {
+                cumulativeProbability += prize.probability;
+                if (random <= cumulativeProbability) {
+                    selectedPrize = prize;
+                    break;
+                }
+            }
+
+            // Fallback if floating point error
+            if (!selectedPrize) {
+                selectedPrize = availablePrizes[availablePrizes.length - 1];
+            }
+
+            // Mark as drawn
+            selectedPrize.drawn = true;
+
+            // Update UI
+            renderPrizes();
+            updateStatus();
+            saveToLocalStorage();
+
+            // Add animation
+            setTimeout(() => {
+                const cards = document.querySelectorAll('.prize-card');
+                const drawnCards = Array.from(cards).filter(card => card.classList.contains('drawn'));
+                if (drawnCards.length > 0) {
+                    drawnCards[drawnCards.length - 1].classList.add('just-drawn');
+                }
+            }, 100);
+
+            return selectedPrize;
+        }
+
+        // ========== Monitoring Control ==========
+        function toggleMonitoring() {
+            if (isMonitoring) {
+                stopMonitoring();
+            } else {
+                startMonitoring();
+            }
+        }
+
+        function startMonitoring() {
+            // Validate configuration
+            const merchantId = document.getElementById('merchantId').value.trim();
+            if (!merchantId) {
+                alert('請輸入商店代號！');
+                return;
+            }
+
+            const minAmount = parseFloat(document.getElementById('minAmount').value);
+            if (isNaN(minAmount) || minAmount < 0) {
+                alert('請輸入有效的最低斗內金額！');
+                return;
+            }
+
+            const interval = parseInt(document.getElementById('pollingInterval').value);
+            if (isNaN(interval) || interval < 1) {
+                alert('請輸入有效的檢查間隔（至少1秒）！');
+                return;
+            }
+
+            // Validate probabilities
+            if (!validateProbabilities()) {
+                const totalProb = prizes.reduce((sum, prize) => sum + (prize.probability || 0), 0);
+                alert(`⚠️ 機率總和必須為 100%！\n目前總和：${totalProb.toFixed(1)}%\n\n請調整各獎項的機率。`);
+                return;
+            }
+
+            isMonitoring = true;
+            retryCount = 0;
+
+            // Disable config inputs while monitoring
+            document.getElementById('merchantId').disabled = true;
+            document.getElementById('minAmount').disabled = true;
+            document.getElementById('requiredKeyword').disabled = true;
+            document.getElementById('pollingInterval').disabled = true;
+            document.getElementById('apiBaseUrl').disabled = true;
+
+            // Update button
+            const btn = document.getElementById('toggleMonitoring');
+            btn.textContent = '⏸️ 停止監控';
+            btn.classList.add('stop');
+
+            updateStatus('active', '監控已啟動', '正在初始化...');
+            addLog('🚀 開始監控斗內', 'info');
+
+            // Save config
+            saveToLocalStorage();
+
+            // Start polling
+            checkDonationsAndDraw(); // Check immediately
+            pollingTimer = setInterval(() => {
+                checkDonationsAndDraw();
+            }, interval * 1000);
+        }
+
+        function stopMonitoring() {
+            isMonitoring = false;
+
+            if (pollingTimer) {
+                clearInterval(pollingTimer);
+                pollingTimer = null;
+            }
+
+            // Enable config inputs
+            document.getElementById('merchantId').disabled = false;
+            document.getElementById('minAmount').disabled = false;
+            document.getElementById('requiredKeyword').disabled = false;
+            document.getElementById('pollingInterval').disabled = false;
+            document.getElementById('apiBaseUrl').disabled = false;
+
+            // Update button
+            const btn = document.getElementById('toggleMonitoring');
+            btn.textContent = '▶️ 開始監控';
+            btn.classList.remove('stop');
+
+            updateStatus('inactive', '監控已停止', '點擊「開始監控」來啟動自動抽獎');
+            addLog('⏹️ 停止監控', 'info');
+        }
+
+        // ========== Force Check Function ==========
+        async function forceCheckDonations() {
+            if (isMonitoring) {
+                showMessage('監控進行中，無需手動檢查', 'info');
+                return;
+            }
+
+            addLog('🔍 手動檢查斗內...', 'info');
+            await checkDonationsAndDraw();
+        }
+
+        // ========== Simulate Donation Function ==========
+        function simulateNewDonation() {
+            const merchantId = document.getElementById('merchantId').value.trim();
+            const minAmount = parseFloat(document.getElementById('minAmount').value) || 100;
+            const keyword = document.getElementById('requiredKeyword').value.trim();
+
+            // Create a fake donation
+            const fakeDonation = {
+                id: `test_${Date.now()}`,
+                merchantId: merchantId,
+                name: `測試用戶_${Math.floor(Math.random() * 1000)}`,
+                cost: minAmount,
+                message: keyword,
+                created_at: new Date().toISOString()
+            };
+
+            addLog(`🧪 模擬斗內: ${fakeDonation.name} - $${fakeDonation.cost} - "${fakeDonation.message}"`, 'info');
+
+            // Validate
+            const validation = validateDonation(fakeDonation);
+
+            if (validation.valid) {
+                addLog(`✓ 驗證通過 - ${validation.reason}`, 'success');
+
+                const availablePrizes = prizes.filter(p => !p.drawn);
+                if (availablePrizes.length > 0) {
+                    const wonPrize = drawPrizeAuto();
+                    if (wonPrize) {
+                        showMessage(`🎉 ${fakeDonation.name} 抽中：${wonPrize.name}！`, 'success');
+                        addLog(`🎊 ${fakeDonation.name} 獲得獎項：${wonPrize.name}`, 'success');
+                    }
+                } else {
+                    addLog(`⚠️ 所有獎項已抽完`, 'error');
+                    showMessage('所有獎項已抽完！請重置抽抽狀態', 'error');
+                }
+            } else {
+                addLog(`✗ 驗證失敗 - ${validation.reason}`, 'error');
+            }
+        }
+
+        // ========== Modified Init Function ==========
+        // 初始化
+        function init() {
+            loadFromLocalStorage();
+            renderPrizes();
+            updateStatus();
+        }
+
+        // 渲染獎項卡片
+        function renderPrizes() {
+            const list = document.getElementById('prizesList');
+            list.innerHTML = '';
+
+            prizes.forEach((prize, index) => {
+                const card = document.createElement('div');
+                card.className = `prize-card ${prize.drawn ? 'drawn' : ''}`;
+                card.innerHTML = `
+                    <div class="prize-card-content">
+                        <input
+                            type="text"
+                            class="prize-name-input"
+                            value="${prize.name}"
+                            onchange="updatePrizeName(${prize.id}, this.value)"
+                            placeholder="輸入獎項名稱"
+                        />
+                        <input
+                            type="number"
+                            class="prize-probability-input"
+                            value="${prize.probability}"
+                            onchange="updatePrizeProbability(${prize.id}, this.value)"
+                            min="0"
+                            max="100"
+                            step="0.1"
+                            placeholder="%"
+                        />
+                        <span style="color: #666;">%</span>
+                        <div class="prize-status ${prize.drawn ? 'won' : 'available'}">
+                            ${prize.drawn ? '✓ 已抽' : '○ 未抽'}
+                        </div>
+                    </div>
+                    <button class="delete-btn" onclick="deletePrize(${prize.id})" title="刪除獎項">×</button>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        // 更新獎項名稱
+        function updatePrizeName(id, newName) {
+            const prize = prizes.find(p => p.id === id);
+            if (prize) {
+                prize.name = newName;
+                saveToLocalStorage();
+            }
+        }
+
+        // 更新獎項機率
+        function updatePrizeProbability(id, newProbability) {
+            const prize = prizes.find(p => p.id === id);
+            if (prize) {
+                prize.probability = parseFloat(newProbability) || 0;
+                updateStatus();
+                saveToLocalStorage();
+            }
+        }
+
+        // 刪除獎項
+        function deletePrize(id) {
+            if (prizes.length <= 1) {
+                showMessage('至少需要保留一個獎項！', 'error');
+                return;
+            }
+
+            prizes = prizes.filter(p => p.id !== id);
+            renderPrizes();
+            updateStatus();
+            saveToLocalStorage();
+            showMessage('獎項已刪除', 'info');
+        }
+
+        // 更新狀態顯示
+        function updateStatus() {
+            const remaining = prizes.filter(p => !p.drawn).length;
+            const total = prizes.length;
+            const totalProbability = prizes.reduce((sum, prize) => sum + (prize.probability || 0), 0);
+
+            document.getElementById('remaining').textContent = remaining;
+            document.getElementById('total').textContent = total;
+            document.getElementById('totalProbability').textContent = totalProbability.toFixed(1);
+        }
+
+        // 驗證機率總和
+        function validateProbabilities() {
+            const totalProbability = prizes.reduce((sum, prize) => sum + (prize.probability || 0), 0);
+            const tolerance = 0.1; // 允許 0.1% 的誤差
+
+            if (Math.abs(totalProbability - 100) > tolerance) {
+                return false;
+            }
+            return true;
+        }
+
+        // 顯示訊息
+        function showMessage(text, type = 'info') {
+            const msgEl = document.getElementById('message');
+            msgEl.textContent = text;
+            msgEl.className = `message ${type}`;
+            msgEl.classList.remove('hidden');
+
+            setTimeout(() => {
+                msgEl.classList.add('hidden');
+            }, 3000);
+        }
+
+        // 開始抽獎
+        function simulateDonate() {
+            // 驗證機率總和
+            if (!validateProbabilities()) {
+                const totalProb = prizes.reduce((sum, prize) => sum + (prize.probability || 0), 0);
+                alert(`⚠️ 機率總和必須為 100%！\n目前總和：${totalProb.toFixed(1)}%\n\n請調整各獎項的機率。`);
+                return;
+            }
+
+            // 檢查是否還有獎項可抽
+            const availablePrizes = prizes.filter(p => !p.drawn);
+
+            if (availablePrizes.length === 0) {
+                showMessage('所有獎項都已抽完！請按「重置抽抽狀態」重新開始', 'error');
+                return;
+            }
+
+            // 開始抽獎（不放回）
+            drawPrize();
+        }
+
+        // 抽獎（基於機率的不放回機制）
+        function drawPrize() {
+            const availablePrizes = prizes.filter(p => !p.drawn);
+
+            if (availablePrizes.length === 0) {
+                return;
+            }
+
+            // 計算可用獎項的機率總和（重新正規化）
+            const totalAvailableProbability = availablePrizes.reduce((sum, prize) => sum + prize.probability, 0);
+
+            // 生成隨機數 (0 到總機率之間)
+            const random = Math.random() * totalAvailableProbability;
+
+            // 根據機率選擇獎項
+            let cumulativeProbability = 0;
+            let selectedPrize = null;
+
+            for (const prize of availablePrizes) {
+                cumulativeProbability += prize.probability;
+                if (random <= cumulativeProbability) {
+                    selectedPrize = prize;
+                    break;
+                }
+            }
+
+            // 如果因為浮點數誤差沒選中，就選最後一個
+            if (!selectedPrize) {
+                selectedPrize = availablePrizes[availablePrizes.length - 1];
+            }
+
+            // 標記為已抽出
+            selectedPrize.drawn = true;
+
+            // 顯示抽中的獎項
+            showMessage(`🎉 恭喜抽中：${selectedPrize.name}！`, 'success');
+
+            // 重新渲染
+            renderPrizes();
+            updateStatus();
+
+            // 添加動畫效果到剛抽中的卡片
+            setTimeout(() => {
+                const cards = document.querySelectorAll('.prize-card');
+                const drawnCards = Array.from(cards).filter(card =>
+                    card.classList.contains('drawn')
+                );
+                if (drawnCards.length > 0) {
+                    drawnCards[drawnCards.length - 1].classList.add('just-drawn');
+                }
+            }, 100);
+
+            // 檢查是否抽完
+            if (prizes.every(p => p.drawn)) {
+                setTimeout(() => {
+                    showMessage('🎊 所有獎項已抽完！', 'info');
+                }, 1000);
+            }
+        }
+
+        // 重置抽抽狀態（僅清除已抽狀態）
+        function resetDrawStatus() {
+            if (!confirm('確定要重置抽抽狀態嗎？\n這將清除所有「已抽出」標記，但保留獎項名稱和機率。')) {
+                return;
+            }
+
+            prizes.forEach(prize => {
+                prize.drawn = false;
+            });
+
+            renderPrizes();
+            updateStatus();
+            saveToLocalStorage();
+            showMessage('抽抽狀態已重置！', 'info');
+            addLog('🔄 抽抽狀態已重置', 'info');
+        }
+
+        // 重置全部（清除所有資料）
+        function resetAll() {
+            if (!confirm('確定要重置全部嗎？\n這將刪除所有獎項並重新開始！')) {
+                return;
+            }
+
+            prizes = [
+                { id: 1, name: '新獎項 1', probability: 100, drawn: false }
+            ];
+            nextPrizeId = 2;
+
+            renderPrizes();
+            updateStatus();
+            saveToLocalStorage();
+            showMessage('已重置全部！', 'info');
+            addLog('🗑️ 已重置全部資料', 'info');
+        }
+
+        // 新增獎項
+        function addPrize() {
+            prizes.push({
+                id: nextPrizeId++,
+                name: `新獎項 ${nextPrizeId - 1}`,
+                probability: 10,
+                drawn: false
+            });
+
+            renderPrizes();
+            updateStatus();
+            saveToLocalStorage();
+            showMessage('已新增獎項！', 'success');
+        }
+
+        // 頁面載入時初始化
+        init();
+    </script>
+</body>
+</html>
