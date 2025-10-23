@@ -1,4 +1,7 @@
-const { handleAutoExpireEventsWorker } = require('../schedule/event');
+const {
+    handleAutoExpireEventsWorker,
+    handlePaymentTimeoutWorker,
+} = require('../schedule/event');
 
 class TaskScheduler {
     constructor() {
@@ -24,6 +27,13 @@ class TaskScheduler {
             60 * 60 * 1000 // 1小時
             // 1000 // 1秒
         );
+
+        this.scheduleTask(
+            'payment-timeout',
+            handlePaymentTimeoutWorker,
+            60 * 1000 // 1分鐘
+        );
+
         handleAutoExpireEventsWorker;
     }
 

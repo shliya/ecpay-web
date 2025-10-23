@@ -3,7 +3,7 @@ const paymentOrders = new Map();
 function setPaymentOrder(merchantTradeNo, orderInfo) {
     paymentOrders.set(merchantTradeNo, {
         ...orderInfo,
-        createdAt: new Date(),
+        createdAt: Date.now(), // 使用時間戳而不是 Date 對象
     });
 }
 
@@ -15,6 +15,10 @@ function getPaymentOrder(merchantTradeNo) {
         console.log(`未找到付款訂單: ${merchantTradeNo}`);
     }
     return orderInfo;
+}
+
+function getAllPaymentOrders() {
+    return paymentOrders;
 }
 
 function deletePaymentOrder(merchantTradeNo) {
@@ -30,5 +34,6 @@ function deletePaymentOrder(merchantTradeNo) {
 module.exports = {
     setPaymentOrder,
     getPaymentOrder,
+    getAllPaymentOrders,
     deletePaymentOrder,
 };

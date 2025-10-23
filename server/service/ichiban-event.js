@@ -54,6 +54,55 @@ async function createIchibanEvent({
     }
 }
 
+async function incrementOpenedCards(eventId) {
+    const txn = await IchibanEventStore.getTransaction();
+
+    try {
+        // 先獲取活動資訊
+        const event = await IchibanEventStore.getIchibanEventById(eventId, {
+            transaction: txn,
+        });
+        if (!event) {
+            throw new Error('Event not found');
+        }
+
+        // 更新開啟卡片數量
+        await IchibanEventStore.updateIchibanEventOpenedCards(eventId, {
+            transaction: txn,
+        });
+
+        // 檢查是否所有卡片都已開啟
+        const updatedEvent = await IchibanEventStore.getIchibanEventById(
+            eventId,
+            {
+                transaction: txn,
+            }
+        );
+        if (
+            updatedEvent.openedCards >= updatedEvent.totalCards &&
+            updatedEvent.status === ENUM_ICHIBAN_EVENT_STATUS.ACTIVE
+        ) {
+            // 將活動狀態設為已結束
+            await IchibanEventStore.updateIchibanEventStatus(
+                eventId,
+                ENUM_ICHIBAN_EVENT_STATUS.ENDED,
+                { transaction: txn }
+            );
+
+            console.log(
+                `活動 ${eventId} 已自動結束 - 所有卡片都已開啟 (${updatedEvent.openedCards}/${updatedEvent.totalCards})`
+            );
+        }
+
+        await txn.commit();
+        return true;
+    } catch (error) {
+        await txn.rollback();
+        console.error('Error incrementing opened cards:', error);
+        throw error;
+    }
+}
+
 async function _generateIchibanEventCards(
     eventId,
     totalCards,
@@ -88,6 +137,7 @@ async function _generateIchibanEventCards(
 
 module.exports = {
     createIchibanEvent,
+    incrementOpenedCards,
     getIchibanEventsByMerchantId:
         IchibanEventStore.getIchibanEventsByMerchantId,
     getIchibanEventByIdAndMerchantId:
