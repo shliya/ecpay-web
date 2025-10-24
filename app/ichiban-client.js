@@ -12,8 +12,6 @@ class IchibanClient {
         this.reconnectAttempts = 0;
         this.maxReconnectAttempts = 5;
         this.clientId = this.generateClientId(); // 生成固定的客戶端ID
-        this.paymentTimeout = null; // 付款超時計時器
-        this.paymentTimeoutDuration = 5 * 60 * 1000; // 5分鐘超時
 
         this.init();
     }
@@ -213,8 +211,6 @@ class IchibanClient {
         // 如果是自己抽的卡，顯示獎品模態框
         if (message.openedBy === this.getClientId()) {
             this.showPrizeModal(message.prizeName);
-            // 付款成功，清除超時計時器
-            this.clearPaymentTimeout();
         }
 
         // 更新事件統計
@@ -339,9 +335,6 @@ class IchibanClient {
         console.log('收到的付款參數:', params);
         console.log('付款URL:', paymentUrl);
 
-        // 清除之前的超時計時器
-        this.clearPaymentTimeout();
-
         // 創建表單元素
         const form = document.createElement('form');
         form.method = 'POST';
@@ -368,9 +361,6 @@ class IchibanClient {
                 document.body.removeChild(form);
             }
         }, 1000);
-
-        // 啟動付款超時計時器
-        this.startPaymentTimeout(eventId, cardIndex);
     }
 
     async loadEventData() {
@@ -865,28 +855,6 @@ class IchibanClient {
         console.log(`成功: ${message}`);
         // 暫時使用 alert，之後可以改為更好的 UI 提示
         // alert(`成功: ${message}`);
-    }
-
-    // 啟動付款超時計時器
-    startPaymentTimeout(eventId, cardIndex) {
-        console.log(
-            `啟動付款超時計時器，${this.paymentTimeoutDuration / 1000}秒後將自動取消`
-        );
-
-        this.paymentTimeout = setTimeout(() => {
-            console.log('付款超時，自動取消付款');
-            this.cancelPayment(eventId, cardIndex);
-            this.showError('付款超時，卡片已自動解鎖');
-        }, this.paymentTimeoutDuration);
-    }
-
-    // 清除付款超時計時器
-    clearPaymentTimeout() {
-        if (this.paymentTimeout) {
-            clearTimeout(this.paymentTimeout);
-            this.paymentTimeout = null;
-            console.log('付款超時計時器已清除');
-        }
     }
 
     // 定期發送心跳

@@ -11,10 +11,24 @@ function getTransaction() {
     return sequelize.transaction();
 }
 
+async function getIchibanCardByEventIdAndCardIndexAndStatusWithoutInclude(
+    eventId,
+    cardIndex,
+    status,
+    { transaction, lock = false } = {}
+) {
+    return ichibanCardModel.findOne({
+        where: { eventId, cardIndex, status: status },
+        transaction,
+        lock,
+    });
+}
+
 async function getIchibanCardByEventIdAndCardIndexAndStatus(
     eventId,
     cardIndex,
-    status
+    status,
+    { transaction, lock = false } = {}
 ) {
     return ichibanCardModel.findOne({
         where: { eventId, cardIndex, status: status },
@@ -22,9 +36,10 @@ async function getIchibanCardByEventIdAndCardIndexAndStatus(
             {
                 model: ichibanPrizeModel,
                 as: 'prize',
-                attributes: ['prizeName'],
             },
         ],
+        transaction,
+        lock,
     });
 }
 
@@ -43,5 +58,6 @@ module.exports = {
     getTransaction,
     batchCreateIchibanCards,
     getIchibanCardByEventIdAndCardIndexAndStatus,
+    getIchibanCardByEventIdAndCardIndexAndStatusWithoutInclude,
     updateIchibanCardByIdAndStatus,
 };
