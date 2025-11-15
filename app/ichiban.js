@@ -1,4 +1,5 @@
 // 引入CSS
+import './css/common.css';
 import './css/ichiban.css';
 
 class IchibanAdmin {
@@ -380,6 +381,15 @@ class IchibanAdmin {
         if (loading) {
             loading.remove();
         }
+
+        if (!this.events || this.events.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <p>目前沒有斗內活動</p>
+            </div>
+        `;
+        return;
+    }
 
         // 渲染現有活動
         container.innerHTML = '';

@@ -160,52 +160,6 @@ body {
     margin-bottom: 30px;
 }
 
-.btn {
-    padding: 12px 24px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-    transition: all 0.2s ease;
-    text-decoration: none;
-    display: inline-block;
-    text-align: center;
-}
-
-.btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.btn-primary {
-    background-color: #2196f3;
-    color: white;
-}
-
-.btn-primary:hover {
-    background-color: #1976d2;
-}
-
-.btn-secondary {
-    background-color: #666;
-    color: white;
-}
-
-.btn-secondary:hover {
-    background-color: #555;
-}
-
-.btn-logout {
-    background-color: #D32F2F;
-    color: #FFEBEE;
-}
-
-.btn-logout:hover {
-    background-color: #E53935;
-    color: white;
-}
-
 /* Footer 樣式 */
 .footer {
     text-align: center;
@@ -339,4 +293,10 @@ body {
 
 .feature-card:hover::before {
     left: 100%;
+}
+
+.btn-logout {
+    position: absolute;
+    top: 20px;
+    right: 20px;
 }
