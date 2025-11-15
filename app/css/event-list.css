@@ -1,6 +1,6 @@
 /* app/css/event-list.css */
 body {
-    background-color: #000000;
+    background-color: #212121;
 }
 .container {
     max-width: 1200px;
@@ -40,47 +40,53 @@ body {
     text-decoration: none;
     display: inline-block;
     text-align: center;
+    box-shadow: 1px 1px 2px #000000;
 }
 
 .btn:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 2px 2px 12px #000000;
 }
 
 .btn-refresh {
-    background-color: #4caf50;
-    color: white;
+    background-color: #00796B;
+    color: #E8F5E9;
 }
 
 .btn-refresh:hover {
-    background-color: #45a049;
+    background-color: #009688;
+    color: white;
 }
 
 .btn-primary {
-    background-color: #2196f3;
-    color: white;
+    background-color: #1E88E5;
+    color: #E3F2FD;
 }
 
 .btn-primary:hover {
-    background-color: #1976d2;
+    background-color: #2196F3;
+    color: white;
 }
 
 .btn-create {
-    background-color: #ff9800;
+    background-color: #e1a205;
     color: white;
+    text-shadow: 1px 1px 1px #d58239;
 }
 
 .btn-create:hover {
-    background-color: #f57c00;
+    background-color: #fccf03;
+    text-shadow: 1px 1px 1px #cf9b17;
 }
 
 .btn-secondary {
-    background-color: #9e9e9e;
-    color: white;
+    background-color: #546E7A;
+    color: #FAFAFA;
 }
 
 .btn-secondary:hover {
-    background-color: #757575;
+    background-color: #607D8B;
+    color: white;
 }
 
 .loading {
@@ -117,17 +123,17 @@ body {
 }
 
 .event-card {
-    background: gray;
+    background: #37474F;
     border-radius: 12px;
     padding: 24px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 8px #000000;
     border: 1px solid #e0e0e0;
     transition: all 0.3s ease;
 }
 
 .event-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 16px #000000;
 }
 
 .event-header {
@@ -141,7 +147,7 @@ body {
     margin: 0;
     font-size: 1.25rem;
     font-weight: 600;
-    color: #0e0e0e;
+    color: #E1F5FE;
     flex: 1;
     margin-right: 12px;
     line-height: 1.3;
@@ -156,13 +162,13 @@ body {
 }
 
 .event-status.active {
-    background-color: #e8f5e8;
-    color: #2e7d32;
+    background-color: #F1F8E9;
+    color: #2E7D32;
 }
 
 .event-status.inactive {
-    background-color: #ffebee;
-    color: #c62828;
+    background-color: #FCE4EC;
+    color: #D32F2F;
 }
 
 .event-status.pause {
@@ -179,7 +185,7 @@ body {
     background-color: #f5f5f5;
     color: #666;
     padding: 4px 8px;
-    border-radius: 4px;
+    border-radius: 12px;
     font-size: 12px;
     font-weight: 500;
     margin-bottom: 8px;
@@ -187,7 +193,7 @@ body {
 
 .event-dates {
     font-size: 14px;
-    color: #666;
+    color: #BDBDBD;
     display: flex;
     gap: 16px;
 }
@@ -199,7 +205,7 @@ body {
 .progress-bar {
     width: 100%;
     height: 8px;
-    background-color: #e0e0e0;
+    background-color: #607D8B;
     border-radius: 4px;
     overflow: hidden;
     margin-bottom: 8px;
@@ -207,14 +213,14 @@ body {
 
 .progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, #4caf50 0%, #8bc34a 100%);
+    background: linear-gradient(90deg, #7CB342 0%, #9CCC65 100%);
     transition: width 0.3s ease;
     border-radius: 4px;
 }
 
 .progress-text {
     font-size: 14px;
-    color: #666;
+    color: #BDBDBD;
     text-align: right;
 }
 
@@ -422,21 +428,23 @@ body {
 }
 
 .btn-danger {
-    background-color: #f44336;
-    color: white;
+    background-color: #D32F2F;
+    color: #FFEBEE;
 }
 
 .btn-danger:hover:not(:disabled) {
-    background-color: #d32f2f;
-}
-
-.btn-warning {
-    background-color: #ff9800;
+    background-color: #E53935;
     color: white;
 }
 
+.btn-warning {
+    background-color: #ed880c;
+    color: #FFF3E0;
+}
+
 .btn-warning:hover:not(:disabled) {
-    background-color: #f57c00;
+    background-color: #FF9800;
+    color: white;
 }
 
 .btn-success {
