@@ -445,6 +445,9 @@ class IchibanClient {
             return;
         }
 
+        const carsTitle = document.createElement('h3');
+        carsTitle.className = 'cards-title';
+        carsTitle.innerHTML = '抽抽區';
         const cardsGrid = document.createElement('div');
         cardsGrid.className = 'cards-grid';
 
@@ -454,6 +457,7 @@ class IchibanClient {
         });
 
         container.innerHTML = '';
+        container.appendChild(carsTitle);
         container.appendChild(cardsGrid);
     }
 
