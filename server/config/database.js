@@ -18,6 +18,7 @@ let ssl =
 const sequelize = new Sequelize(dbUrl, {
     dialect: 'postgres',
     logging: process.env.NODE_ENV === 'development' ? console.log : false,
+    quoteIdentifiers: true,
     dialectOptions: {
         ssl,
         application_name: 'transaction_pooler',

@@ -12,16 +12,8 @@ async function getAllEcpayConfigs() {
     return EcpayConfigModel.findAll({
         where: {
             [Op.or]: [
-                {
-                    youtubeChannelHandle: {
-                        [Op.ne]: null,
-                    },
-                },
-                {
-                    youtubeChannelId: {
-                        [Op.ne]: null,
-                    },
-                },
+                sequelize.literal('"youtubeChannelHandle" IS NOT NULL'),
+                sequelize.literal('"youtubeChannelId" IS NOT NULL'),
             ],
         },
     });
