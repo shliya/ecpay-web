@@ -20,9 +20,16 @@ const ENUM_ICHIBAN_CARD_STATUS = {
     LOCKED: 1, // 卡片鎖定
     OPENED: 2, // 卡片開啟
 };
+
+const ENUM_DONATION_TYPE = {
+    ECPAY: 1, // 綠界支付
+    YOUTUBE_SUPER_CHAT: 2, // YouTube Super Chat
+};
+
 module.exports = {
     ENUM_FUNDRAISING_EVENT_STATUS,
     ENUM_FUNDRAISING_EVENT_TYPE,
     ENUM_ICHIBAN_EVENT_STATUS,
     ENUM_ICHIBAN_CARD_STATUS,
+    ENUM_DONATION_TYPE,
 };

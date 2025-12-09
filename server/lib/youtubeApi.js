@@ -76,16 +76,22 @@ async function getChannelIdByChannelId(channelId) {
     }
 }
 
-async function getLiveChatMessages(chatId) {
+async function getLiveChatMessages(chatId, pageToken = null) {
     const url = `${googleApiBaseUrl}liveChat/messages`;
+
+    const params = {
+        liveChatId: chatId,
+        part: 'snippet,authorDetails',
+        key: apiKey,
+    };
+
+    if (pageToken) {
+        params.pageToken = pageToken;
+    }
 
     try {
         const response = await axios.get(url, {
-            params: {
-                liveChatId: chatId,
-                part: 'snippet,authorDetails',
-                key: apiKey,
-            },
+            params,
         });
 
         const messages = response.data.items;
@@ -211,10 +217,48 @@ async function getChannelVideoByChannelId(channelId, pageToken = '') {
     }
 }
 
+function extractSuperChatInfo(message) {
+    const messageType = message.snippet?.messageType;
+    const superChatDetails = message.snippet?.superChatDetails;
+
+    if (messageType !== 'superChatEvent' && !superChatDetails) {
+        return null;
+    }
+
+    const amountMicros = superChatDetails?.amountMicros;
+    const currency = superChatDetails?.currency;
+    const displayName = message.authorDetails?.displayName;
+    const channelId = message.authorDetails?.channelId;
+    const publishedAt = message.snippet?.publishedAt;
+    const userComment = superChatDetails?.userComment || '';
+
+    const amount = amountMicros ? amountMicros / 1000000 : null;
+
+    return {
+        messageType,
+        amount,
+        amountMicros,
+        currency,
+        displayName,
+        channelId,
+        publishedAt,
+        displayMessage: userComment,
+        messageId: message.id,
+    };
+}
+
+function filterSuperChatMessages(messages) {
+    return messages
+        .map(message => extractSuperChatInfo(message))
+        .filter(superChatInfo => superChatInfo !== null);
+}
+
 module.exports = {
     parseYoutubeVideoId,
     parseYoutubeLiveChatId,
     getLiveChatMessages,
+    extractSuperChatInfo,
+    filterSuperChatMessages,
     getChannelIdByUserHandel,
     getChannelUpComingStreamByChannelId,
     getChannelLiveStreamByChannelId,

@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../../config/database');
+const { ENUM_DONATION_TYPE } = require('../../lib/enum');
 
 const Donation = sequelize.define(
     'Donation',
@@ -27,6 +28,11 @@ const Donation = sequelize.define(
         message: {
             type: DataTypes.TEXT,
             allowNull: true,
+        },
+        type: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            defaultValue: ENUM_DONATION_TYPE.ECPAY,
         },
         created_at: {
             type: DataTypes.DATE,

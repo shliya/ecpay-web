@@ -24,6 +24,16 @@ const EcpayConfig = sequelize.define(
             type: DataTypes.STRING(100),
             allowNull: false,
         },
+        youtubeChannelHandle: {
+            type: DataTypes.STRING(100),
+            allowNull: true,
+            field: 'youtubechannelhandle',
+        },
+        youtubeChannelId: {
+            type: DataTypes.STRING(100),
+            allowNull: true,
+            field: 'youtubechannelid',
+        },
         created_at: {
             type: DataTypes.DATE,
             allowNull: true,

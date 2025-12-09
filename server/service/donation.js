@@ -7,7 +7,8 @@ const SPECIAL_MESSAGE_CONDITION_MERCHANTS =
     process.env.SPECIAL_MESSAGE_CONDITION_MERCHANTS.split(',');
 
 async function createDonation(row, { transaction } = {}) {
-    const txn = await DonationStore.getTransaction();
+    const txn = transaction || (await DonationStore.getTransaction());
+    const shouldCommit = !transaction;
 
     try {
         await DonationStore.createDonation(row, {
@@ -32,9 +33,13 @@ async function createDonation(row, { transaction } = {}) {
             );
         }
 
-        await txn.commit();
+        if (shouldCommit) {
+            await txn.commit();
+        }
     } catch (error) {
-        await txn.rollback();
+        if (shouldCommit) {
+            await txn.rollback();
+        }
         throw error;
     }
 }

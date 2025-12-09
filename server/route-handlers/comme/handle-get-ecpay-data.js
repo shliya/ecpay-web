@@ -1,6 +1,7 @@
 const { decryptDataAndUrlDecode } = require('../../service/decrypt');
 const { getEcpayConfigByMerchantId } = require('../../store/ecpay-config');
 const { createDonation } = require('../../service/donation');
+const { ENUM_DONATION_TYPE } = require('../../lib/enum');
 
 async function getConfigByMerchantId(merchantId) {
     try {
@@ -34,6 +35,7 @@ module.exports = async (req, res) => {
                 name: PatronName,
                 cost: OrderInfo.TradeAmt,
                 message: PatronNote,
+                type: ENUM_DONATION_TYPE.ECPAY,
             });
         }
 

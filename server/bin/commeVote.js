@@ -5,16 +5,20 @@ const {
     getLiveChatMessages,
     getChannelIdByUserHandel,
     getChannelIdByChannelId,
+    extractSuperChatInfo,
 } = require('../lib/youtubeApi');
 
 const {
     updateCommeTarget,
     updateCommeVote,
 } = require('../service/vtuber-chat-api');
+const { createDonation } = require('../service/donation');
+const { ENUM_DONATION_TYPE } = require('../lib/enum');
 
 require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
 const channelHandel = process.env.CHANNEL_HANDEL;
 const liveUrl = process.env.LIVE_URL;
+const MERCHANT_ID = process.env.MERCHANT_ID || '';
 
 (async function () {
     try {
@@ -22,20 +26,25 @@ const liveUrl = process.env.LIVE_URL;
         const liveChatId = await parseYoutubeLiveChatId(videoId);
         const clientId = await getChannelIdByUserHandel(channelHandel);
         const oldMessageMap = new Map();
+        const processedSuperChatIds = new Set();
         let isVote = false;
         let targetName = '';
         const channelIdSet = new Set();
         let voteArray = [];
+
+        let nextPageToken = null;
 
         async function pollMessages() {
             console.log('pollMessages start');
             const {
                 messages,
                 newNextPageToken,
-                intervalMillis = 5000,
-            } = await getLiveChatMessages(liveChatId);
+                pollingIntervalMillis = 5000,
+            } = await getLiveChatMessages(liveChatId, nextPageToken);
 
-            messages.forEach(async message => {
+            nextPageToken = newNextPageToken;
+
+            for (const message of messages) {
                 const { channelId, displayName } = message.authorDetails;
                 const { publishedAt, displayMessage, liveChatId } =
                     message.snippet;
@@ -70,7 +79,32 @@ const liveUrl = process.env.LIVE_URL;
                         userCreateAt: snippet.publishedAt,
                     });
                 }
-            });
+
+                const superChatInfo = extractSuperChatInfo(message);
+                if (
+                    superChatInfo &&
+                    !processedSuperChatIds.has(superChatInfo.messageId)
+                ) {
+                    processedSuperChatIds.add(superChatInfo.messageId);
+
+                    if (MERCHANT_ID) {
+                        await createDonation({
+                            merchantId: MERCHANT_ID,
+                            name: superChatInfo.displayName,
+                            cost: Math.floor(superChatInfo.amount),
+                            message: superChatInfo.displayMessage || '',
+                            type: ENUM_DONATION_TYPE.YOUTUBE_SUPER_CHAT,
+                        });
+                        console.log(
+                            `Super Chat: ${superChatInfo.displayName} 贊助了 ${superChatInfo.amount} ${superChatInfo.currency}`
+                        );
+                    } else {
+                        console.log(
+                            `Super Chat: ${superChatInfo.displayName} 贊助了 ${superChatInfo.amount} ${superChatInfo.currency} - ${superChatInfo.displayMessage}`
+                        );
+                    }
+                }
+            }
 
             const voteObject = Object.fromEntries(oldMessageMap);
             if (isVote) {
@@ -81,8 +115,8 @@ const liveUrl = process.env.LIVE_URL;
             }
             updateCommeTarget(voteObject);
             setTimeout(() => {
-                pollMessages(newNextPageToken);
-            }, intervalMillis);
+                pollMessages();
+            }, pollingIntervalMillis);
         }
 
         pollMessages();
