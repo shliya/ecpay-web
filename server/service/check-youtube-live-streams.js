@@ -9,6 +9,39 @@ const {
     getChannelIdByUserHandel,
 } = require('../lib/youtubeApi');
 
+const CHECK_CACHE = new Map();
+
+const CACHE_DURATION_WITH_LIVE = 2 * 60 * 1000;
+const CACHE_DURATION_WITHOUT_LIVE = 30 * 60 * 1000;
+
+function shouldSkipCheck(merchantId, hasLiveStream) {
+    const cacheKey = merchantId;
+    const cached = CHECK_CACHE.get(cacheKey);
+
+    if (!cached) {
+        return false;
+    }
+
+    const now = Date.now();
+    const timeSinceLastCheck = now - cached.lastCheckTime;
+    const cacheDuration = hasLiveStream
+        ? CACHE_DURATION_WITH_LIVE
+        : CACHE_DURATION_WITHOUT_LIVE;
+
+    if (timeSinceLastCheck < cacheDuration) {
+        return true;
+    }
+
+    return false;
+}
+
+function updateCache(merchantId, hasLiveStream) {
+    CHECK_CACHE.set(merchantId, {
+        lastCheckTime: Date.now(),
+        hasLiveStream,
+    });
+}
+
 async function checkYoutubeLiveStreams() {
     try {
         const configs = await getAllEcpayConfigs();
@@ -27,8 +60,7 @@ async function checkYoutubeLiveStreams() {
             processedMerchantIds.add(merchantId);
 
             const hasValidHandle =
-                youtubeChannelHandle &&
-                youtubeChannelHandle.trim() !== '';
+                youtubeChannelHandle && youtubeChannelHandle.trim() !== '';
 
             if (!hasValidHandle && !youtubeChannelId) {
                 if (activeMerchantIds.has(merchantId)) {
@@ -38,6 +70,24 @@ async function checkYoutubeLiveStreams() {
             }
 
             try {
+                const cached = CHECK_CACHE.get(merchantId);
+                const isCurrentlyPolling = activeMerchantIds.has(merchantId);
+
+                if (isCurrentlyPolling) {
+                    const cacheDuration = CACHE_DURATION_WITH_LIVE;
+                    if (
+                        cached &&
+                        cached.hasLiveStream &&
+                        Date.now() - cached.lastCheckTime < cacheDuration
+                    ) {
+                        continue;
+                    }
+                } else if (
+                    shouldSkipCheck(merchantId, cached?.hasLiveStream || false)
+                ) {
+                    continue;
+                }
+
                 let channelId = youtubeChannelId;
 
                 if (!channelId && hasValidHandle) {
@@ -49,6 +99,7 @@ async function checkYoutubeLiveStreams() {
                     if (activeMerchantIds.has(merchantId)) {
                         stopPollingSuperChat(merchantId);
                     }
+                    updateCache(merchantId, false);
                     continue;
                 }
 
@@ -56,10 +107,12 @@ async function checkYoutubeLiveStreams() {
                     await getChannelLiveStreamByChannelId(channelId);
 
                 if (liveStream) {
+                    updateCache(merchantId, true);
                     if (!activeMerchantIds.has(merchantId)) {
                         await startPollingSuperChat(merchantId, config);
                     }
                 } else {
+                    updateCache(merchantId, false);
                     if (activeMerchantIds.has(merchantId)) {
                         stopPollingSuperChat(merchantId);
                     }
@@ -69,6 +122,7 @@ async function checkYoutubeLiveStreams() {
                     `[Check Live Streams] ${merchantId} 檢查錯誤:`,
                     error.message
                 );
+                updateCache(merchantId, false);
             }
         }
     } catch (error) {
