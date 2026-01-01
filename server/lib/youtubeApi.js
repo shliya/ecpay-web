@@ -1,5 +1,6 @@
 const axios = require('axios');
 const path = require('path');
+const xml2js = require('xml2js');
 require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
 const apiKey = process.env.API_KEY;
 const googleApiBaseUrl = `https://www.googleapis.com/youtube/v3/`;
@@ -9,6 +10,62 @@ function parseYoutubeVideoId(url) {
         /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|live\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
     const match = url.match(regex);
     return match ? match[1] : null;
+}
+
+async function getLatestVideoFromRss(channelId) {
+    try {
+        const rssUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`;
+        const response = await axios.get(rssUrl);
+        const parser = new xml2js.Parser({ explicitArray: false });
+        const result = await parser.parseStringPromise(response.data);
+
+        if (result.feed && result.feed.entry) {
+            const entries = Array.isArray(result.feed.entry)
+                ? result.feed.entry
+                : [result.feed.entry];
+            const latestEntry = entries[0];
+
+            if (!latestEntry) return null;
+
+            return {
+                videoId: latestEntry['yt:videoId'],
+                title: latestEntry.title,
+                published: latestEntry.published,
+                updated: latestEntry.updated,
+            };
+        }
+        return null;
+    } catch (error) {
+        return null;
+    }
+}
+
+async function checkVideoIsLive(videoId) {
+    const url = `${googleApiBaseUrl}videos`;
+    try {
+        const response = await axios.get(url, {
+            params: {
+                part: 'snippet',
+                id: videoId,
+                key: apiKey,
+            },
+        });
+
+        const items = response.data.items;
+        if (items.length > 0) {
+            const video = items[0];
+            if (video.snippet.liveBroadcastContent === 'live') {
+                return {
+                    newLiveStreamTitle: video.snippet.title,
+                    newLiveStreamId: video.id,
+                };
+            }
+        }
+        return null;
+    } catch (error) {
+        console.error('[CheckVideoIsLive] Error:', error.message);
+        return null;
+    }
 }
 
 async function parseYoutubeLiveChatId(videoId) {
@@ -143,6 +200,24 @@ async function getChannelUpComingStreamByChannelId(channelId) {
 }
 
 async function getChannelLiveStreamByChannelId(channelId) {
+    try {
+        const latestVideo = await getLatestVideoFromRss(channelId);
+        if (latestVideo) {
+            const publishTime = new Date(latestVideo.published).getTime();
+            const now = Date.now();
+            if (now - publishTime < 48 * 60 * 60 * 1000) {
+                const liveInfo = await checkVideoIsLive(latestVideo.videoId);
+                if (liveInfo) {
+                    return liveInfo;
+                }
+            }
+        }
+    } catch (error) {
+        console.warn(
+            `[RSS Check] Failed for ${channelId}, falling back to Search API`
+        );
+    }
+
     const url = `${googleApiBaseUrl}search`;
     try {
         const response = await axios.get(url, {

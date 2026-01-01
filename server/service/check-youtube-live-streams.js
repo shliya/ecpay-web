@@ -10,9 +10,17 @@ const {
 } = require('../lib/youtubeApi');
 
 const CHECK_CACHE = new Map();
+const ACTIVE_MERCHANTS = new Map();
+const ACTIVE_TIMEOUT = 5 * 60 * 1000; // 5分鐘無回應視為不活躍
 
 const CACHE_DURATION_WITH_LIVE = 2 * 60 * 1000;
 const CACHE_DURATION_WITHOUT_LIVE = 30 * 60 * 1000;
+
+function isMerchantActive(merchantId) {
+    const lastActive = ACTIVE_MERCHANTS.get(merchantId);
+    if (!lastActive) return false;
+    return Date.now() - lastActive < ACTIVE_TIMEOUT;
+}
 
 function shouldSkipCheck(merchantId, hasLiveStream) {
     const cacheKey = merchantId;
@@ -58,6 +66,13 @@ async function checkYoutubeLiveStreams() {
             }
 
             processedMerchantIds.add(merchantId);
+
+            if (
+                !isMerchantActive(merchantId) &&
+                !activeMerchantIds.has(merchantId)
+            ) {
+                continue;
+            }
 
             const hasValidHandle =
                 youtubeChannelHandle && youtubeChannelHandle.trim() !== '';
