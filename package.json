@@ -75,7 +75,8 @@
         "style-loader": "^4.0.0",
         "webpack": "^5.94.0",
         "webpack-cli": "^5.1.4",
-        "ws": "^8.18.3"
+        "ws": "^8.18.3",
+        "xml2js": "^0.6.2"
     },
     "devDependencies": {
         "concurrently": "^9.0.0",
