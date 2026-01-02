@@ -98,7 +98,7 @@ async function startPollingSuperChat(merchantId, config) {
 
                 const actualPollingInterval = Math.max(
                     pollingIntervalMillis,
-                    10000
+                    30000 // 調整為最小 30 秒，節省 API Quota
                 );
 
                 if (messages && messages.length > 0) {
@@ -183,7 +183,7 @@ async function startPollingSuperChat(merchantId, config) {
                     error.message
                 );
                 if (isPolling) {
-                    setTimeout(pollMessages, 10000);
+                    setTimeout(pollMessages, 60000); // 錯誤時等待 60 秒再試
                 }
             }
         };

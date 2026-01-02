@@ -339,4 +339,6 @@ module.exports = {
     getChannelLiveStreamByChannelId,
     getChannelVideoByChannelId,
     getChannelIdByChannelId,
+    getLatestVideoFromRss,
+    checkVideoIsLive,
 };

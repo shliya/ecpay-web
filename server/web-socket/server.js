@@ -7,6 +7,10 @@ const { createPayment } = require('../lib/ecpayAPI');
 const { setPaymentOrder } = require('../store/payment-order');
 const { ENUM_ICHIBAN_EVENT_STATUS } = require('../lib/enum');
 
+const {
+    updateMerchantActiveTime,
+} = require('../service/check-youtube-live-streams');
+
 class IchibanWebSocketServer {
     constructor(server = null) {
         this.server = server;
@@ -53,6 +57,11 @@ class IchibanWebSocketServer {
             const url = new URL(req.url, `http://${req.headers.host}`);
             const merchantId = url.searchParams.get('merchantId');
             const clientId = this.generateClientId();
+
+            // 更新商家活躍狀態
+            if (merchantId) {
+                updateMerchantActiveTime(merchantId);
+            }
 
             this.clients.set(clientId, {
                 ws,
