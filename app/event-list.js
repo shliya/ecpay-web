@@ -43,13 +43,6 @@ async function initializeEventList() {
     // 綁定事件監聽器
     bindEventListeners();
 
-    const activeKeeper = new ActiveStatusKeeper(merchantId, 3001);
-    activeKeeper.connect();
-
-    window.addEventListener('beforeunload', () => {
-        activeKeeper.disconnect();
-    });
-
     try {
         await loadEventList(merchantId);
     } catch (error) {

@@ -5,6 +5,7 @@ let isInitialized = false;
 // 在檔案最上方引入 CSS
 import './css/common.css';
 import './css/list.css';
+import ActiveStatusKeeper from './js/active-keeper.js';
 
 // 儲存動畫狀態
 let donationScrollState = {
@@ -52,6 +53,13 @@ async function initializeApp() {
         );
         const checkResult = await checkResponse.json();
         await loadDonations(merchantId);
+
+        const activeKeeper = new ActiveStatusKeeper(merchantId, 3001);
+        activeKeeper.connect();
+
+        window.addEventListener('beforeunload', () => {
+            activeKeeper.disconnect();
+        });
 
         let updateInterval = setInterval(
             () => loadDonations(merchantId),
@@ -154,7 +162,6 @@ function createDonationCard(donation) {
     const message = donation.message || '';
     const tier = getCustomTierClass(amount);
     const createdAt = formatDate(donation.created_at || '');
-    console.log(createdAt);
 
     const card = document.createElement('div');
     card.className = 'custom-donation-card';
