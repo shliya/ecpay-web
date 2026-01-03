@@ -152,6 +152,9 @@ class IchibanWebSocketServer {
                     );
                     break;
                 case 'ping':
+                    if (client.merchantId) {
+                        updateMerchantActiveTime(client.merchantId);
+                    }
                     this.sendMessage(clientId, { type: 'pong' });
                     break;
                 default:

@@ -17,16 +17,12 @@ const CACHE_DURATION_WITH_LIVE = 2 * 60 * 1000;
 const CACHE_DURATION_WITHOUT_LIVE = 30 * 60 * 1000;
 
 function isMerchantActive(merchantId) {
-    // 暫時強制所有商家活躍，讓系統自動檢查所有商家的直播狀態
-    // 未來若需節省資源，可恢復檢查 ACTIVE_MERCHANTS 邏輯
-    return true;
-
-    // if (process.env.NODE_ENV === 'development') {
-    //     return true;
-    // }
-    // const lastActive = ACTIVE_MERCHANTS.get(merchantId);
-    // if (!lastActive) return false;
-    // return Date.now() - lastActive < ACTIVE_TIMEOUT;
+    if (process.env.NODE_ENV === 'development') {
+        return true;
+    }
+    const lastActive = ACTIVE_MERCHANTS.get(merchantId);
+    if (!lastActive) return false;
+    return Date.now() - lastActive < ACTIVE_TIMEOUT;
 }
 
 function shouldSkipCheck(merchantId, hasLiveStream) {
@@ -80,6 +76,8 @@ async function checkYoutubeLiveStreams() {
             ) {
                 continue;
             }
+
+            console.log(`[Check Live Streams] 用戶:${merchantId} 活躍中`);
 
             const hasValidHandle =
                 youtubeChannelHandle && youtubeChannelHandle.trim() !== '';

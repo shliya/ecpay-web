@@ -6,6 +6,7 @@ let isInitialized = false;
 import './css/common.css';
 import './css/index.css';
 import richWomanImg from './assest/13.png';
+import ActiveStatusKeeper from './js/active-keeper.js';
 
 // 儲存主頁狀態
 let indexState = {
@@ -50,6 +51,13 @@ async function initializeIndex() {
 
     // 儲存到 localStorage
     localStorage.setItem('merchantId', merchantId);
+
+    const activeKeeper = new ActiveStatusKeeper(merchantId, 3001);
+    activeKeeper.connect();
+
+    window.addEventListener('beforeunload', () => {
+        activeKeeper.disconnect();
+    });
 
     console.log('Index initialized successfully');
 }
