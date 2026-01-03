@@ -83,6 +83,9 @@ async function checkYoutubeLiveStreams() {
                 youtubeChannelHandle && youtubeChannelHandle.trim() !== '';
 
             if (!hasValidHandle && !youtubeChannelId) {
+                console.log(
+                    `[Check Live Streams] ${merchantId} 無有效頻道資訊`
+                );
                 if (activeMerchantIds.has(merchantId)) {
                     stopPollingSuperChat(merchantId);
                 }
@@ -100,11 +103,17 @@ async function checkYoutubeLiveStreams() {
                         cached.hasLiveStream &&
                         Date.now() - cached.lastCheckTime < cacheDuration
                     ) {
+                        console.log(
+                            `[Check Live Streams] ${merchantId} 正在輪詢且快取有效 (Live)`
+                        );
                         continue;
                     }
                 } else if (
                     shouldSkipCheck(merchantId, cached?.hasLiveStream || false)
                 ) {
+                    console.log(
+                        `[Check Live Streams] ${merchantId} 快取有效 (No Live) 跳過檢查`
+                    );
                     continue;
                 }
 
@@ -116,6 +125,9 @@ async function checkYoutubeLiveStreams() {
                 }
 
                 if (!channelId) {
+                    console.log(
+                        `[Check Live Streams] ${merchantId} 無法取得 Channel ID`
+                    );
                     if (activeMerchantIds.has(merchantId)) {
                         stopPollingSuperChat(merchantId);
                     }
@@ -127,11 +139,24 @@ async function checkYoutubeLiveStreams() {
                     await getChannelLiveStreamByChannelId(channelId);
 
                 if (liveStream) {
+                    console.log(
+                        `[Check Live Streams] ${merchantId} 發現直播: ${liveStream.id}`
+                    );
                     updateCache(merchantId, true);
                     if (!activeMerchantIds.has(merchantId)) {
+                        console.log(
+                            `[Check Live Streams] ${merchantId} 開始輪詢`
+                        );
                         await startPollingSuperChat(merchantId, config);
+                    } else {
+                        console.log(
+                            `[Check Live Streams] ${merchantId} 已在輪詢中`
+                        );
                     }
                 } else {
+                    console.log(
+                        `[Check Live Streams] ${merchantId} 未發現直播`
+                    );
                     updateCache(merchantId, false);
                     if (activeMerchantIds.has(merchantId)) {
                         stopPollingSuperChat(merchantId);

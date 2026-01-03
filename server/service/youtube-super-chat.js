@@ -16,7 +16,7 @@ async function startPollingSuperChat(merchantId, config) {
     const taskKey = `merchant-${merchantId}`;
 
     if (activePollingTasks.has(taskKey)) {
-        console.log(`[YouTube Super Chat] ${merchantId} 已在監聽中，跳過`);
+        console.log(`[youtube-super-chat] ${merchantId} 已在監聽中，跳過`);
         return;
     }
 
@@ -25,14 +25,14 @@ async function startPollingSuperChat(merchantId, config) {
 
     if (!channelHandle) {
         console.log(
-            `[YouTube Super Chat] ${merchantId} 未設定 YouTube Channel Handle`
+            `[youtube-super-chat] ${merchantId} 未設定 YouTube Channel Handle`
         );
         return;
     }
 
     try {
         console.log(
-            `[YouTube Super Chat] 開始監聽 ${merchantId} (${channelHandle})`
+            `[youtube-super-chat] 開始監聽 ${merchantId} (${channelHandle})`
         );
 
         let resolvedChannelId = channelId;
@@ -40,7 +40,7 @@ async function startPollingSuperChat(merchantId, config) {
             resolvedChannelId = await getChannelIdByUserHandel(channelHandle);
             if (!resolvedChannelId) {
                 console.error(
-                    `[YouTube Super Chat] ${merchantId} 找不到頻道: ${channelHandle}`
+                    `[youtube-super-chat] ${merchantId} 找不到頻道: ${channelHandle}`
                 );
                 return;
             }
@@ -51,21 +51,21 @@ async function startPollingSuperChat(merchantId, config) {
 
         if (!liveStream) {
             console.log(
-                `[YouTube Super Chat] ${merchantId} 目前沒有正在進行的直播`
+                `[youtube-super-chat] ${merchantId} 目前沒有正在進行的直播`
             );
             return;
         }
 
         const { newLiveStreamTitle, newLiveStreamId } = liveStream;
         console.log(
-            `[YouTube Super Chat] ${merchantId} 找到直播: ${newLiveStreamTitle}`
+            `[youtube-super-chat] ${merchantId} 找到直播: ${newLiveStreamTitle}`
         );
 
         const liveChatId = await parseYoutubeLiveChatId(newLiveStreamId);
 
         if (!liveChatId) {
             console.error(
-                `[YouTube Super Chat] ${merchantId} 無法獲取聊天室 ID`
+                `[youtube-super-chat] ${merchantId} 無法獲取聊天室 ID`
             );
             return;
         }
@@ -80,7 +80,7 @@ async function startPollingSuperChat(merchantId, config) {
         if (lastSuperChatTime) {
             lastProcessedTime = new Date(lastSuperChatTime);
             console.log(
-                `[YouTube Super Chat] ${merchantId} 最後處理時間: ${lastProcessedTime.toISOString()}`
+                `[youtube-super-chat] ${merchantId} 最後處理時間: ${lastProcessedTime.toISOString()}`
             );
         }
 
@@ -157,16 +157,16 @@ async function startPollingSuperChat(merchantId, config) {
 
                             if (originalCurrency !== 'TWD') {
                                 console.log(
-                                    `[YouTube Super Chat] ${merchantId}: ${superChatInfo.displayName} 贊助了 ${originalAmount} ${originalCurrency} (約 ${convertedAmountTWD} TWD)`
+                                    `[youtube-super-chat] ${merchantId}: ${superChatInfo.displayName} 贊助了 ${originalAmount} ${originalCurrency} (約 ${convertedAmountTWD} TWD)`
                                 );
                             } else {
                                 console.log(
-                                    `[YouTube Super Chat] ${merchantId}: ${superChatInfo.displayName} 贊助了 ${originalAmount} ${originalCurrency}`
+                                    `[youtube-super-chat] ${merchantId}: ${superChatInfo.displayName} 贊助了 ${originalAmount} ${originalCurrency}`
                                 );
                             }
                         } else {
                             console.log(
-                                `[YouTube Super Chat] ${merchantId}: 跳過重複的 Super Chat - ${superChatInfo.displayName} ${originalAmount} ${originalCurrency}`
+                                `[youtube-super-chat] ${merchantId}: 跳過重複的 Super Chat - ${superChatInfo.displayName} ${originalAmount} ${originalCurrency}`
                             );
                         }
                     }
@@ -179,7 +179,7 @@ async function startPollingSuperChat(merchantId, config) {
                 }
             } catch (error) {
                 console.error(
-                    `[YouTube Super Chat] ${merchantId} 輪詢錯誤:`,
+                    `[youtube-super-chat] ${merchantId} 輪詢錯誤:`,
                     error.message
                 );
                 if (isPolling) {
@@ -191,7 +191,7 @@ async function startPollingSuperChat(merchantId, config) {
         const stopPolling = () => {
             isPolling = false;
             activePollingTasks.delete(taskKey);
-            console.log(`[YouTube Super Chat] ${merchantId} 已停止監聽`);
+            console.log(`[youtube-super-chat] ${merchantId} 已停止監聽`);
         };
 
         activePollingTasks.set(taskKey, {
@@ -202,7 +202,7 @@ async function startPollingSuperChat(merchantId, config) {
 
         pollMessages();
     } catch (error) {
-        console.error(`[YouTube Super Chat] ${merchantId} 啟動錯誤:`, error);
+        console.error(`[youtube-super-chat] ${merchantId} 啟動錯誤:`, error);
         activePollingTasks.delete(taskKey);
     }
 }
