@@ -5,6 +5,7 @@ let isInitialized = false;
 // 在檔案最上方引入 CSS
 import './css/common.css';
 import './css/event-list.css';
+import ActiveStatusKeeper from './js/active-keeper.js';
 
 // 儲存事件列表狀態
 let eventListState = {
@@ -41,6 +42,13 @@ async function initializeEventList() {
 
     // 綁定事件監聽器
     bindEventListeners();
+
+    const activeKeeper = new ActiveStatusKeeper(merchantId, 3001);
+    activeKeeper.connect();
+
+    window.addEventListener('beforeunload', () => {
+        activeKeeper.disconnect();
+    });
 
     try {
         await loadEventList(merchantId);
