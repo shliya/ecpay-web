@@ -14,7 +14,7 @@ const ACTIVE_MERCHANTS = new Map();
 const ACTIVE_TIMEOUT = 5 * 60 * 1000; // 5分鐘無回應視為不活躍
 
 const CACHE_DURATION_WITH_LIVE = 2 * 60 * 1000;
-const CACHE_DURATION_WITHOUT_LIVE = 30 * 60 * 1000;
+const CACHE_DURATION_WITHOUT_LIVE = 5 * 60 * 1000; // 5分鐘檢查一次
 
 function isMerchantActive(merchantId) {
     if (process.env.NODE_ENV === 'development') {
@@ -140,7 +140,7 @@ async function checkYoutubeLiveStreams() {
 
                 if (liveStream) {
                     console.log(
-                        `[Check Live Streams] ${merchantId} 發現直播: ${liveStream.id}`
+                        `[Check Live Streams] ${merchantId} 發現直播: ${liveStream.newLiveStreamTitle}`
                     );
                     updateCache(merchantId, true);
                     if (!activeMerchantIds.has(merchantId)) {

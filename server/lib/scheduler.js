@@ -38,7 +38,7 @@ class TaskScheduler {
         this.scheduleTask(
             'youtube-super-chat',
             handleYoutubeSuperChatWorker,
-            5 * 60 * 1000 // 5分鐘檢查一次是否有新直播（降低 API 使用量）
+            1 * 60 * 1000 // 1分鐘檢查一次是否有新直播（降低 API 使用量）
         );
     }
 
