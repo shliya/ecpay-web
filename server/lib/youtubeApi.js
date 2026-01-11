@@ -219,6 +219,9 @@ async function getChannelLiveStreamByChannelId(channelId) {
     }
 
     const url = `${googleApiBaseUrl}search`;
+    console.log(
+        `[Youtube API Warning] Falling back to high-cost Search API for channel: ${channelId} (Cost: 100 quota)`
+    );
     try {
         const response = await axios.get(url, {
             params: {
