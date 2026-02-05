@@ -1,0 +1,137 @@
+/**
+ * 觀眾斗內頁：色塊皆用變數，可由 API themeColors 覆寫，整體版型不變。
+ * 可自訂 key（皆為 hex 或 CSS 顏色）：bg, windowBg, border, borderLight, text,
+ * inputBg, btnBg, btnBorder, btnText, activeBg, activeText, link, linkMuted, error.
+ */
+:root {
+    --donate-bg: #cfe3ff;
+    --donate-window-bg: #ffffff;
+    --donate-border: #1e355c;
+    --donate-border-light: #7fa6e8;
+    --donate-text: #1e355c;
+    --donate-input-bg: #eef4ff;
+    --donate-btn-bg: #4a90a4;
+    --donate-btn-border: #2d5f6f;
+    --donate-btn-text: #fff;
+    --donate-quick-active-bg: #1e355c;
+    --donate-quick-active-text: #ffffff;
+    --donate-link: #1e355c;
+    --donate-link-muted: #999;
+    --donate-error: #c00;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--donate-bg);
+    font-family: 'Courier New', monospace;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: var(--donate-text);
+}
+
+.window {
+    width: 360px;
+    background: var(--donate-window-bg);
+    border: 4px solid var(--donate-border);
+    box-shadow:
+        0 0 0 4px var(--donate-border-light),
+        8px 8px 0 var(--donate-border);
+    padding: 16px;
+}
+
+.title {
+    text-align: center;
+    font-size: 16px;
+    margin-bottom: 12px;
+}
+
+.label {
+    font-size: 12px;
+    margin: 8px 0 4px;
+}
+
+.input,
+.textarea {
+    width: 100%;
+    background: var(--donate-input-bg);
+    border: 3px solid var(--donate-border);
+    padding: 6px;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--donate-text);
+}
+
+.textarea {
+    height: 60px;
+    resize: none;
+}
+
+.quick {
+    display: flex;
+    gap: 6px;
+    margin: 8px 0;
+}
+
+.quick button {
+    flex: 1;
+    background: var(--donate-window-bg);
+    border: 3px solid var(--donate-border);
+    color: var(--donate-text);
+    font-family: inherit;
+    font-size: 12px;
+    padding: 6px 0;
+    cursor: pointer;
+}
+
+.quick button.active {
+    background: var(--donate-quick-active-bg);
+    color: var(--donate-quick-active-text);
+}
+
+.btn-ecpay {
+    margin-top: 12px;
+    width: 100%;
+    background: var(--donate-btn-bg);
+    color: var(--donate-btn-text);
+    border: 3px solid var(--donate-btn-border);
+    font-family: inherit;
+    font-size: 14px;
+    padding: 10px 0;
+    cursor: pointer;
+    border-radius: 8px;
+}
+
+.btn-ecpay:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.alt-links {
+    margin-top: 12px;
+    text-align: center;
+    font-size: 12px;
+}
+
+.alt-links a {
+    color: var(--donate-link);
+    display: block;
+    margin: 4px 0;
+}
+
+.alt-links .coming-soon {
+    color: var(--donate-link-muted);
+    cursor: not-allowed;
+}
+
+.error {
+    color: var(--donate-error);
+    font-size: 12px;
+    margin-top: 8px;
+    display: none;
+}

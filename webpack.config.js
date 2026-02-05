@@ -15,6 +15,8 @@ module.exports = {
         donateList: path.resolve(__dirname, 'app/donate-list.js'),
         ichibanClient: path.resolve(__dirname, 'app/ichiban-client.js'),
         ichiban: path.resolve(__dirname, 'app/ichiban.js'),
+        viewerDonate: path.resolve(__dirname, 'app/viewer-donate.js'),
+        donateTheme: path.resolve(__dirname, 'app/donate-theme.js'),
     },
     output: {
         path: path.resolve(__dirname, 'public'),
@@ -140,6 +142,36 @@ module.exports = {
             template: path.resolve(__dirname, 'app/templates/ichiban.html'),
             filename: 'ichiban.html',
             chunks: ['ichiban'],
+            inject: true,
+            scriptLoading: 'defer',
+            minify: {
+                removeComments: true,
+                collapseWhitespace: true,
+            },
+            cache: false,
+        }),
+        new HtmlWebpackPlugin({
+            template: path.resolve(
+                __dirname,
+                'app/templates/viewer-donate.html'
+            ),
+            filename: 'viewer-donate.html',
+            chunks: ['viewerDonate'],
+            inject: true,
+            scriptLoading: 'defer',
+            minify: {
+                removeComments: true,
+                collapseWhitespace: true,
+            },
+            cache: false,
+        }),
+        new HtmlWebpackPlugin({
+            template: path.resolve(
+                __dirname,
+                'app/templates/donate-theme.html'
+            ),
+            filename: 'donate-theme.html',
+            chunks: ['donateTheme'],
             inject: true,
             scriptLoading: 'defer',
             minify: {

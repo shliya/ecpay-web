@@ -83,7 +83,7 @@ body {
 }
 
 .feature-card {
-    background: #37474F;
+    background: #37474f;
     border-radius: 12px;
     border: 1px solid #e0e0e0;
     padding: 30px;
@@ -99,7 +99,7 @@ body {
 .feature-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 4px 16px #000000;
-    background: #455A64;
+    background: #455a64;
 }
 
 .card-icon {
@@ -128,14 +128,14 @@ body {
 
 .card-content h3 {
     margin: 0 0 8px 0;
-    color: #E1F5FE;
+    color: #e1f5fe;
     font-size: 1.4rem;
     font-weight: 600;
 }
 
 .card-content p {
     margin: 0;
-    color: #BDBDBD;
+    color: #bdbdbd;
     font-size: 1rem;
     line-height: 1.4;
 }
@@ -151,6 +151,56 @@ body {
 .feature-card:hover .card-arrow {
     opacity: 1;
     transform: translateX(5px);
+}
+
+/* 觀眾斗內連結區塊 */
+.donate-link-section {
+    width: 100%;
+    max-width: 800px;
+    margin-bottom: 30px;
+}
+
+.donate-link-label {
+    display: block;
+    color: #bdbdbd;
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.donate-link-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.donate-link-input {
+    flex: 1;
+    padding: 10px 14px;
+    border: 1px solid #555;
+    border-radius: 8px;
+    background: #37474f;
+    color: #e0e0e0;
+    font-size: 14px;
+}
+
+.donate-link-input:focus {
+    outline: none;
+    border-color: #2196f3;
+}
+
+.btn-copy-link {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 8px;
+    background: #2196f3;
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.btn-copy-link:hover {
+    background: #1976d2;
 }
 
 /* Quick Actions 樣式 */

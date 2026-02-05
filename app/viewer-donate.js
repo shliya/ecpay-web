@@ -1,0 +1,203 @@
+import './css/viewer-donate.css';
+
+(function () {
+    function getQuery(name) {
+        var params = new URLSearchParams(window.location.search);
+        return (params.get(name) || '').trim();
+    }
+
+    function showError(msg) {
+        var el = document.getElementById('errorMsg');
+        if (!el) return;
+        el.textContent = msg || '';
+        el.style.display = msg ? 'block' : 'none';
+    }
+
+    function submitToEcpay(paymentUrl, params) {
+        var form = document.createElement('form');
+        form.method = 'POST';
+        form.action = paymentUrl;
+        form.style.display = 'none';
+        Object.keys(params).forEach(function (key) {
+            var input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = key;
+            input.value = params[key] == null ? '' : String(params[key]);
+            form.appendChild(input);
+        });
+        document.body.appendChild(form);
+        form.submit();
+    }
+
+    function resolveMerchantIdByName(name) {
+        return fetch(
+            '/api/v1/comme/resolve-name?name=' + encodeURIComponent(name)
+        ).then(function (res) {
+            return res.json().then(function (data) {
+                if (res.ok && data.merchantId) return data.merchantId;
+                return null;
+            });
+        });
+    }
+
+    function init() {
+        var merchantId = getQuery('merchantId');
+        var nameParam = getQuery('name');
+
+        if (merchantId) {
+            runPage(merchantId);
+            return;
+        }
+        if (nameParam) {
+            showError('正在載入…');
+            resolveMerchantIdByName(nameParam)
+                .then(function (resolvedId) {
+                    showError('');
+                    if (resolvedId) {
+                        runPage(resolvedId);
+                    } else {
+                        showError(
+                            '找不到對應的實況主（請確認網址的 name 是否正確）'
+                        );
+                    }
+                })
+                .catch(function () {
+                    showError('無法解析實況主名稱，請稍後再試');
+                });
+            return;
+        }
+        showError(
+            '請在網址加上 merchantId 或 name，例如：?merchantId=你的商店代號 或 ?name=實況主名稱'
+        );
+    }
+
+    var themeVarMap = {
+        bg: '--donate-bg',
+        windowBg: '--donate-window-bg',
+        border: '--donate-border',
+        borderLight: '--donate-border-light',
+        text: '--donate-text',
+        inputBg: '--donate-input-bg',
+        btnBg: '--donate-btn-bg',
+        btnBorder: '--donate-btn-border',
+        btnText: '--donate-btn-text',
+        activeBg: '--donate-quick-active-bg',
+        activeText: '--donate-quick-active-text',
+        link: '--donate-link',
+        linkMuted: '--donate-link-muted',
+        error: '--donate-error',
+    };
+
+    function applyTheme(theme) {
+        if (!theme || typeof theme !== 'object') return;
+        var root = document.documentElement;
+        Object.keys(themeVarMap).forEach(function (key) {
+            if (theme[key]) {
+                root.style.setProperty(themeVarMap[key], theme[key]);
+            }
+        });
+    }
+
+    function runPage(merchantId) {
+        fetch('/api/v1/comme/ecpay/config/id=' + encodeURIComponent(merchantId))
+            .then(function (r) {
+                return r.json().catch(function () {
+                    return {};
+                });
+            })
+            .then(function (data) {
+                if (data.themeColors) applyTheme(data.themeColors);
+            })
+            .catch(function () {});
+
+        const amountInput = document.getElementById('amount');
+        const quickBtns = document.querySelectorAll('.quick button');
+        const btnEcpay = document.getElementById('btnEcpay');
+        const linkPayuni = document.getElementById('linkPayuni');
+
+        quickBtns.forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                quickBtns.forEach(function (b) {
+                    b.classList.remove('active');
+                });
+                btn.classList.add('active');
+                amountInput.value = btn.getAttribute('data-value') || '';
+                showError('');
+            });
+        });
+
+        if (linkPayuni) {
+            linkPayuni.addEventListener('click', function (e) {
+                e.preventDefault();
+            });
+        }
+
+        if (!btnEcpay) return;
+
+        btnEcpay.addEventListener('click', async function () {
+            showError('');
+            const name =
+                (document.getElementById('nickname') &&
+                    document.getElementById('nickname').value) ||
+                '';
+            const amount =
+                amountInput && amountInput.value
+                    ? parseInt(amountInput.value, 10)
+                    : 0;
+            const message =
+                (document.getElementById('message') &&
+                    document.getElementById('message').value) ||
+                '';
+
+            if (!amount || amount < 1) {
+                showError('請輸入有效金額（至少 1 元）');
+                return;
+            }
+
+            btnEcpay.disabled = true;
+            btnEcpay.textContent = '處理中…';
+
+            try {
+                const res = await fetch('/api/v1/comme/donate/ecpay', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        merchantId: merchantId,
+                        amount: amount,
+                        name: name.trim() || undefined,
+                        message: message.trim() || undefined,
+                    }),
+                });
+
+                const data = await res.json().catch(function () {
+                    return {};
+                });
+
+                if (!res.ok) {
+                    showError(data.error || '建立斗內訂單失敗');
+                    btnEcpay.disabled = false;
+                    btnEcpay.textContent = '用綠界斗內';
+                    return;
+                }
+
+                if (data.paymentUrl && data.params) {
+                    submitToEcpay(data.paymentUrl, data.params);
+                    return;
+                }
+
+                showError('伺服器回傳格式錯誤');
+            } catch (err) {
+                showError(err.message || '網路錯誤，請稍後再試');
+            }
+
+            btnEcpay.disabled = false;
+            btnEcpay.textContent = '用綠界斗內';
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();

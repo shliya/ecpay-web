@@ -34,6 +34,17 @@ const EcpayConfig = sequelize.define(
             allowNull: true,
             field: 'youtubeChannelId',
         },
+        displayName: {
+            type: DataTypes.STRING(100),
+            allowNull: true,
+            field: 'displayName',
+            unique: true,
+        },
+        themeColors: {
+            type: DataTypes.JSON,
+            allowNull: true,
+            field: 'themeColors',
+        },
         created_at: {
             type: DataTypes.DATE,
             allowNull: true,

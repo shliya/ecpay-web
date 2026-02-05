@@ -3,7 +3,7 @@ const http = require('http');
 const IchibanEventStore = require('../store/ichiban-event');
 const IchibanCardStore = require('../store/ichiban-card');
 const { ENUM_ICHIBAN_CARD_STATUS } = require('../lib/enum');
-const { createPayment } = require('../lib/ecpayAPI');
+const { createPayment } = require('../lib/payment-providers/ecpay');
 const { setPaymentOrder } = require('../store/payment-order');
 const { ENUM_ICHIBAN_EVENT_STATUS } = require('../lib/enum');
 

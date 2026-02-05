@@ -1,0 +1,250 @@
+/* 斗內頁顏色設定：頁面版型 */
+body {
+    margin: 0;
+    min-height: 100vh;
+    background: #212121;
+    color: #e0e0e0;
+    font-family: 'Courier New', monospace;
+}
+
+.donate-theme-page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px;
+}
+
+.theme-header {
+    margin-bottom: 24px;
+}
+
+.theme-header h1 {
+    margin: 0 0 8px 0;
+    font-size: 1.5rem;
+}
+
+.theme-desc {
+    margin: 0;
+    color: #999;
+    font-size: 14px;
+}
+
+.back-link {
+    color: #2196f3;
+    text-decoration: none;
+    font-size: 14px;
+    display: inline-block;
+    margin-bottom: 12px;
+}
+
+.back-link:hover {
+    text-decoration: underline;
+}
+
+.theme-layout {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 32px;
+    align-items: start;
+}
+
+@media (max-width: 900px) {
+    .theme-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+.theme-form {
+    background: #37474f;
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.theme-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.theme-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.theme-row label {
+    min-width: 100px;
+    font-size: 13px;
+    color: #bdbdbd;
+}
+
+.theme-row input[type='color'] {
+    width: 44px;
+    height: 32px;
+    padding: 2px;
+    border: 1px solid #555;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.theme-row input[type='text'] {
+    flex: 1;
+    padding: 8px 10px;
+    background: #263238;
+    border: 1px solid #555;
+    border-radius: 6px;
+    color: #e0e0e0;
+    font-size: 13px;
+}
+
+.theme-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.btn {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.btn-save {
+    background: #2196f3;
+    color: #fff;
+}
+
+.btn-save:hover {
+    background: #1976d2;
+}
+
+.btn-preview {
+    background: #4caf50;
+    color: #fff;
+}
+
+.btn-preview:hover {
+    background: #388e3c;
+}
+
+.btn-reset {
+    background: #555;
+    color: #fff;
+}
+
+.btn-reset:hover {
+    background: #666;
+}
+
+.theme-message {
+    margin-top: 12px;
+    font-size: 13px;
+    min-height: 20px;
+}
+
+.theme-message.success {
+    color: #4caf50;
+}
+
+.theme-message.error {
+    color: #f44336;
+}
+
+/* 預覽區：與觀眾斗內頁同結構，變數綁在 .preview-wrapper 上 */
+.theme-preview-section {
+    position: sticky;
+    top: 24px;
+}
+
+.preview-title {
+    margin: 0 0 12px 0;
+    font-size: 1rem;
+    color: #bdbdbd;
+}
+
+.preview-wrapper {
+    background: var(--donate-bg, #cfe3ff);
+    padding: 24px;
+    border-radius: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 420px;
+}
+
+.preview-wrapper .window {
+    width: 360px;
+    background: var(--donate-window-bg, #fff);
+    border: 4px solid var(--donate-border, #1e355c);
+    box-shadow:
+        0 0 0 4px var(--donate-border-light, #7fa6e8),
+        8px 8px 0 var(--donate-border, #1e355c);
+    padding: 16px;
+}
+
+.preview-wrapper .title {
+    text-align: center;
+    font-size: 16px;
+    margin-bottom: 12px;
+    color: var(--donate-text, #1e355c);
+}
+
+.preview-wrapper .label {
+    font-size: 12px;
+    margin: 8px 0 4px;
+    color: var(--donate-text, #1e355c);
+}
+
+.preview-wrapper .input,
+.preview-wrapper .textarea {
+    width: 100%;
+    background: var(--donate-input-bg, #eef4ff);
+    border: 3px solid var(--donate-border, #1e355c);
+    padding: 6px;
+    font-size: 14px;
+    color: var(--donate-text, #1e355c);
+}
+
+.preview-wrapper .textarea {
+    height: 60px;
+    resize: none;
+}
+
+.preview-wrapper .quick {
+    display: flex;
+    gap: 6px;
+    margin: 8px 0;
+}
+
+.preview-wrapper .quick button {
+    flex: 1;
+    background: var(--donate-window-bg, #fff);
+    border: 3px solid var(--donate-border, #1e355c);
+    color: var(--donate-text, #1e355c);
+    font-size: 12px;
+    padding: 6px 0;
+}
+
+.preview-wrapper .quick button.active {
+    background: var(--donate-quick-active-bg, #1e355c);
+    color: var(--donate-quick-active-text, #fff);
+}
+
+.preview-wrapper .btn-ecpay {
+    margin-top: 12px;
+    width: 100%;
+    background: var(--donate-btn-bg, #4a90a4);
+    color: var(--donate-btn-text, #fff);
+    border: 3px solid var(--donate-btn-border, #2d5f6f);
+    font-size: 14px;
+    padding: 10px 0;
+    border-radius: 8px;
+}
+
+.preview-wrapper .alt-links .coming-soon {
+    color: var(--donate-link-muted, #999);
+    font-size: 12px;
+}

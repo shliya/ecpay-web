@@ -9,6 +9,10 @@ const {
     handleCreateEcpaySettingRequest,
     handleGetEcpayMerchantRequest,
     handleGetEcpayDonationsRequest,
+    handleGetEcpayConfigRequest,
+    handlePatchEcpayThemeRequest,
+    handleCreateDonateEcpayRequest,
+    handleResolveDisplayNameRequest,
 } = require('../../route-handlers/comme');
 
 router.post(
@@ -29,5 +33,12 @@ router.get(
 );
 
 router.get('/ecpay/donations/id=:merchantId', handleGetEcpayDonationsRequest);
+
+router.get('/ecpay/config/id=:merchantId', handleGetEcpayConfigRequest);
+router.patch('/ecpay/config/id=:merchantId', handlePatchEcpayThemeRequest);
+
+router.post('/donate/ecpay', handleCreateDonateEcpayRequest);
+
+router.get('/resolve-name', handleResolveDisplayNameRequest);
 
 module.exports = router;

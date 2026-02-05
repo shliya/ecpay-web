@@ -6,9 +6,8 @@ const {
     extractSuperChatInfo,
 } = require('../lib/youtubeApi');
 const { createDonation } = require('./donation');
-const { ENUM_DONATION_TYPE } = require('../lib/enum');
 const DonationStore = require('../store/donation');
-const { convertToTWD } = require('../lib/currency-converter');
+const { normalizeToDonation } = require('../lib/payment-providers/youtube');
 
 const activePollingTasks = new Map();
 
@@ -129,44 +128,41 @@ async function startPollingSuperChat(merchantId, config) {
 
                         processedSuperChatIds.add(superChatInfo.messageId);
 
-                        const originalAmount = superChatInfo.amount;
-                        const originalCurrency = superChatInfo.currency;
-                        const convertedAmountTWD = await convertToTWD(
-                            originalAmount,
-                            originalCurrency
+                        const row = await normalizeToDonation(
+                            superChatInfo,
+                            merchantId
                         );
-                        const costInTWD = Math.floor(convertedAmountTWD);
 
                         const isDuplicate =
                             await DonationStore.checkDuplicateSuperChat(
                                 merchantId,
-                                superChatInfo.displayName,
-                                costInTWD,
-                                superChatInfo.displayMessage || '',
+                                row.name,
+                                row.cost,
+                                row.message,
                                 superChatInfo.publishedAt
                             );
 
                         if (!isDuplicate) {
-                            await createDonation({
-                                merchantId,
-                                name: superChatInfo.displayName,
-                                cost: costInTWD,
-                                message: superChatInfo.displayMessage || '',
-                                type: ENUM_DONATION_TYPE.YOUTUBE_SUPER_CHAT,
-                            });
+                            await createDonation(row);
 
+                            const originalAmount = superChatInfo.amount;
+                            const originalCurrency =
+                                superChatInfo.currency || 'TWD';
                             if (originalCurrency !== 'TWD') {
                                 console.log(
-                                    `[youtube-super-chat] ${merchantId}: ${superChatInfo.displayName} 贊助了 ${originalAmount} ${originalCurrency} (約 ${convertedAmountTWD} TWD)`
+                                    `[youtube-super-chat] ${merchantId}: ${row.name} 贊助了 ${originalAmount} ${originalCurrency} (約 ${row.cost} TWD)`
                                 );
                             } else {
                                 console.log(
-                                    `[youtube-super-chat] ${merchantId}: ${superChatInfo.displayName} 贊助了 ${originalAmount} ${originalCurrency}`
+                                    `[youtube-super-chat] ${merchantId}: ${row.name} 贊助了 ${originalAmount} ${originalCurrency}`
                                 );
                             }
                         } else {
+                            const originalAmount = superChatInfo.amount;
+                            const originalCurrency =
+                                superChatInfo.currency || 'TWD';
                             console.log(
-                                `[youtube-super-chat] ${merchantId}: 跳過重複的 Super Chat - ${superChatInfo.displayName} ${originalAmount} ${originalCurrency}`
+                                `[youtube-super-chat] ${merchantId}: 跳過重複的 Super Chat - ${row.name} ${originalAmount} ${originalCurrency}`
                             );
                         }
                     }

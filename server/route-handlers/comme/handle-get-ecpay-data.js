@@ -1,42 +1,23 @@
-const { decryptDataAndUrlDecode } = require('../../service/decrypt');
 const { getEcpayConfigByMerchantId } = require('../../store/ecpay-config');
 const { createDonation } = require('../../service/donation');
-const { ENUM_DONATION_TYPE } = require('../../lib/enum');
-
-async function getConfigByMerchantId(merchantId) {
-    try {
-        const configData = await getEcpayConfigByMerchantId(merchantId);
-        return configData;
-    } catch (error) {
-        throw new Error(`無法讀取商店 ${merchantId} 的設定：${error.message}`);
-    }
-}
+const { parseDonationCallback } = require('../../lib/payment-providers/ecpay');
 
 module.exports = async (req, res) => {
     try {
         const { merchantId } = req.params;
-        const { hashIV, hashKey } = await getConfigByMerchantId(merchantId);
-        const { Data, TransCode, TransMsg } = req.body;
+        const config = await getEcpayConfigByMerchantId(merchantId);
 
-        console.log(Data);
+        if (!config) {
+            throw new Error(`無法讀取商店 ${merchantId} 的設定`);
+        }
 
-        const {
-            MerchantID,
-            RtnCode,
-            RtnMsg,
-            OrderInfo,
-            PatronName,
-            PatronNote,
-        } = decryptDataAndUrlDecode(Data, hashKey.trim(), hashIV.trim());
+        const row = parseDonationCallback(req.body, {
+            hashKey: config.hashKey,
+            hashIV: config.hashIV,
+        });
 
-        if (RtnCode === 1) {
-            await createDonation({
-                merchantId: MerchantID,
-                name: PatronName,
-                cost: OrderInfo.TradeAmt,
-                message: PatronNote,
-                type: ENUM_DONATION_TYPE.ECPAY,
-            });
+        if (row) {
+            await createDonation(row);
         }
 
         res.send('1|OK');

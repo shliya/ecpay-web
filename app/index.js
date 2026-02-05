@@ -42,6 +42,9 @@ async function initializeIndex() {
     // 顯示 merchant ID
     displayMerchantId(merchantId);
 
+    // 用商戶 ID 撈出 displayName，組出觀眾斗內連結
+    loadViewerDonateUrl(merchantId);
+
     // 設置圖片
     setupImages();
 
@@ -61,6 +64,37 @@ function displayMerchantId(merchantId) {
         if (merchantIdElement) {
             merchantIdElement.classList.remove('loading');
         }
+    }
+}
+
+function getViewerDonateBaseUrl() {
+    const path = window.location.pathname.replace(/[^/]*$/, '');
+    return window.location.origin + path + 'viewer-donate.html';
+}
+
+async function loadViewerDonateUrl(merchantId) {
+    const inputEl = document.getElementById('viewerDonateUrl');
+    if (!inputEl) return;
+
+    try {
+        const res = await fetch(
+            `/api/v1/comme/ecpay/config/id=${encodeURIComponent(merchantId)}`
+        );
+        const data = await res.json().catch(() => ({}));
+        const baseUrl = getViewerDonateBaseUrl();
+        let url;
+        if (res.ok && data.displayName) {
+            url = baseUrl + '?name=' + encodeURIComponent(data.displayName);
+        } else {
+            url = baseUrl + '?merchantId=' + encodeURIComponent(merchantId);
+        }
+        inputEl.value = url;
+        inputEl.placeholder = '';
+    } catch (err) {
+        const baseUrl = getViewerDonateBaseUrl();
+        inputEl.value =
+            baseUrl + '?merchantId=' + encodeURIComponent(merchantId);
+        inputEl.placeholder = '';
     }
 }
 
@@ -88,6 +122,11 @@ function bindEventListeners() {
         ichibanCard.addEventListener('click', handleIchibanCardClick);
     }
 
+    const donateThemeCard = document.getElementById('donateThemeCard');
+    if (donateThemeCard) {
+        donateThemeCard.addEventListener('click', handleDonateThemeCardClick);
+    }
+
     const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', handleLogout);
@@ -96,6 +135,43 @@ function bindEventListeners() {
     const settingsBtn = document.getElementById('settingsBtn');
     if (settingsBtn) {
         settingsBtn.addEventListener('click', handleSettings);
+    }
+
+    const copyDonateLinkBtn = document.getElementById('copyDonateLinkBtn');
+    if (copyDonateLinkBtn) {
+        copyDonateLinkBtn.addEventListener('click', handleCopyDonateLink);
+    }
+}
+
+function handleCopyDonateLink() {
+    const inputEl = document.getElementById('viewerDonateUrl');
+    const btn = document.getElementById('copyDonateLinkBtn');
+    if (!inputEl || !inputEl.value || !btn) return;
+    const url = inputEl.value;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(
+            () => {
+                const orig = btn.textContent;
+                btn.textContent = '已複製';
+                setTimeout(() => {
+                    btn.textContent = orig;
+                }, 1500);
+            },
+            () => {
+                if (confirm('無法複製，是否改為選取網址？')) {
+                    inputEl.select();
+                }
+            }
+        );
+    } else {
+        inputEl.select();
+        if (document.execCommand('copy')) {
+            const orig = btn.textContent;
+            btn.textContent = '已複製';
+            setTimeout(() => {
+                btn.textContent = orig;
+            }, 1500);
+        }
     }
 }
 
@@ -139,6 +215,15 @@ function handleIchibanCardClick() {
     );
     const ichibanUrl = `ichiban.html?merchantId=${encodeURIComponent(indexState.merchantId)}`;
     window.open(ichibanUrl, '_blank');
+}
+
+function handleDonateThemeCardClick() {
+    if (!indexState.merchantId) {
+        showError('商店代號不存在，請重新登入');
+        return;
+    }
+    const themeUrl = `donate-theme.html?merchantId=${encodeURIComponent(indexState.merchantId)}`;
+    window.location.href = themeUrl;
 }
 
 function handleLogout() {

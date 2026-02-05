@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="zh-Hant">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>斗內頁顏色設定</title>
+    </head>
+    <body>
+        <div class="donate-theme-page">
+            <header class="theme-header">
+                <a href="#" id="backToIndex" class="back-link">← 回首頁</a>
+                <h1>斗內頁顏色設定</h1>
+                <p class="theme-desc">
+                    調整觀眾看到的斗內頁色塊，右側即時預覽。
+                </p>
+            </header>
+
+            <div class="theme-layout">
+                <section class="theme-form">
+                    <div class="theme-fields" id="themeFields"></div>
+                    <div class="theme-actions">
+                        <button type="button" class="btn btn-save" id="btnSave">
+                            儲存
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-preview"
+                            id="btnPreviewTab"
+                        >
+                            在新分頁預覽
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-reset"
+                            id="btnReset"
+                        >
+                            還原預設
+                        </button>
+                    </div>
+                    <div class="theme-message" id="themeMessage"></div>
+                </section>
+
+                <section class="theme-preview-section">
+                    <h2 class="preview-title">預覽</h2>
+                    <div class="preview-wrapper" id="previewWrapper">
+                        <div class="window">
+                            <div class="title">▶ 支持實況主</div>
+                            <div class="label">NAME</div>
+                            <input
+                                class="input"
+                                readonly
+                                placeholder="你的暱稱"
+                            />
+                            <div class="label">DONATION（金額）</div>
+                            <input
+                                class="input"
+                                type="text"
+                                readonly
+                                placeholder="100"
+                            />
+                            <div class="quick">
+                                <button type="button" disabled>100</button>
+                                <button type="button" disabled>300</button>
+                                <button type="button" disabled>500</button>
+                            </div>
+                            <div class="label">MESSAGE</div>
+                            <textarea
+                                class="textarea"
+                                readonly
+                                placeholder="想對實況主說的話…"
+                            ></textarea>
+                            <button class="btn-ecpay" type="button" disabled>
+                                用綠界斗內
+                            </button>
+                            <div class="alt-links">
+                                <span class="coming-soon"
+                                    >或用 PayUni 斗內（即將推出）</span
+                                >
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </body>
+</html>

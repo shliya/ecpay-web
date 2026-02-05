@@ -7,12 +7,34 @@ const {
     deletePaymentOrder,
 } = require('../../store/payment-order');
 const { ENUM_ICHIBAN_EVENT_STATUS } = require('../../lib/enum');
+const {
+    getEcpayConfigByMerchantId,
+    getAllEcpayConfigs,
+} = require('../../store/ecpay-config');
+const { createDonation } = require('../../service/donation');
+const {
+    parseDonationCallback,
+    parseUrlDonationCallback,
+} = require('../../lib/payment-providers/ecpay');
 
 module.exports = async (req, res) => {
     try {
-        const { MerchantTradeNo, TradeNo, PaymentDate, TotalAmount } = req.body;
+        if (process.env.NODE_ENV !== 'production') {
+            console.log('[ecpay-success] 收到回調', {
+                hasBody: !!req.body,
+                keys: req.body ? Object.keys(req.body) : [],
+            });
+        }
 
-        // 根據 MerchantTradeNo 找到對應的訂單資訊
+        const {
+            MerchantTradeNo,
+            TradeNo,
+            PaymentDate,
+            TotalAmount,
+            MerchantID,
+        } = req.body || {};
+
+        // 根據 MerchantTradeNo 找到對應的訂單資訊（一番賞）
         const orderInfo = getPaymentOrder(MerchantTradeNo);
 
         if (orderInfo) {
@@ -88,6 +110,58 @@ module.exports = async (req, res) => {
 
             // 清理訂單資訊
             deletePaymentOrder(MerchantTradeNo);
+        } else {
+            // 無一番賞訂單：視為斗內回調，寫入 donations
+            if (process.env.NODE_ENV !== 'production') {
+                console.log('[ecpay-success] 無一番賞訂單，當作斗內回調處理');
+            }
+            const body = req.body || {};
+            const merchantId = MerchantID || body.MerchantID;
+            const config = merchantId
+                ? await getEcpayConfigByMerchantId(merchantId)
+                : null;
+
+            let row = null;
+            if (body.Data) {
+                row = config
+                    ? parseDonationCallback(body, {
+                          hashKey: config.hashKey,
+                          hashIV: config.hashIV,
+                      })
+                    : null;
+                if (!row && body.Data) {
+                    const configs = await getAllEcpayConfigs();
+                    for (const c of configs) {
+                        row = parseDonationCallback(body, {
+                            hashKey: c.hashKey,
+                            hashIV: c.hashIV,
+                        });
+                        if (row) break;
+                    }
+                }
+            } else {
+                row = parseUrlDonationCallback(body, config || undefined);
+            }
+
+            if (row) {
+                await createDonation(row);
+                if (process.env.NODE_ENV !== 'production') {
+                    console.log(
+                        '[ecpay-success] 已寫入 donation',
+                        row.merchantId,
+                        row.cost
+                    );
+                }
+            } else if (process.env.NODE_ENV !== 'production') {
+                console.log(
+                    '[ecpay-success] 未寫入 donation: merchantId=',
+                    merchantId,
+                    'hasData=',
+                    !!body.Data,
+                    'config=',
+                    !!config
+                );
+            }
         }
 
         res.status(200).send('1|OK');
