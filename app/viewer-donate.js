@@ -17,7 +17,6 @@ import './css/viewer-donate.css';
         var form = document.createElement('form');
         form.method = 'POST';
         form.action = paymentUrl;
-        form.target = '_blank';
         form.style.display = 'none';
         Object.keys(params).forEach(function (key) {
             var input = document.createElement('input');
