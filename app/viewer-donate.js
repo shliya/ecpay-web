@@ -17,6 +17,7 @@ import './css/viewer-donate.css';
         var form = document.createElement('form');
         form.method = 'POST';
         form.action = paymentUrl;
+        form.target = '_blank';
         form.style.display = 'none';
         Object.keys(params).forEach(function (key) {
             var input = document.createElement('input');
@@ -27,6 +28,56 @@ import './css/viewer-donate.css';
         });
         document.body.appendChild(form);
         form.submit();
+
+        setTimeout(function () {
+            if (form.parentNode) {
+                form.parentNode.removeChild(form);
+            }
+        }, 1000);
+    }
+
+    var typingInterval = null;
+
+    function typeText(element, text, speed) {
+        speed = speed || 30;
+        element.textContent = '';
+        var index = 0;
+        return new Promise(function (resolve) {
+            typingInterval = setInterval(function () {
+                element.textContent += text[index];
+                index++;
+                if (index >= text.length) {
+                    clearInterval(typingInterval);
+                    typingInterval = null;
+                    resolve();
+                }
+            }, speed);
+        });
+    }
+
+    function showDonationAnimation(name, amount) {
+        var animationBox = document.getElementById('donationAnimationBox');
+        if (!animationBox) {
+            animationBox = document.createElement('div');
+            animationBox.id = 'donationAnimationBox';
+            animationBox.className = 'donation-animation-box';
+            document.body.appendChild(animationBox);
+        }
+
+        var text = name + ' 送出了 ' + amount + ' 金幣！';
+
+        animationBox.style.display = 'block';
+
+        if (typingInterval) {
+            clearInterval(typingInterval);
+            typingInterval = null;
+        }
+
+        typeText(animationBox, text, 30).then(function () {
+            setTimeout(function () {
+                animationBox.style.display = 'none';
+            }, 3000);
+        });
     }
 
     function resolveMerchantIdByName(name) {
@@ -181,7 +232,10 @@ import './css/viewer-donate.css';
                 }
 
                 if (data.paymentUrl && data.params) {
-                    submitToEcpay(data.paymentUrl, data.params);
+                    showDonationAnimation(name.trim() || '匿名', amount);
+                    setTimeout(function () {
+                        submitToEcpay(data.paymentUrl, data.params);
+                    }, 500);
                     return;
                 }
 
