@@ -1,0 +1,235 @@
+/* Settings Page Styles */
+.settings-page {
+    min-height: 100vh;
+    background-color: #212121;
+    color: #e0e0e0;
+    padding: 20px;
+}
+
+.settings-header {
+    max-width: 1200px;
+    margin: 0 auto 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #333;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.back-link {
+    color: #2196f3;
+    text-decoration: none;
+    font-size: 1rem;
+    transition: color 0.2s;
+}
+
+.back-link:hover {
+    color: #64b5f6;
+}
+
+.settings-header h1 {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 600;
+    color: #e0e0e0;
+}
+
+.settings-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: #37474f;
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Tabs */
+.settings-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 30px;
+    border-bottom: 2px solid #555;
+    padding-bottom: 10px;
+}
+
+.tab-button {
+    background: transparent;
+    border: none;
+    color: #999;
+    padding: 12px 24px;
+    font-size: 1rem;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    position: relative;
+    bottom: -12px;
+}
+
+.tab-button:hover {
+    color: #e0e0e0;
+}
+
+.tab-button.active {
+    color: #2196f3;
+    border-bottom-color: #2196f3;
+}
+
+/* Tab Panels */
+.tab-panel {
+    display: none;
+}
+
+.tab-panel.active {
+    display: block;
+}
+
+.tab-panel h2 {
+    margin: 0 0 30px;
+    font-size: 1.5rem;
+    color: #e0e0e0;
+    font-weight: 500;
+}
+
+/* Forms */
+.settings-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group label {
+    font-weight: 500;
+    color: #e0e0e0;
+    font-size: 0.95rem;
+}
+
+.form-group input {
+    background: #263238;
+    border: 1px solid #555;
+    border-radius: 6px;
+    padding: 12px 16px;
+    color: #e0e0e0;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #2196f3;
+}
+
+.form-group input:disabled,
+.form-group input[readonly] {
+    background: #1e272c;
+    color: #888;
+    cursor: not-allowed;
+}
+
+.form-hint {
+    color: #999;
+    font-size: 0.85rem;
+    margin-top: -4px;
+}
+
+/* PAYUNi Notice */
+.payuni-notice {
+    background: #ff9800;
+    color: #fff;
+    padding: 15px 20px;
+    border-radius: 6px;
+    margin-bottom: 30px;
+}
+
+.payuni-notice p {
+    margin: 5px 0;
+    font-size: 0.95rem;
+}
+
+.payuni-notice p:first-child {
+    font-weight: 600;
+}
+
+/* Buttons */
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    align-self: flex-start;
+}
+
+.btn-save {
+    background: #2196f3;
+    color: #fff;
+}
+
+.btn-save:hover:not(:disabled) {
+    background: #1976d2;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
+}
+
+.btn-save:disabled {
+    background: #555;
+    color: #999;
+    cursor: not-allowed;
+}
+
+/* Message */
+.settings-message {
+    margin-top: 20px;
+    padding: 12px 16px;
+    border-radius: 6px;
+    display: none;
+    font-size: 0.95rem;
+}
+
+.settings-message.show {
+    display: block;
+}
+
+.settings-message.success {
+    background: #4caf50;
+    color: #fff;
+}
+
+.settings-message.error {
+    background: #f44336;
+    color: #fff;
+}
+
+.settings-message.info {
+    background: #2196f3;
+    color: #fff;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .settings-container {
+        padding: 20px;
+    }
+
+    .settings-tabs {
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+
+    .tab-button {
+        padding: 10px 16px;
+        font-size: 0.9rem;
+    }
+
+    .settings-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}

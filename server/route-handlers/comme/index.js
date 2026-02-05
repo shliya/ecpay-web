@@ -6,5 +6,5 @@ module.exports = {
     handleCreateDonateEcpayRequest: require('./handle-create-donate-ecpay'),
     handleResolveDisplayNameRequest: require('./handle-resolve-display-name'),
     handleGetEcpayConfigRequest: require('./handle-get-ecpay-config'),
-    handlePatchEcpayThemeRequest: require('./handle-patch-ecpay-theme'),
+    handlePatchEcpayConfigRequest: require('./handle-patch-ecpay-config'),
 };

@@ -42,6 +42,20 @@ async function updateThemeColors(merchantId, themeColors) {
     return row;
 }
 
+async function updateEcpayConfig(merchantId, updateData) {
+    const row = await EcpayConfigModel.findOne({
+        where: { merchantId: merchantId.trim() },
+    });
+    if (!row) return null;
+
+    if (Object.keys(updateData).length === 0) {
+        return row;
+    }
+
+    await row.update(updateData);
+    return row;
+}
+
 function getTransaction() {
     return sequelize.transaction();
 }
@@ -52,5 +66,6 @@ module.exports = {
     getAllEcpayConfigs,
     createEcpayConfig,
     updateThemeColors,
+    updateEcpayConfig,
     getTransaction,
 };

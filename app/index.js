@@ -241,8 +241,12 @@ function handleLogout() {
 }
 
 function handleSettings() {
+    if (!indexState.merchantId) {
+        showError('商店代號不存在，請重新登入');
+        return;
+    }
     console.log('Navigating to settings');
-    window.location.href = 'ecpay-setting.html';
+    window.location.href = `settings.html?merchantId=${encodeURIComponent(indexState.merchantId)}`;
 }
 
 function redirectToLogin() {

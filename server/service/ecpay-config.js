@@ -19,6 +19,59 @@ async function createEcpayConfig(row) {
     }
 }
 
+async function updateEcpayConfig(merchantId, updates) {
+    const allowedFields = [
+        'displayName',
+        'hashKey',
+        'hashIV',
+        'youtubeChannelHandle',
+        'youtubeChannelId',
+        'themeColors',
+    ];
+    const updateData = {};
+
+    for (const field of allowedFields) {
+        if (updates.hasOwnProperty(field)) {
+            if (field === 'themeColors') {
+                updateData[field] =
+                    updates[field] != null && typeof updates[field] === 'object'
+                        ? updates[field]
+                        : null;
+            } else if (field === 'displayName') {
+                updateData[field] =
+                    updates[field] != null && String(updates[field]).trim()
+                        ? String(updates[field]).trim()
+                        : null;
+            } else {
+                updateData[field] =
+                    updates[field] != null && String(updates[field]).trim()
+                        ? String(updates[field]).trim()
+                        : null;
+            }
+        }
+    }
+
+    if (Object.keys(updateData).length === 0) {
+        const config =
+            await ecpayConfigStore.getEcpayConfigByMerchantId(merchantId);
+        return config;
+    }
+
+    try {
+        const result = await ecpayConfigStore.updateEcpayConfig(
+            merchantId,
+            updateData
+        );
+        return result;
+    } catch (error) {
+        if (error.name === 'SequelizeUniqueConstraintError') {
+            throw new Error('displayName 已被使用，請選擇其他名稱');
+        }
+        throw error;
+    }
+}
+
 module.exports = {
     createEcpayConfig,
+    updateEcpayConfig,
 };

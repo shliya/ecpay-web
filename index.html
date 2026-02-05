@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="zh-Hant">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>PayPal 台幣收款測試</title>
+        <script src="https://www.paypal.com/sdk/js?client-id=AVwttIPbIZWR7W1MWtJY24FLX--mdDS9OwES4QLMpjJJJMLswIN3qbQyuaqSl0v5WQzzuvChho6L9ZJH&currency=TWD"></script>
+        <style>
+            body {
+                font-family: sans-serif;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                padding: 50px;
+            }
+            .container {
+                width: 100%;
+                max-width: 400px;
+                border: 1px solid #ddd;
+                padding: 20px;
+                border-radius: 10px;
+                text-align: center;
+            }
+            h2 {
+                color: #003087;
+            }
+            p {
+                color: #666;
+                margin-bottom: 30px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h2>台幣收款測試</h2>
+            <p>測試情境：台幣 100 元結帳</p>
+
+            <div id="paypal-button-container"></div>
+        </div>
+
+        <script>
+            paypal
+                .Buttons({
+                    // 建立訂單
+                    createOrder: function (data, actions) {
+                        return actions.order.create({
+                            purchase_units: [
+                                {
+                                    amount: {
+                                        currency_code: 'TWD',
+                                        value: '100.00', // 測試金額
+                                    },
+                                },
+                            ],
+                        });
+                    },
+                    // 付款成功後的動作
+                    onApprove: function (data, actions) {
+                        return actions.order.capture().then(function (details) {
+                            // 取得買家資訊
+                            const name =
+                                details.payer.name.given_name +
+                                ' ' +
+                                details.payer.name.surname;
+                            const address =
+                                details.purchase_units[0].shipping.address;
+
+                            alert(
+                                '付款成功！\n' +
+                                    '買家姓名：' +
+                                    name +
+                                    '\n' +
+                                    '收貨地址：' +
+                                    address.address_line_1 +
+                                    ', ' +
+                                    address.admin_area_2 +
+                                    ', ' +
+                                    address.country_code
+                            );
+
+                            console.log('完整買家詳細資訊：', details.payer);
+                        });
+                    },
+                    // 取消付款或發生錯誤
+                    onError: function (err) {
+                        console.error('發生錯誤：', err);
+                        alert(
+                            '請檢查 Client ID 是否正確，或是否登入了正確的測試帳號。'
+                        );
+                    },
+                })
+                .render('#paypal-button-container');
+        </script>
+    </body>
+</html>

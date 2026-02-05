@@ -17,6 +17,10 @@ module.exports = async (req, res) => {
         res.status(200).json({
             merchantId: config.merchantId,
             displayName: config.displayName || null,
+            hashKey: config.hashKey || null,
+            hashIV: config.hashIV || null,
+            youtubeChannelHandle: config.youtubeChannelHandle || null,
+            youtubeChannelId: config.youtubeChannelId || null,
             themeColors: config.themeColors || null,
         });
     } catch (error) {

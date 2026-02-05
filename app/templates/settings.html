@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="zh-TW">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>設定</title>
+    </head>
+    <body>
+        <div class="settings-page">
+            <header class="settings-header">
+                <a href="index.html" class="back-link">← 回首頁</a>
+                <h1>設定</h1>
+            </header>
+
+            <div class="settings-container">
+                <div class="settings-tabs">
+                    <button
+                        class="tab-button active"
+                        data-tab="basic"
+                        id="tabBasic"
+                    >
+                        基本設定
+                    </button>
+                    <button class="tab-button" data-tab="ecpay" id="tabEcpay">
+                        綠界
+                    </button>
+                    <button
+                        class="tab-button"
+                        data-tab="youtube"
+                        id="tabYoutube"
+                    >
+                        YouTube
+                    </button>
+                    <button class="tab-button" data-tab="payuni" id="tabPayuni">
+                        PAYUNi
+                    </button>
+                </div>
+
+                <div class="settings-content">
+                    <!-- 基本設定分頁 -->
+                    <div class="tab-panel active" id="panelBasic">
+                        <h2>基本設定</h2>
+                        <form id="basicForm" class="settings-form">
+                            <div class="form-group">
+                                <label for="displayName">顯示名稱</label>
+                                <input
+                                    type="text"
+                                    id="displayName"
+                                    name="displayName"
+                                    placeholder="用於觀眾斗內連結的名稱"
+                                    maxlength="100"
+                                />
+                                <small class="form-hint"
+                                    >此名稱會用於生成觀眾斗內連結</small
+                                >
+                            </div>
+                            <button type="submit" class="btn btn-save">
+                                儲存
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- 綠界分頁 -->
+                    <div class="tab-panel" id="panelEcpay">
+                        <h2>綠界設定</h2>
+                        <form id="ecpayForm" class="settings-form">
+                            <div class="form-group">
+                                <label for="merchantId">商店代號</label>
+                                <input
+                                    type="text"
+                                    id="merchantId"
+                                    name="merchantId"
+                                    readonly
+                                    disabled
+                                />
+                                <small class="form-hint"
+                                    >商店代號無法修改</small
+                                >
+                            </div>
+                            <div class="form-group">
+                                <label for="hashKey">Hash Key</label>
+                                <input
+                                    type="password"
+                                    id="hashKey"
+                                    name="hashKey"
+                                    placeholder="請輸入 Hash Key"
+                                    maxlength="100"
+                                />
+                            </div>
+                            <div class="form-group">
+                                <label for="hashIV">Hash IV</label>
+                                <input
+                                    type="password"
+                                    id="hashIV"
+                                    name="hashIV"
+                                    placeholder="請輸入 Hash IV"
+                                    maxlength="100"
+                                />
+                            </div>
+                            <button type="submit" class="btn btn-save">
+                                儲存
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- YouTube 分頁 -->
+                    <div class="tab-panel" id="panelYoutube">
+                        <h2>YouTube 設定</h2>
+                        <form id="youtubeForm" class="settings-form">
+                            <div class="form-group">
+                                <label for="youtubeChannelHandle"
+                                    >YouTube 頻道 Handle</label
+                                >
+                                <input
+                                    type="text"
+                                    id="youtubeChannelHandle"
+                                    name="youtubeChannelHandle"
+                                    placeholder="@channelname"
+                                    maxlength="100"
+                                />
+                                <small class="form-hint"
+                                    >例如：@channelname</small
+                                >
+                            </div>
+                            <div class="form-group">
+                                <label for="youtubeChannelId"
+                                    >YouTube 頻道 ID</label
+                                >
+                                <input
+                                    type="text"
+                                    id="youtubeChannelId"
+                                    name="youtubeChannelId"
+                                    placeholder="UCxxxxxxxxxxxxxxxxxxxxx"
+                                    maxlength="100"
+                                />
+                                <small class="form-hint"
+                                    >例如：UCxxxxxxxxxxxxxxxxxxxxx</small
+                                >
+                            </div>
+                            <button type="submit" class="btn btn-save">
+                                儲存
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- PAYUNi 分頁 -->
+                    <div class="tab-panel" id="panelPayuni">
+                        <h2>PAYUNi 設定</h2>
+                        <div class="payuni-notice">
+                            <p>⚠️ PAYUNi 功能尚未實作</p>
+                            <p>此分頁僅供預覽，實際 API 功能開發中</p>
+                        </div>
+                        <form id="payuniForm" class="settings-form">
+                            <div class="form-group">
+                                <label for="payuniMerchantId"
+                                    >PAYUNi 商店代號</label
+                                >
+                                <input
+                                    type="text"
+                                    id="payuniMerchantId"
+                                    name="payuniMerchantId"
+                                    placeholder="請輸入 PAYUNi 商店代號"
+                                    disabled
+                                />
+                            </div>
+                            <div class="form-group">
+                                <label for="payuniHashKey"
+                                    >PAYUNi Hash Key</label
+                                >
+                                <input
+                                    type="password"
+                                    id="payuniHashKey"
+                                    name="payuniHashKey"
+                                    placeholder="請輸入 PAYUNi Hash Key"
+                                    disabled
+                                />
+                            </div>
+                            <div class="form-group">
+                                <label for="payuniHashIV">PAYUNi Hash IV</label>
+                                <input
+                                    type="password"
+                                    id="payuniHashIV"
+                                    name="payuniHashIV"
+                                    placeholder="請輸入 PAYUNi Hash IV"
+                                    disabled
+                                />
+                            </div>
+                            <button type="submit" class="btn btn-save" disabled>
+                                儲存（尚未實作）
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="settings-message" id="settingsMessage"></div>
+            </div>
+        </div>
+    </body>
+</html>
