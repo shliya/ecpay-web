@@ -234,17 +234,20 @@ import './css/viewer-donate.css';
                     showDonationAnimation(name.trim() || '匿名', amount);
                     setTimeout(function () {
                         submitToEcpay(data.paymentUrl, data.params);
+                        btnEcpay.disabled = false;
+                        btnEcpay.textContent = '用綠界斗內';
                     }, 500);
                     return;
                 }
 
                 showError('伺服器回傳格式錯誤');
+                btnEcpay.disabled = false;
+                btnEcpay.textContent = '用綠界斗內';
             } catch (err) {
                 showError(err.message || '網路錯誤，請稍後再試');
+                btnEcpay.disabled = false;
+                btnEcpay.textContent = '用綠界斗內';
             }
-
-            btnEcpay.disabled = false;
-            btnEcpay.textContent = '用綠界斗內';
         });
     }
 
