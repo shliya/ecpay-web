@@ -165,6 +165,66 @@ import './css/viewer-donate.css';
         const btnEcpay = document.getElementById('btnEcpay');
         const linkPayuni = document.getElementById('linkPayuni');
 
+        if (amountInput) {
+            amountInput.addEventListener('input', function (e) {
+                var value = e.target.value;
+                if (value === '' || value === '-') {
+                    return;
+                }
+                var num = parseFloat(value);
+                if (isNaN(num) || num < 0) {
+                    e.target.value = '';
+                    showError('請輸入有效的正整數');
+                    setTimeout(function () {
+                        showError('');
+                    }, 2000);
+                    return;
+                }
+                if (num < 30) {
+                    e.target.value = '';
+                    showError('金額至少需要 30 元');
+                    setTimeout(function () {
+                        showError('');
+                    }, 2000);
+                    return;
+                }
+                e.target.value = Math.floor(num);
+            });
+
+            amountInput.addEventListener('keydown', function (e) {
+                if (
+                    e.key === '-' ||
+                    e.key === '+' ||
+                    e.key === 'e' ||
+                    e.key === 'E' ||
+                    e.key === '.'
+                ) {
+                    e.preventDefault();
+                }
+            });
+
+            amountInput.addEventListener('paste', function (e) {
+                e.preventDefault();
+                var paste = (e.clipboardData || window.clipboardData).getData(
+                    'text'
+                );
+                var num = parseFloat(paste);
+                if (
+                    !isNaN(num) &&
+                    num >= 30 &&
+                    num > 0 &&
+                    Number.isInteger(num)
+                ) {
+                    e.target.value = Math.floor(num);
+                } else {
+                    showError('請貼上有效的金額（至少 30 元）');
+                    setTimeout(function () {
+                        showError('');
+                    }, 2000);
+                }
+            });
+        }
+
         quickBtns.forEach(function (btn) {
             btn.addEventListener('click', function () {
                 quickBtns.forEach(function (b) {
@@ -199,8 +259,8 @@ import './css/viewer-donate.css';
                     document.getElementById('message').value) ||
                 '';
 
-            if (!amount || amount < 1) {
-                showError('請輸入有效金額（至少 1 元）');
+            if (!amount || isNaN(amount) || amount < 30) {
+                showError('請輸入有效金額（至少 30 元）');
                 return;
             }
 
