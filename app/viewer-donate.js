@@ -172,8 +172,15 @@ import './css/viewer-donate.css';
                     return;
                 }
                 var num = parseFloat(value);
-                if (num < 30) {
+                if (isNaN(num) || num < 0) {
                     e.target.value = '';
+                    showError('請輸入有效的正整數');
+                    setTimeout(function () {
+                        showError('');
+                    }, 2000);
+                    return;
+                }
+                if (num < 30) {
                     showError('金額至少需要 30 元');
                     setTimeout(function () {
                         showError('');
