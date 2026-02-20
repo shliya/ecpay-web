@@ -41,6 +41,7 @@ module.exports = async (req, res) => {
         };
 
         const result = await createPayment(merchantId.trim(), orderData);
+        console.log('[ReturnUrl]: ', result.params.ReturnURL);
 
         res.status(200).json({
             paymentUrl: result.paymentUrl,
