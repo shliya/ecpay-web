@@ -1,5 +1,6 @@
 const IchibanCardStore = require('../../store/ichiban-card');
 const IchibanEventStore = require('../../store/ichiban-event');
+const IchibanEventService = require('../../service/ichiban-event');
 const { ENUM_ICHIBAN_CARD_STATUS } = require('../../lib/enum');
 const { ichibanWebSocketServer } = global;
 const {
@@ -57,7 +58,7 @@ module.exports = async (req, res) => {
                 });
 
                 // 更新活動統計
-                await IchibanEventStore.incrementOpenedCards(eventId);
+                await IchibanEventService.incrementOpenedCards(eventId);
 
                 const prizeName = card.prize?.prizeName || '未知獎品';
 
