@@ -264,15 +264,6 @@ class IchibanClient {
     handleCardPaymentFailed(message) {
         // 付款失敗，恢復卡片為可點擊狀態
         this.updateCardStatus(message.cardIndex, 'closed');
-
-        // 延遲一下讓用戶看到卡片恢復為藍色
-        setTimeout(() => {
-            // 顯示錯誤訊息並關閉視窗
-            alert('付款失敗，請重試');
-
-            // 關閉視窗
-            window.close();
-        }, 500); // 延遲500毫秒
     }
 
     handleCardPaymentFailedNotification(message) {
