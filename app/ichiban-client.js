@@ -58,6 +58,47 @@ class IchibanClient {
                 }
             });
         }
+
+        const closeNicknameModal =
+            document.getElementById('closeNicknameModal');
+        if (closeNicknameModal) {
+            closeNicknameModal.addEventListener('click', () => {
+                this.closeNicknameModal(null);
+            });
+        }
+
+        const cancelNicknameBtn = document.getElementById('cancelNicknameBtn');
+        if (cancelNicknameBtn) {
+            cancelNicknameBtn.addEventListener('click', () => {
+                this.closeNicknameModal(null);
+            });
+        }
+
+        const confirmNicknameBtn =
+            document.getElementById('confirmNicknameBtn');
+        if (confirmNicknameBtn) {
+            confirmNicknameBtn.addEventListener('click', () => {
+                this.confirmNicknameModal();
+            });
+        }
+
+        const nicknameModal = document.getElementById('nicknameModal');
+        if (nicknameModal) {
+            nicknameModal.addEventListener('click', e => {
+                if (e.target.id === 'nicknameModal') {
+                    this.closeNicknameModal(null);
+                }
+            });
+        }
+
+        const nicknameInput = document.getElementById('nicknameInput');
+        if (nicknameInput) {
+            nicknameInput.addEventListener('keydown', e => {
+                if (e.key === 'Enter') {
+                    this.confirmNicknameModal();
+                }
+            });
+        }
     }
 
     connectWebSocket() {
@@ -205,15 +246,16 @@ class IchibanClient {
     }
 
     handleCardOpened(message) {
-        // 更新卡片狀態為已開啟
         this.updateCardStatus(message.cardIndex, 'opened', message.prizeName);
 
-        // 如果是自己抽的卡，顯示獎品模態框
-        if (message.openedBy === this.getClientId()) {
+        const isOpenedByMe =
+            message.openedByClientId !== undefined
+                ? message.openedByClientId === this.getClientId()
+                : message.openedBy === this.getClientId();
+        if (isOpenedByMe) {
             this.showPrizeModal(message.prizeName);
         }
 
-        // 更新事件統計
         this.updateEventStats();
     }
 
@@ -288,11 +330,9 @@ class IchibanClient {
     }
 
     handlePaymentRedirect(message) {
-        // 顯示付款確認對話框
         const confirmMessage = `即將跳轉到付款頁面\n金額: $${message.amount}\n卡片: ${message.cardIndex + 1}\n\n注意：請在5分鐘內完成付款，否則卡片將自動解鎖`;
 
         if (confirm(confirmMessage)) {
-            // 用戶確認後，創建並提交綠界付款表單
             this.submitEcpayForm(
                 message.params,
                 message.paymentUrl,
@@ -300,8 +340,46 @@ class IchibanClient {
                 message.cardIndex
             );
         } else {
-            // 用戶取消付款，發送取消付款訊息到後端
             this.cancelPayment(message.eventId, message.cardIndex);
+        }
+    }
+
+    showNicknameModal() {
+        const input = document.getElementById('nicknameInput');
+        const modal = document.getElementById('nicknameModal');
+
+        if (input) {
+            input.value = '';
+            input.focus();
+        }
+        if (modal) {
+            modal.classList.add('show');
+        }
+
+        return new Promise(resolve => {
+            this._nicknameModalResolve = resolve;
+        });
+    }
+
+    confirmNicknameModal() {
+        const input = document.getElementById('nicknameInput');
+        const nickname = input && input.value != null ? input.value.trim() : '';
+
+        if (!nickname) {
+            this.showError('請輸入暱稱');
+            return;
+        }
+        this.closeNicknameModal(nickname);
+    }
+
+    closeNicknameModal(nickname) {
+        const modal = document.getElementById('nicknameModal');
+        if (modal) {
+            modal.classList.remove('show');
+        }
+        if (typeof this._nicknameModalResolve === 'function') {
+            this._nicknameModalResolve(nickname);
+            this._nicknameModalResolve = null;
         }
     }
 
@@ -326,13 +404,11 @@ class IchibanClient {
         console.log('收到的付款參數:', params);
         console.log('付款URL:', paymentUrl);
 
-        // 創建表單元素
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = paymentUrl;
         form.target = '_blank';
 
-        // 將所有參數添加到表單中
         Object.keys(params).forEach(key => {
             const input = document.createElement('input');
             input.type = 'hidden';
@@ -341,12 +417,9 @@ class IchibanClient {
             form.appendChild(input);
         });
 
-        // 將表單添加到頁面並自動提交
         document.body.appendChild(form);
-
         form.submit();
 
-        // 提交後移除表單
         setTimeout(() => {
             if (document.body.contains(form)) {
                 document.body.removeChild(form);
@@ -636,23 +709,27 @@ class IchibanClient {
             return;
         }
 
-        // 檢查卡片是否已被鎖定或開啟
         if (this.cards[cardIndex].status !== 0) {
             this.showError('此卡片已被選中或已開啟');
             return;
         }
 
-        // 立即將卡片設為 lock 狀態，提供即時反饋
-        this.setCardLocked(cardIndex);
+        this.showNicknameModal().then(nickname => {
+            if (nickname == null) {
+                return;
+            }
 
-        // 發送鎖定卡片訊息到WebSocket
-        const message = {
-            type: 'lock-card',
-            eventId: this.eventId,
-            cardIndex: cardIndex,
-        };
+            this.setCardLocked(cardIndex);
 
-        this.ws.send(JSON.stringify(message));
+            const message = {
+                type: 'lock-card',
+                eventId: this.eventId,
+                cardIndex: cardIndex,
+                nickname: nickname,
+            };
+
+            this.ws.send(JSON.stringify(message));
+        });
     }
 
     joinEvent() {

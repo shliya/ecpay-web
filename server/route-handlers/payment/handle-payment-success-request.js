@@ -33,15 +33,15 @@ module.exports = async (req, res) => {
             PaymentDate,
             TotalAmount,
             MerchantID,
+            CustomField1,
         } = req.body || {};
 
-        // 根據 MerchantTradeNo 找到對應的訂單資訊（一番賞）
         const orderInfo = getPaymentOrder(MerchantTradeNo);
 
         if (orderInfo) {
-            const { eventId, cardIndex, clientId, merchantId } = orderInfo;
+            const { eventId, cardIndex, clientId, merchantId, nickname } =
+                orderInfo;
 
-            // 找到對應的卡片
             const card =
                 await IchibanCardStore.getIchibanCardByEventIdAndCardIndexAndStatus(
                     eventId,
@@ -50,14 +50,12 @@ module.exports = async (req, res) => {
                 );
 
             if (card) {
-                // 更新卡片狀態為已開啟
                 await IchibanCardStore.updateIchibanCardByIdAndStatus(card.id, {
                     status: ENUM_ICHIBAN_CARD_STATUS.OPENED,
                     openedAt: new Date(),
-                    openedBy: clientId,
+                    openedBy: CustomField1,
                 });
 
-                // 更新活動統計
                 await IchibanEventService.incrementOpenedCards(eventId);
 
                 const prizeName = card.prize?.prizeName || '未知獎品';
@@ -67,7 +65,8 @@ module.exports = async (req, res) => {
                     eventId: eventId,
                     cardIndex: cardIndex,
                     prizeName: prizeName,
-                    openedBy: clientId,
+                    openedBy: CustomField1,
+                    openedByClientId: clientId,
                     timestamp: new Date().toISOString(),
                 });
 
@@ -78,7 +77,8 @@ module.exports = async (req, res) => {
                         eventId: eventId,
                         cardIndex: cardIndex,
                         prizeName: prizeName,
-                        openedBy: clientId,
+                        openedBy: CustomField1,
+                        openedByClientId: clientId,
                         timestamp: new Date().toISOString(),
                     }
                 );

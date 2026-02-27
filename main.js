@@ -4,7 +4,7 @@ const fs = require('fs').promises;
 const express = require('express');
 const server = express();
 const PORT = 3001;
-const apiRoute = require('./server/routes/vtuber-chat-api/index');
+const apiRoute = require('./server/routes/hamster-tools/index');
 const cors = require('cors');
 const { scheduler } = require('./server/lib/scheduler');
 

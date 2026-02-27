@@ -13,11 +13,56 @@
                     <span class="event-cost" id="eventCost">$0</span>
                 </div>
                 <h1 class="event-title" id="eventTitle">載入中...</h1>
-                <div class="event-description" id="eventDescription">載入中...</div>
+                <div class="event-description" id="eventDescription">
+                    載入中...
+                </div>
             </header>
 
             <div class="cards-container" id="cardsContainer">
                 <div class="loading">載入卡片中...</div>
+            </div>
+        </div>
+
+        <div class="modal" id="nicknameModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>輸入暱稱</h2>
+                    <button
+                        class="close-btn"
+                        id="closeNicknameModal"
+                        type="button"
+                    >
+                        &times;
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p class="nickname-hint">
+                        請輸入您的暱稱，將顯示於綠界訂單名稱
+                    </p>
+                    <input
+                        type="text"
+                        id="nicknameInput"
+                        class="nickname-input"
+                        placeholder="請輸入暱稱"
+                        maxlength="50"
+                    />
+                </div>
+                <div class="modal-footer">
+                    <button
+                        class="btn btn-secondary"
+                        id="cancelNicknameBtn"
+                        type="button"
+                    >
+                        取消
+                    </button>
+                    <button
+                        class="btn btn-primary"
+                        id="confirmNicknameBtn"
+                        type="button"
+                    >
+                        確定
+                    </button>
+                </div>
             </div>
         </div>
     </body>

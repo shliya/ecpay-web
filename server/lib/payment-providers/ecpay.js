@@ -44,6 +44,30 @@ function genCheckMacValue(params, HashKey, HashIV) {
 }
 
 /**
+ * 驗證綠界 ReturnURL 回傳的 CheckMacValue（特店必須驗證以確認通知來自綠界）
+ * @param {Object} body - 綠界 POST 的 body（含 CheckMacValue）
+ * @param {Object} config - { hashKey, hashIV }
+ * @returns {boolean}
+ */
+function verifyEcpayReturnCheckMac(body, config) {
+    if (!body || !config || !config.hashKey || !config.hashIV) {
+        return false;
+    }
+    const received = body.CheckMacValue;
+    if (!received) {
+        return false;
+    }
+    const copy = { ...body };
+    delete copy.CheckMacValue;
+    const expected = genCheckMacValue(
+        copy,
+        (config.hashKey || '').trim(),
+        (config.hashIV || '').trim()
+    );
+    return expected === received;
+}
+
+/**
  * Parse ECPay donation callback body into unified donation row.
  * @param {Object} reqBody - { Data, TransCode, TransMsg }
  * @param {Object} config - { hashKey, hashIV }
@@ -186,7 +210,7 @@ async function createPayment(merchantId, orderData) {
             const base =
                 process.env.NODE_ENV === 'production'
                     ? process.env.ECPAY_RETURN_URL
-                    : 'https://a29cf2f0aec4.ngrok-free.app';
+                    : process.env.ECPAY_RETURN_URL_LOCAL;
             return `${(base || '').replace(/\/$/, '')}/api/v1/payment/ecpay-success`;
         })(),
         ChoosePayment: 'ALL',
@@ -195,7 +219,7 @@ async function createPayment(merchantId, orderData) {
             const base =
                 process.env.NODE_ENV === 'production'
                     ? process.env.ECPAY_RETURN_URL
-                    : 'https://a29cf2f0aec4.ngrok-free.app';
+                    : process.env.ECPAY_RETURN_URL_LOCAL;
             return (base || '').replace(/\/$/, '');
         })(),
     };
@@ -214,4 +238,5 @@ module.exports = {
     parseUrlDonationCallback,
     getEcPayDonations,
     createPayment,
+    verifyEcpayReturnCheckMac,
 };

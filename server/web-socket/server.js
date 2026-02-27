@@ -4,7 +4,11 @@ const IchibanEventStore = require('../store/ichiban-event');
 const IchibanCardStore = require('../store/ichiban-card');
 const { ENUM_ICHIBAN_CARD_STATUS } = require('../lib/enum');
 const { createPayment } = require('../lib/payment-providers/ecpay');
-const { setPaymentOrder } = require('../store/payment-order');
+const {
+    setPaymentOrder,
+    getPaymentOrderByEventAndCard,
+    deletePaymentOrder,
+} = require('../store/payment-order');
 const { ENUM_ICHIBAN_EVENT_STATUS } = require('../lib/enum');
 
 const {
@@ -140,7 +144,8 @@ class IchibanWebSocketServer {
                     await this.handleLockCard(
                         clientId,
                         message.eventId,
-                        message.cardIndex
+                        message.cardIndex,
+                        message.nickname
                     );
                     break;
                 case 'cancel-payment':
@@ -229,6 +234,7 @@ class IchibanWebSocketServer {
                 cardIndex: cardIndex,
                 prizeName: prizeName,
                 openedBy: clientId,
+                openedByClientId: clientId,
                 timestamp: new Date().toISOString(),
             });
 
@@ -238,6 +244,7 @@ class IchibanWebSocketServer {
                 cardIndex: cardIndex,
                 prizeName: prizeName,
                 openedBy: clientId,
+                openedByClientId: clientId,
                 timestamp: new Date().toISOString(),
             });
 
@@ -248,7 +255,6 @@ class IchibanWebSocketServer {
                     client.merchantId
                 );
             if (event && event.status === ENUM_ICHIBAN_EVENT_STATUS.ENDED) {
-                // ENUM_ICHIBAN_EVENT_STATUS.ENDED
                 this.broadcastToRoom(`event-${eventId}`, {
                     type: 'event-ended',
                     eventId: eventId,
@@ -273,7 +279,7 @@ class IchibanWebSocketServer {
         }
     }
 
-    async handleLockCard(clientId, eventId, cardIndex) {
+    async handleLockCard(clientId, eventId, cardIndex, nickname) {
         const client = this.clients.get(clientId);
         if (!client) return;
 
@@ -290,10 +296,15 @@ class IchibanWebSocketServer {
                 return;
             }
 
+            const openedByNickname =
+                nickname != null && String(nickname).trim()
+                    ? String(nickname).trim().slice(0, 100)
+                    : null;
+
             await IchibanCardStore.updateIchibanCardByIdAndStatus(card.id, {
                 status: ENUM_ICHIBAN_CARD_STATUS.LOCKED,
                 openedAt: new Date(),
-                openedBy: clientId,
+                openedBy: openedByNickname,
             });
 
             const prizeName = card.prize?.prizeName || '未知獎品';
@@ -325,7 +336,8 @@ class IchibanWebSocketServer {
                 eventId,
                 cardIndex,
                 card,
-                client
+                client,
+                nickname
             );
         } catch (error) {
             console.error('Error locking card:', error);
@@ -338,13 +350,13 @@ class IchibanWebSocketServer {
         eventId,
         cardIndex,
         card,
-        client
+        client,
+        nickname
     ) {
         const { merchantId } = client;
         try {
             console.log(`開始處理卡片 ${cardIndex} 的付款...`);
 
-            // 獲取事件資訊以取得成本
             const event =
                 await IchibanEventStore.getIchibanEventByIdAndMerchantId(
                     eventId,
@@ -356,22 +368,28 @@ class IchibanWebSocketServer {
                 return;
             }
 
-            // 創建付款訂單
             const orderData = {
                 amount: event.cost,
                 description: `一番賞活動 - ${event.eventName}`,
                 itemName: `卡片 ${cardIndex + 1}`,
+                name:
+                    nickname != null && String(nickname).trim()
+                        ? String(nickname).trim().slice(0, 50)
+                        : undefined,
             };
 
             console.log(`創建付款訂單，金額: ${orderData.amount}`);
 
-            // 調用綠界API創建付款訂單
             const paymentResult = await createPayment(merchantId, orderData);
-            setPaymentOrder(paymentResult.merchantTradeNo, {
+            await setPaymentOrder(paymentResult.merchantTradeNo, {
                 eventId: eventId,
                 cardIndex: cardIndex,
                 clientId: clientId,
                 merchantId: client.merchantId,
+                nickname:
+                    nickname != null && String(nickname).trim()
+                        ? String(nickname).trim().slice(0, 100)
+                        : null,
             });
             this.sendMessage(clientId, {
                 type: 'payment-redirect',
@@ -415,6 +433,15 @@ class IchibanWebSocketServer {
             });
 
             this.clearPaymentTimeout(clientId, eventId, cardIndex);
+
+            const order = await getPaymentOrderByEventAndCard(
+                eventId,
+                cardIndex,
+                clientId
+            );
+            if (order?.merchantTradeNo) {
+                await deletePaymentOrder(order.merchantTradeNo);
+            }
 
             console.log(
                 `Card ${cardIndex} payment cancelled in event ${eventId} by ${clientId} (merchant: ${client.merchantId})`

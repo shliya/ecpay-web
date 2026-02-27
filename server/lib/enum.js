@@ -24,6 +24,7 @@ const ENUM_ICHIBAN_CARD_STATUS = {
 const ENUM_DONATION_TYPE = {
     ECPAY: 1, // 綠界支付
     YOUTUBE_SUPER_CHAT: 2, // YouTube Super Chat
+    PAYUNI: 3, // PAYUNi 支付
 };
 
 module.exports = {

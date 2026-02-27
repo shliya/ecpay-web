@@ -109,7 +109,7 @@ body {
 .cards-grid {
     margin-top: 25px;
     padding-top: 25px;
-    border-top: 1px solid #512DA8;
+    border-top: 1px solid #512da8;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
     gap: 15px;
@@ -397,6 +397,27 @@ body {
 .modal-body {
     padding: 25px;
     text-align: center;
+}
+
+.nickname-hint {
+    color: #666;
+    font-size: 0.95rem;
+    margin-bottom: 15px;
+}
+
+.nickname-input {
+    width: 100%;
+    max-width: 280px;
+    padding: 12px 16px;
+    font-size: 1rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    box-sizing: border-box;
+}
+
+.nickname-input:focus {
+    outline: none;
+    border-color: #ff6b6b;
 }
 
 .prize-image {
