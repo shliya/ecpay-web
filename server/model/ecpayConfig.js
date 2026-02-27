@@ -10,8 +10,8 @@ EcpayConfig.hasMany(IchibanEvent, {
 });
 
 EcpayConfig.hasMany(Donation, {
-    foreignKey: 'merchantId',
-    sourceKey: 'merchantId',
+    foreignKey: 'ecpayConfigId',
+    sourceKey: 'id',
     as: 'donations',
     constraints: false, // 禁用外鍵約束
 });

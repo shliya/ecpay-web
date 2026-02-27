@@ -2,8 +2,8 @@ const Donation = require('./schema/donation');
 const EcpayConfig = require('./ecpayConfig');
 
 Donation.belongsTo(EcpayConfig, {
-    foreignKey: 'merchantId',
-    targetKey: 'merchantId',
+    foreignKey: 'ecpayConfigId',
+    targetKey: 'id',
     as: 'ecpayConfig',
 });
 

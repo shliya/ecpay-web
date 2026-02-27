@@ -17,6 +17,12 @@ const Donation = sequelize.define(
             allowNull: false,
             field: 'merchantId',
         },
+        ecpayConfigId: {
+            type: DataTypes.BIGINT,
+            allowNull: true,
+            field: 'ecpayConfigId',
+            references: { model: 'ecpay_config', key: 'id' },
+        },
         name: {
             type: DataTypes.STRING(100),
             allowNull: false,
@@ -48,6 +54,10 @@ const Donation = sequelize.define(
             {
                 name: 'idx_marchantId_createdAt',
                 fields: ['merchantId', 'created_at'],
+            },
+            {
+                name: 'idx_donations_ecpayConfigId_createdAt',
+                fields: ['ecpayConfigId', 'created_at'],
             },
         ],
     }

@@ -122,11 +122,18 @@ body {
     color: var(--donate-link);
     display: block;
     margin: 4px 0;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.alt-links a:hover {
+    opacity: 0.85;
 }
 
 .alt-links .coming-soon {
     color: var(--donate-link-muted);
     cursor: not-allowed;
+    text-decoration: none;
 }
 
 .error {

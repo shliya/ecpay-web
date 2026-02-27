@@ -17,6 +17,7 @@ import './css/viewer-donate.css';
         var form = document.createElement('form');
         form.method = 'POST';
         form.action = paymentUrl;
+        form.enctype = 'application/x-www-form-urlencoded';
         form.style.display = 'none';
         Object.keys(params).forEach(function (key) {
             var input = document.createElement('input');
@@ -238,6 +239,72 @@ import './css/viewer-donate.css';
         if (linkPayuni) {
             linkPayuni.addEventListener('click', function (e) {
                 e.preventDefault();
+                showError('');
+                const name =
+                    (document.getElementById('nickname') &&
+                        document.getElementById('nickname').value) ||
+                    '';
+                const amount =
+                    amountInput && amountInput.value
+                        ? parseInt(amountInput.value, 10)
+                        : 0;
+                const message =
+                    (document.getElementById('message') &&
+                        document.getElementById('message').value) ||
+                    '';
+
+                if (!amount || isNaN(amount) || amount < 30) {
+                    showError('請輸入有效金額（至少 30 元）');
+                    return;
+                }
+
+                linkPayuni.style.pointerEvents = 'none';
+                var originalText = linkPayuni.textContent;
+                linkPayuni.textContent = '處理中…';
+
+                fetch('/api/v1/comme/donate/payuni', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        merchantId: merchantId,
+                        amount: amount,
+                        name: name.trim() || undefined,
+                        message: message.trim() || undefined,
+                    }),
+                })
+                    .then(function (res) {
+                        return res.json().then(function (data) {
+                            return { res: res, data: data };
+                        });
+                    })
+                    .catch(function () {
+                        return { res: { ok: false }, data: {} };
+                    })
+                    .then(function (result) {
+                        var res = result.res;
+                        var data = result.data;
+
+                        linkPayuni.style.pointerEvents = '';
+                        linkPayuni.textContent = originalText;
+
+                        if (!res.ok) {
+                            showError(data.error || '建立斗內訂單失敗');
+                            return;
+                        }
+
+                        if (data.paymentUrl && data.params) {
+                            showDonationAnimation(
+                                name.trim() || '匿名',
+                                amount
+                            );
+                            setTimeout(function () {
+                                submitToEcpay(data.paymentUrl, data.params);
+                            }, 500);
+                            return;
+                        }
+
+                        showError('伺服器回傳格式錯誤');
+                    });
             });
         }
 

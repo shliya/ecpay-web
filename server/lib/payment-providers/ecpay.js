@@ -209,8 +209,8 @@ async function createPayment(merchantId, orderData) {
         ReturnURL: (() => {
             const base =
                 process.env.NODE_ENV === 'production'
-                    ? process.env.ECPAY_RETURN_URL
-                    : process.env.ECPAY_RETURN_URL_LOCAL;
+                    ? process.env.RETURN_URL
+                    : process.env.RETURN_URL_LOCAL;
             return `${(base || '').replace(/\/$/, '')}/api/v1/payment/ecpay-success`;
         })(),
         ChoosePayment: 'ALL',
@@ -218,8 +218,8 @@ async function createPayment(merchantId, orderData) {
         ClientBackURL: (() => {
             const base =
                 process.env.NODE_ENV === 'production'
-                    ? process.env.ECPAY_RETURN_URL
-                    : process.env.ECPAY_RETURN_URL_LOCAL;
+                    ? process.env.RETURN_URL
+                    : process.env.RETURN_URL_LOCAL;
             return (base || '').replace(/\/$/, '');
         })(),
     };

@@ -8,6 +8,14 @@ async function getEcpayConfigByMerchantId(merchantId) {
     });
 }
 
+async function getPayuniMerchantIdByMerchantId(merchantId) {
+    return EcpayConfigModel.findOne({
+        where: { merchantId },
+        attributes: ['payuniMerchantId'],
+        raw: true,
+    });
+}
+
 async function getEcpayConfigByDisplayName(displayName) {
     if (!displayName || typeof displayName !== 'string') return null;
     const name = displayName.trim();
@@ -60,6 +68,17 @@ function getTransaction() {
     return sequelize.transaction();
 }
 
+async function getPayuniConfigByPayuniMerchantId(
+    payuniMerchantId,
+    { properties }
+) {
+    return EcpayConfigModel.findOne({
+        where: { payuniMerchantId },
+        attributes: properties,
+        raw: true,
+    });
+}
+
 module.exports = {
     getEcpayConfigByMerchantId,
     getEcpayConfigByDisplayName,
@@ -68,4 +87,6 @@ module.exports = {
     updateThemeColors,
     updateEcpayConfig,
     getTransaction,
+    getPayuniConfigByPayuniMerchantId,
+    getPayuniMerchantIdByMerchantId,
 };

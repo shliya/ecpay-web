@@ -74,4 +74,10 @@ async function updateEcpayConfig(merchantId, updates) {
 module.exports = {
     createEcpayConfig,
     updateEcpayConfig,
+    getPayuniMerchantIdByMerchantId:
+        ecpayConfigStore.getPayuniMerchantIdByMerchantId,
+    getPayuniConfigByPayuniMerchantId:
+        ecpayConfigStore.getPayuniConfigByPayuniMerchantId,
+    getEcpayConfigByMerchantId: ecpayConfigStore.getEcpayConfigByMerchantId,
+    getEcpayConfigByDisplayName: ecpayConfigStore.getEcpayConfigByDisplayName,
 };
