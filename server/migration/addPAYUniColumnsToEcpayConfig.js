@@ -7,7 +7,8 @@ const sequelize = require('../config/database');
         const [results] = await sequelize.query(`
             SELECT column_name 
             FROM information_schema.columns 
-            WHERE table_name = 'ecpay_config' 
+            WHERE table_schema = 'public'
+            AND table_name = 'ecpay_config' 
             AND LOWER(column_name) IN ('payunimerchantid', 'payunihashkey', 'payunihashiv')
         `);
 

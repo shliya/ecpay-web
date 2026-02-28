@@ -68,6 +68,16 @@ import './css/settings.css';
 
         const youtubeIdEl = document.getElementById('youtubeChannelId');
         if (youtubeIdEl) youtubeIdEl.value = config.youtubeChannelId || '';
+
+        const payuniMerchantIdEl = document.getElementById('payuniMerchantId');
+        if (payuniMerchantIdEl)
+            payuniMerchantIdEl.value = config.payuniMerchantId || '';
+
+        const payuniHashKeyEl = document.getElementById('payuniHashKey');
+        if (payuniHashKeyEl) payuniHashKeyEl.value = config.payuniHashKey || '';
+
+        const payuniHashIVEl = document.getElementById('payuniHashIV');
+        if (payuniHashIVEl) payuniHashIVEl.value = config.payuniHashIV || '';
     }
 
     function setupTabs() {
@@ -201,9 +211,47 @@ import './css/settings.css';
         }
     }
 
-    function handlePayuniSubmit(e) {
+    async function savePayuniSettings(e) {
         e.preventDefault();
-        showMessage('PAYUNi 功能尚未實作', 'info');
+        const payuniMerchantId = document
+            .getElementById('payuniMerchantId')
+            .value.trim();
+        const payuniHashKey = document.getElementById('payuniHashKey').value;
+        const payuniHashIV = document.getElementById('payuniHashIV').value;
+
+        if (!payuniMerchantId || !payuniHashKey || !payuniHashIV) {
+            showMessage('請填寫所有必填欄位', 'error');
+            return;
+        }
+
+        try {
+            const response = await fetch(
+                `/api/v1/comme/ecpay/config/id=${encodeURIComponent(merchantId)}`,
+                {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        payuniMerchantId,
+                        payuniHashKey,
+                        payuniHashIV,
+                    }),
+                }
+            );
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.error || '儲存失敗');
+            }
+
+            showMessage('PAYUNi 設定已儲存', 'success');
+            currentConfig = result;
+        } catch (error) {
+            console.error('儲存 PAYUNi 設定錯誤:', error);
+            showMessage('儲存失敗: ' + error.message, 'error');
+        }
     }
 
     function initialize() {
@@ -232,7 +280,7 @@ import './css/settings.css';
             .addEventListener('submit', saveYoutubeSettings);
         document
             .getElementById('payuniForm')
-            .addEventListener('submit', handlePayuniSubmit);
+            .addEventListener('submit', savePayuniSettings);
     }
 
     if (document.readyState === 'loading') {

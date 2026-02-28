@@ -10,4 +10,5 @@ module.exports = {
     // PAYUNi相關API
     handleGetPayuniNotifyRequest: require('./handle-get-payuni-notify'),
     handleCreateDonatePayuniRequest: require('./handle-create-donate-payuni'),
+    handleCreatePayuniSettingRequest: require('./handle-create-payuni-setting'),
 };

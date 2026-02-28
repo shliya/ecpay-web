@@ -146,10 +146,6 @@
                     <!-- PAYUNi 分頁 -->
                     <div class="tab-panel" id="panelPayuni">
                         <h2>PAYUNi 設定</h2>
-                        <div class="payuni-notice">
-                            <p>⚠️ PAYUNi 功能尚未實作</p>
-                            <p>此分頁僅供預覽，實際 API 功能開發中</p>
-                        </div>
                         <form id="payuniForm" class="settings-form">
                             <div class="form-group">
                                 <label for="payuniMerchantId"
@@ -160,6 +156,8 @@
                                     id="payuniMerchantId"
                                     name="payuniMerchantId"
                                     placeholder="請輸入 PAYUNi 商店代號"
+                                    maxlength="100"
+                                    readonly
                                     disabled
                                 />
                             </div>
@@ -172,7 +170,7 @@
                                     id="payuniHashKey"
                                     name="payuniHashKey"
                                     placeholder="請輸入 PAYUNi Hash Key"
-                                    disabled
+                                    maxlength="100"
                                 />
                             </div>
                             <div class="form-group">
@@ -182,11 +180,11 @@
                                     id="payuniHashIV"
                                     name="payuniHashIV"
                                     placeholder="請輸入 PAYUNi Hash IV"
-                                    disabled
+                                    maxlength="100"
                                 />
                             </div>
-                            <button type="submit" class="btn btn-save" disabled>
-                                儲存（尚未實作）
+                            <button type="submit" class="btn btn-save">
+                                儲存
                             </button>
                         </form>
                     </div>

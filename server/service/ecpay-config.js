@@ -19,11 +19,33 @@ async function createEcpayConfig(row) {
     }
 }
 
+async function createPayuniConfig(row) {
+    // PAYUNi 商店設定，之後可能調整
+    const txn = await ecpayConfigStore.getTransaction();
+    try {
+        const result = await ecpayConfigStore.createEcpayConfig(row, {
+            transaction: txn,
+        });
+        await txn.commit();
+        return result;
+    } catch (error) {
+        console.error('儲存設定時發生錯誤:', error);
+        if (error.name === 'SequelizeUniqueConstraintError') {
+            throw new Error(ECPAY_CONFIG_DUPLICATE_CODE.message);
+        }
+        await txn.rollback();
+        throw error;
+    }
+}
+
 async function updateEcpayConfig(merchantId, updates) {
     const allowedFields = [
         'displayName',
         'hashKey',
         'hashIV',
+        'payuniMerchantId',
+        'payuniHashKey',
+        'payuniHashIV',
         'youtubeChannelHandle',
         'youtubeChannelId',
         'themeColors',
@@ -73,6 +95,7 @@ async function updateEcpayConfig(merchantId, updates) {
 
 module.exports = {
     createEcpayConfig,
+    createPayuniConfig,
     updateEcpayConfig,
     getPayuniMerchantIdByMerchantId:
         ecpayConfigStore.getPayuniMerchantIdByMerchantId,

@@ -12,17 +12,17 @@ const EcpayConfig = sequelize.define(
         },
         merchantId: {
             type: DataTypes.STRING(50),
-            allowNull: false,
+            allowNull: true,
             field: 'merchantId',
             unique: true,
         },
         hashKey: {
             type: DataTypes.STRING(100),
-            allowNull: false,
+            allowNull: true,
         },
         hashIV: {
             type: DataTypes.STRING(100),
-            allowNull: false,
+            allowNull: true,
         },
         youtubeChannelHandle: {
             type: DataTypes.STRING(100),
@@ -50,6 +50,21 @@ const EcpayConfig = sequelize.define(
             allowNull: true,
             defaultValue: DataTypes.NOW,
             field: 'created_at',
+        },
+        payuniMerchantId: {
+            type: DataTypes.STRING(100),
+            allowNull: true,
+            field: 'payuniMerchantId',
+        },
+        payuniHashKey: {
+            type: DataTypes.STRING(100),
+            allowNull: true,
+            field: 'payuniHashKey',
+        },
+        payuniHashIV: {
+            type: DataTypes.STRING(100),
+            allowNull: true,
+            field: 'payuniHashIV',
         },
     },
     {

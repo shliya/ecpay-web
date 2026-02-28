@@ -115,7 +115,6 @@ body {
 .alt-links {
     margin-top: 12px;
     text-align: center;
-    font-size: 12px;
 }
 
 .alt-links a {
@@ -128,6 +127,22 @@ body {
 
 .alt-links a:hover {
     opacity: 0.85;
+}
+
+.alt-links .btn-payuni {
+    margin-top: 8px;
+    padding: 10px 0;
+    background: var(--donate-payuni-bg, #5b7c99);
+    color: var(--donate-payuni-text, #fff);
+    border: 3px solid var(--donate-payuni-border, #3d5a6e);
+    border-radius: 8px;
+    font-size: 14px;
+    text-decoration: none;
+}
+
+.alt-links .btn-payuni:hover {
+    background: var(--donate-payuni-hover-bg, #4a6a82);
+    opacity: 1;
 }
 
 .alt-links .coming-soon {

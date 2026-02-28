@@ -7,21 +7,20 @@ async function getEcpayConfigByMerchantId(merchantId) {
     const trimmed = merchantId.trim();
     let config = await EcpayConfigModel.findOne({
         where: { merchantId: trimmed },
+        raw: true,
     });
     if (!config) {
         config = await EcpayConfigModel.findOne({
             where: { payuniMerchantId: trimmed },
+            raw: true,
         });
     }
     return config;
 }
 
 async function getPayuniMerchantIdByMerchantId(merchantId) {
-    return EcpayConfigModel.findOne({
-        where: { merchantId },
-        attributes: ['payuniMerchantId'],
-        raw: true,
-    });
+    const config = await getEcpayConfigByMerchantId(merchantId);
+    return config ? { payuniMerchantId: config.payuniMerchantId } : null;
 }
 
 async function getEcpayConfigByDisplayName(displayName) {
@@ -59,9 +58,15 @@ async function updateThemeColors(merchantId, themeColors) {
 }
 
 async function updateEcpayConfig(merchantId, updateData) {
-    const row = await EcpayConfigModel.findOne({
-        where: { merchantId: merchantId.trim() },
+    const trimmed = merchantId.trim();
+    let row = await EcpayConfigModel.findOne({
+        where: { merchantId: trimmed },
     });
+    if (!row) {
+        row = await EcpayConfigModel.findOne({
+            where: { payuniMerchantId: trimmed },
+        });
+    }
     if (!row) return null;
 
     if (Object.keys(updateData).length === 0) {

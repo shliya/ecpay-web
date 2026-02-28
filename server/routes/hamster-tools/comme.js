@@ -15,6 +15,7 @@ const {
     handleResolveDisplayNameRequest,
     handleGetPayuniNotifyRequest,
     handleCreateDonatePayuniRequest,
+    handleCreatePayuniSettingRequest,
 } = require('../../route-handlers/comme');
 
 //綠界notify回調
@@ -24,12 +25,15 @@ router.post(
     handleGetEcpayRequest
 );
 
-//建立商戶
+//建立綠界商店設定
 router.post(
     '/ecpay/setting',
     beforeCreateEcpaySettingRequest,
     handleCreateEcpaySettingRequest
 );
+
+//建立PAYUNi商店設定
+router.post('/payuni/setting', handleCreatePayuniSettingRequest);
 
 //取得商戶是否存在
 router.get(

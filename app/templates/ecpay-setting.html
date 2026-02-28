@@ -3,44 +3,95 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>ECPay 設定</title>
+        <title>商店設定</title>
     </head>
     <body>
         <div class="setting-container">
-            <h1>ECPay 金流設定</h1>
-            <form id="ecpaySettingForm">
-                <div class="form-group">
-                    <label for="merchantId">商店代號</label>
-                    <input
-                        type="text"
-                        id="merchantId"
-                        name="merchantId"
-                        required
-                        placeholder="請輸入商店代號"
-                    />
-                </div>
-                <div class="form-group">
-                    <label for="hashKey">Hash Key</label>
-                    <input
-                        type="password"
-                        id="hashKey"
-                        name="hashKey"
-                        required
-                        placeholder="請輸入 Hash Key"
-                    />
-                </div>
-                <div class="form-group">
-                    <label for="hashIV">Hash IV</label>
-                    <input
-                        type="password"
-                        id="hashIV"
-                        name="hashIV"
-                        required
-                        placeholder="請輸入 Hash IV"
-                    />
-                </div>
-                <button type="submit" class="btn-submit">儲存設定</button>
-            </form>
+            <h1>商店金流設定</h1>
+            <p class="setting-hint">
+                請依使用的金流擇一填寫：綠界 ECPay 或 PayUni
+            </p>
+            <div class="tabs">
+                <button type="button" class="tab-btn active" data-tab="ecpay">
+                    綠界 ECPay
+                </button>
+                <button type="button" class="tab-btn" data-tab="payuni">
+                    PAYUNI
+                </button>
+            </div>
+
+            <div id="ecpayPanel" class="tab-panel active">
+                <form id="ecpaySettingForm">
+                    <div class="form-group">
+                        <label for="merchantId">商店代號</label>
+                        <input
+                            type="text"
+                            id="merchantId"
+                            name="merchantId"
+                            required
+                            placeholder="請輸入商店代號"
+                        />
+                    </div>
+                    <div class="form-group">
+                        <label for="hashKey">Hash Key</label>
+                        <input
+                            type="password"
+                            id="hashKey"
+                            name="hashKey"
+                            required
+                            placeholder="請輸入 Hash Key"
+                        />
+                    </div>
+                    <div class="form-group">
+                        <label for="hashIV">Hash IV</label>
+                        <input
+                            type="password"
+                            id="hashIV"
+                            name="hashIV"
+                            required
+                            placeholder="請輸入 Hash IV"
+                        />
+                    </div>
+                    <button type="submit" class="btn-submit">儲存設定</button>
+                </form>
+            </div>
+
+            <div id="payuniPanel" class="tab-panel">
+                <form id="payuniSettingForm">
+                    <div class="form-group">
+                        <label for="payuniMerchantId">PayUni 商店代號</label>
+                        <input
+                            type="text"
+                            id="payuniMerchantId"
+                            name="payuniMerchantId"
+                            required
+                            placeholder="請輸入 PayUni 商店代號"
+                        />
+                    </div>
+                    <div class="form-group">
+                        <label for="payuniHashKey">PayUni Hash Key</label>
+                        <input
+                            type="password"
+                            id="payuniHashKey"
+                            name="payuniHashKey"
+                            required
+                            placeholder="請輸入 PayUni Hash Key"
+                        />
+                    </div>
+                    <div class="form-group">
+                        <label for="payuniHashIV">PayUni Hash IV</label>
+                        <input
+                            type="password"
+                            id="payuniHashIV"
+                            name="payuniHashIV"
+                            required
+                            placeholder="請輸入 PayUni Hash IV"
+                        />
+                    </div>
+                    <button type="submit" class="btn-submit">儲存設定</button>
+                </form>
+            </div>
+
             <div id="message" class="message" style="display: none"></div>
         </div>
     </body>

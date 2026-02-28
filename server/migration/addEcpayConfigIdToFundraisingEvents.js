@@ -34,6 +34,15 @@ const sequelize = require('../config/database');
         `);
         console.log('已依 merchantId 回填 ecpayConfigId');
 
+        await sequelize.query(`
+            UPDATE fundraising_events fe
+            SET "ecpayConfigId" = e.id
+            FROM ecpay_config e
+            WHERE e."payuniMerchantId" = fe."merchantId"
+            AND fe."ecpayConfigId" IS NULL
+        `);
+        console.log('已依 payuniMerchantId 回填 ecpayConfigId');
+
         const [constraintResults] = await sequelize.query(`
             SELECT constraint_name
             FROM information_schema.table_constraints
