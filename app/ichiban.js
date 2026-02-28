@@ -8,6 +8,8 @@ class IchibanAdmin {
         this.ws = null;
         this.events = [];
         this.selectedEvent = null;
+        this.currentEventCards = null;
+        this.detailModalCardIndex = null;
         this.isConnected = false;
         this.reconnectAttempts = 0;
         this.maxReconnectAttempts = 5;
@@ -240,8 +242,21 @@ class IchibanAdmin {
     }
 
     handleCardLocked(message) {
-        if (this.selectedEvent && this.selectedEvent.id === message.eventId) {
-            this.updateCardStatus(message.cardIndex, 'locked');
+        if (this.selectedEvent && this.selectedEvent.id == message.eventId) {
+            this.updateCardStatus(
+                message.cardIndex,
+                'locked',
+                message.prizeName,
+                {
+                    openedAt: message.timestamp || new Date().toISOString(),
+                    openedBy:
+                        (message.openedBy != null &&
+                            String(message.openedBy).trim()) ||
+                        (message.lockedBy != null
+                            ? String(message.lockedBy)
+                            : ''),
+                }
+            );
             this.updateEventStats();
             this.addActivityRecord(
                 `卡片 ${message.cardIndex + 1} 被鎖定 - ${message.prizeName}`
@@ -250,8 +265,21 @@ class IchibanAdmin {
     }
 
     handleCardLockedNotification(message) {
-        if (this.selectedEvent && this.selectedEvent.id === message.eventId) {
-            this.updateCardStatus(message.cardIndex, 'locked');
+        if (this.selectedEvent && this.selectedEvent.id == message.eventId) {
+            this.updateCardStatus(
+                message.cardIndex,
+                'locked',
+                message.prizeName,
+                {
+                    openedAt: message.timestamp || new Date().toISOString(),
+                    openedBy:
+                        (message.openedBy != null &&
+                            String(message.openedBy).trim()) ||
+                        (message.lockedBy != null
+                            ? String(message.lockedBy)
+                            : ''),
+                }
+            );
             this.updateEventStats();
         }
         this.addActivityRecord(
@@ -260,11 +288,15 @@ class IchibanAdmin {
     }
 
     handleCardOpened(message) {
-        if (this.selectedEvent && this.selectedEvent.id === message.eventId) {
+        if (this.selectedEvent && this.selectedEvent.id == message.eventId) {
             this.updateCardStatus(
                 message.cardIndex,
                 'opened',
-                message.prizeName
+                message.prizeName,
+                {
+                    openedAt: message.timestamp || new Date().toISOString(),
+                    openedBy: message.openedBy || '',
+                }
             );
             this.updateEventStats();
             this.addActivityRecord(
@@ -277,11 +309,15 @@ class IchibanAdmin {
     }
 
     handleCardOpenedNotification(message) {
-        if (this.selectedEvent && this.selectedEvent.id === message.eventId) {
+        if (this.selectedEvent && this.selectedEvent.id == message.eventId) {
             this.updateCardStatus(
                 message.cardIndex,
                 'opened',
-                message.prizeName
+                message.prizeName,
+                {
+                    openedAt: message.timestamp || new Date().toISOString(),
+                    openedBy: message.openedBy || '',
+                }
             );
             this.updateEventStats();
         }
@@ -291,7 +327,7 @@ class IchibanAdmin {
     }
 
     handleCardsReset(message) {
-        if (this.selectedEvent && this.selectedEvent.id === message.eventId) {
+        if (this.selectedEvent && this.selectedEvent.id == message.eventId) {
             this.loadEventDetails(this.selectedEvent.id);
             this.addActivityRecord('所有卡片已重置');
         }
@@ -302,7 +338,7 @@ class IchibanAdmin {
     }
 
     handleCardsLocked(message) {
-        if (this.selectedEvent && this.selectedEvent.id === message.eventId) {
+        if (this.selectedEvent && this.selectedEvent.id == message.eventId) {
             this.loadEventDetails(this.selectedEvent.id);
             this.addActivityRecord(`已鎖定 ${message.lockedCount} 張卡片`);
         }
@@ -313,8 +349,11 @@ class IchibanAdmin {
     }
 
     handleCardPaymentFailed(message) {
-        if (this.selectedEvent && this.selectedEvent.id === message.eventId) {
-            this.updateCardStatus(message.cardIndex, 'closed');
+        if (this.selectedEvent && this.selectedEvent.id == message.eventId) {
+            this.updateCardStatus(message.cardIndex, 'closed', null, {
+                openedAt: null,
+                openedBy: null,
+            });
             this.updateEventStats();
 
             const reason =
@@ -326,8 +365,11 @@ class IchibanAdmin {
     }
 
     handleCardPaymentFailedNotification(message) {
-        if (this.selectedEvent && this.selectedEvent.id === message.eventId) {
-            this.updateCardStatus(message.cardIndex, 'closed');
+        if (this.selectedEvent && this.selectedEvent.id == message.eventId) {
+            this.updateCardStatus(message.cardIndex, 'closed', null, {
+                openedAt: null,
+                openedBy: null,
+            });
             this.updateEventStats();
         }
 
@@ -339,7 +381,7 @@ class IchibanAdmin {
     }
 
     handleEventEnded(message) {
-        if (this.selectedEvent && this.selectedEvent.id === message.eventId) {
+        if (this.selectedEvent && this.selectedEvent.id == message.eventId) {
             // 重新載入事件詳情以更新狀態
             this.loadEventDetails(this.selectedEvent.id);
         }
@@ -367,6 +409,23 @@ class IchibanAdmin {
 
             this.events = await response.json();
             this.renderEvents();
+
+            if (this.selectedEvent) {
+                const updated = this.events.find(
+                    e => e.id === this.selectedEvent.id
+                );
+                if (updated) {
+                    this.selectedEvent = updated;
+                }
+                const modalOpen = document
+                    .getElementById('cardDetailModal')
+                    .classList.contains('show');
+                if (modalOpen) {
+                    this.refreshDetailModalAfterLoad = true;
+                }
+                await this.loadEventDetails(this.selectedEvent.id);
+                this.refreshDetailModalAfterLoad = false;
+            }
         } catch (error) {
             console.error('載入活動列表錯誤:', error);
             this.showError('載入活動列表失敗');
@@ -383,13 +442,13 @@ class IchibanAdmin {
         }
 
         if (!this.events || this.events.length === 0) {
-        container.innerHTML = `
+            container.innerHTML = `
             <div class="empty-state">
                 <p>目前沒有斗內活動</p>
             </div>
         `;
-        return;
-    }
+            return;
+        }
 
         // 渲染現有活動
         container.innerHTML = '';
@@ -518,7 +577,23 @@ class IchibanAdmin {
         document.getElementById('completionRate').textContent =
             `${completionRate}%`;
 
-        this.renderCards(eventData.cards || []);
+        this.currentEventCards = eventData.cards || [];
+        this.renderCards(this.currentEventCards);
+
+        const modal = document.getElementById('cardDetailModal');
+        if (
+            this.refreshDetailModalAfterLoad &&
+            this.detailModalCardIndex != null &&
+            modal &&
+            modal.classList.contains('show') &&
+            this.currentEventCards[this.detailModalCardIndex]
+        ) {
+            this.showCardDetail(
+                this.currentEventCards[this.detailModalCardIndex],
+                this.detailModalCardIndex
+            );
+        }
+        this.refreshDetailModalAfterLoad = false;
     }
 
     renderCards(cards) {
@@ -553,9 +628,13 @@ class IchibanAdmin {
         cardDiv.appendChild(cardNumber);
         cardDiv.appendChild(cardPrize);
 
-        // 點擊查看詳情
+        // 點擊查看詳情：優先使用 currentEventCards 的最新資料
         cardDiv.addEventListener('click', () => {
-            this.showCardDetail(card, index);
+            const current =
+                this.currentEventCards && this.currentEventCards[index] != null
+                    ? this.currentEventCards[index]
+                    : card;
+            this.showCardDetail(current, index);
         });
 
         return cardDiv;
@@ -570,7 +649,7 @@ class IchibanAdmin {
         return classMap[status] || 'closed';
     }
 
-    updateCardStatus(cardIndex, status, prizeName) {
+    updateCardStatus(cardIndex, status, prizeName, extra = null) {
         const cardElement = document.querySelector(
             `[data-card-index="${cardIndex}"]`
         );
@@ -582,6 +661,34 @@ class IchibanAdmin {
             if (prizeElement && prizeName) {
                 prizeElement.textContent = prizeName;
             }
+        }
+
+        if (this.currentEventCards && this.currentEventCards[cardIndex]) {
+            this.currentEventCards[cardIndex].status =
+                status === 'opened' ? 2 : status === 'locked' ? 1 : 0;
+            if (prizeName && this.currentEventCards[cardIndex].prize) {
+                this.currentEventCards[cardIndex].prize.prizeName = prizeName;
+            }
+            if (extra) {
+                if (Object.prototype.hasOwnProperty.call(extra, 'openedAt')) {
+                    this.currentEventCards[cardIndex].openedAt =
+                        extra.openedAt ?? null;
+                }
+                if (Object.prototype.hasOwnProperty.call(extra, 'openedBy')) {
+                    this.currentEventCards[cardIndex].openedBy =
+                        extra.openedBy ?? null;
+                }
+            }
+        }
+
+        const modal = document.getElementById('cardDetailModal');
+        const modalShowingThisCard =
+            modal &&
+            modal.classList.contains('show') &&
+            this.detailModalCardIndex === cardIndex;
+        if (modalShowingThisCard) {
+            this.refreshDetailModalAfterLoad = true;
+            this.loadEventDetails(this.selectedEvent.id);
         }
     }
 
@@ -602,6 +709,7 @@ class IchibanAdmin {
     }
 
     showCardDetail(card, cardIndex) {
+        this.detailModalCardIndex = cardIndex;
         document.getElementById('detailCardIndex').textContent = cardIndex + 1;
         document.getElementById('detailPrizeName').textContent =
             card.prize?.prizeName || '未知獎品';
@@ -629,6 +737,7 @@ class IchibanAdmin {
     }
 
     closeCardDetailModal() {
+        this.detailModalCardIndex = null;
         const cardDetailModal = document.getElementById('cardDetailModal');
         if (cardDetailModal) {
             cardDetailModal.classList.remove('show');

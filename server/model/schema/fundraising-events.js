@@ -32,6 +32,12 @@ const FundraisingEvents = sequelize.define(
             allowNull: false,
             field: 'merchantId',
         },
+        ecpayConfigId: {
+            type: DataTypes.BIGINT,
+            allowNull: true,
+            field: 'ecpayConfigId',
+            references: { model: 'ecpay_config', key: 'id' },
+        },
         eventName: {
             type: DataTypes.STRING(100),
             allowNull: false,
@@ -84,6 +90,12 @@ const FundraisingEvents = sequelize.define(
     {
         tableName: 'fundraising_events',
         timestamps: false,
+        indexes: [
+            {
+                name: 'idx_fundraising_events_ecpayConfigId',
+                fields: ['ecpayConfigId'],
+            },
+        ],
     }
 );
 

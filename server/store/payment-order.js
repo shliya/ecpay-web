@@ -17,6 +17,19 @@ function getPaymentOrder(merchantTradeNo) {
     return orderInfo;
 }
 
+function getPaymentOrderByEventAndCard(eventId, cardIndex, clientId) {
+    for (const [merchantTradeNo, orderInfo] of paymentOrders.entries()) {
+        if (
+            orderInfo.eventId === eventId &&
+            orderInfo.cardIndex === cardIndex &&
+            orderInfo.clientId === clientId
+        ) {
+            return { merchantTradeNo, ...orderInfo };
+        }
+    }
+    return null;
+}
+
 function getAllPaymentOrders() {
     return paymentOrders;
 }
@@ -34,6 +47,7 @@ function deletePaymentOrder(merchantTradeNo) {
 module.exports = {
     setPaymentOrder,
     getPaymentOrder,
+    getPaymentOrderByEventAndCard,
     getAllPaymentOrders,
     deletePaymentOrder,
 };

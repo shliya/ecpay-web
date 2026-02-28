@@ -3,9 +3,17 @@ const sequelize = require('../config/database');
 const { Op } = require('sequelize');
 
 async function getEcpayConfigByMerchantId(merchantId) {
-    return EcpayConfigModel.findOne({
-        where: { merchantId },
+    if (!merchantId || typeof merchantId !== 'string') return null;
+    const trimmed = merchantId.trim();
+    let config = await EcpayConfigModel.findOne({
+        where: { merchantId: trimmed },
     });
+    if (!config) {
+        config = await EcpayConfigModel.findOne({
+            where: { payuniMerchantId: trimmed },
+        });
+    }
+    return config;
 }
 
 async function getPayuniMerchantIdByMerchantId(merchantId) {

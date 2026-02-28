@@ -2,8 +2,8 @@ const FundraisingEvents = require('./schema/fundraising-events');
 const EcpayConfig = require('./ecpayConfig');
 
 FundraisingEvents.belongsTo(EcpayConfig, {
-    foreignKey: 'merchantId',
-    targetKey: 'merchantId',
+    foreignKey: 'ecpayConfigId',
+    targetKey: 'id',
     as: 'ecpayConfig',
 });
 

@@ -21,6 +21,7 @@ class IchibanWebSocketServer {
         this.clients = new Map();
         this.rooms = new Map();
         this.paymentTimeouts = new Map(); // 存儲付款超時計時器
+        this.pendingLocks = new Map(); // 已鎖定、尚未輸入暱稱的卡片，key: `${clientId}-${eventId}-${cardIndex}`
         this.paymentTimeoutDuration = 5 * 60 * 1000; // 5分鐘超時
 
         if (this.server) {
@@ -142,6 +143,15 @@ class IchibanWebSocketServer {
                 case 'lock-card':
                     console.log('lock-card:', message);
                     await this.handleLockCard(
+                        clientId,
+                        message.eventId,
+                        message.cardIndex,
+                        message.nickname
+                    );
+                    break;
+                case 'submit-nickname':
+                    console.log('submit-nickname:', message);
+                    await this.handleSubmitNickname(
                         clientId,
                         message.eventId,
                         message.cardIndex,
@@ -296,10 +306,11 @@ class IchibanWebSocketServer {
                 return;
             }
 
-            const openedByNickname =
-                nickname != null && String(nickname).trim()
-                    ? String(nickname).trim().slice(0, 100)
-                    : null;
+            const hasNickname =
+                nickname != null && String(nickname).trim().length > 0;
+            const openedByNickname = hasNickname
+                ? String(nickname).trim().slice(0, 100)
+                : null;
 
             await IchibanCardStore.updateIchibanCardByIdAndStatus(card.id, {
                 status: ENUM_ICHIBAN_CARD_STATUS.LOCKED,
@@ -315,6 +326,7 @@ class IchibanWebSocketServer {
                 cardIndex: cardIndex,
                 prizeName: prizeName,
                 lockedBy: clientId,
+                openedBy: openedByNickname != null ? openedByNickname : '',
                 timestamp: new Date().toISOString(),
             });
 
@@ -324,6 +336,7 @@ class IchibanWebSocketServer {
                 cardIndex: cardIndex,
                 prizeName: prizeName,
                 lockedBy: clientId,
+                openedBy: openedByNickname != null ? openedByNickname : '',
                 timestamp: new Date().toISOString(),
             });
 
@@ -331,17 +344,93 @@ class IchibanWebSocketServer {
                 `Card ${cardIndex} locked in event ${eventId} by ${clientId} (merchant: ${client.merchantId}) - Prize: ${prizeName}`
             );
 
+            if (hasNickname) {
+                this.processPaymentAndOpenCard(
+                    clientId,
+                    eventId,
+                    cardIndex,
+                    card,
+                    client,
+                    nickname
+                );
+            } else {
+                const pendingKey = `${clientId}-${eventId}-${cardIndex}`;
+                this.pendingLocks.set(pendingKey, { eventId, cardIndex });
+            }
+        } catch (error) {
+            console.error('Error locking card:', error);
+            this.sendError(clientId, 'Failed to lock card');
+        }
+    }
+
+    async handleSubmitNickname(clientId, eventId, cardIndex, nickname) {
+        const client = this.clients.get(clientId);
+        if (!client) return;
+
+        const pendingKey = `${clientId}-${eventId}-${cardIndex}`;
+        if (!this.pendingLocks.has(pendingKey)) {
+            this.sendError(clientId, '此卡片尚未鎖定或已逾時');
+            return;
+        }
+
+        if (!nickname || typeof nickname !== 'string' || !nickname.trim()) {
+            this.sendError(clientId, '請輸入暱稱');
+            return;
+        }
+
+        try {
+            const card =
+                await IchibanCardStore.getIchibanCardByEventIdAndCardIndexAndStatus(
+                    eventId,
+                    cardIndex,
+                    ENUM_ICHIBAN_CARD_STATUS.LOCKED
+                );
+
+            if (!card) {
+                this.pendingLocks.delete(pendingKey);
+                this.sendError(clientId, '卡片狀態已變更');
+                return;
+            }
+
+            const nicknameTrimmed = String(nickname).trim().slice(0, 100);
+
+            await IchibanCardStore.updateIchibanCardByIdAndStatus(card.id, {
+                openedBy: nicknameTrimmed,
+            });
+
+            this.pendingLocks.delete(pendingKey);
+
+            this.broadcastToRoom(`event-${eventId}`, {
+                type: 'card-locked',
+                eventId: eventId,
+                cardIndex: cardIndex,
+                prizeName: card.prize?.prizeName || '未知獎品',
+                lockedBy: clientId,
+                openedBy: nicknameTrimmed,
+                timestamp: new Date().toISOString(),
+            });
+
+            this.broadcastToRoom(`merchant-${client.merchantId}`, {
+                type: 'card-locked-notification',
+                eventId: eventId,
+                cardIndex: cardIndex,
+                prizeName: card.prize?.prizeName || '未知獎品',
+                lockedBy: clientId,
+                openedBy: nicknameTrimmed,
+                timestamp: new Date().toISOString(),
+            });
+
             this.processPaymentAndOpenCard(
                 clientId,
                 eventId,
                 cardIndex,
                 card,
                 client,
-                nickname
+                nicknameTrimmed
             );
         } catch (error) {
-            console.error('Error locking card:', error);
-            this.sendError(clientId, 'Failed to lock card');
+            console.error('Error submitting nickname:', error);
+            this.sendError(clientId, '提交暱稱失敗');
         }
     }
 
@@ -410,6 +499,9 @@ class IchibanWebSocketServer {
     async handleCancelPayment(clientId, eventId, cardIndex) {
         const client = this.clients.get(clientId);
         if (!client) return;
+
+        const pendingKey = `${clientId}-${eventId}-${cardIndex}`;
+        this.pendingLocks.delete(pendingKey);
 
         try {
             // 找到對應的卡片

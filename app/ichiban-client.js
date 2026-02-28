@@ -227,6 +227,10 @@ class IchibanClient {
                 this.handlePaymentRedirect(message);
                 break;
             case 'error':
+                if (this._pendingLockCardIndex != null) {
+                    this.updateCardStatus(this._pendingLockCardIndex, 'closed');
+                    this._pendingLockCardIndex = null;
+                }
                 this.showError(message.message);
                 break;
             case 'pong':
@@ -238,10 +242,32 @@ class IchibanClient {
     }
 
     handleCardLocked(message) {
-        // 更新卡片狀態為已鎖定
+        this._pendingLockCardIndex = null;
+
         this.updateCardStatus(message.cardIndex, 'locked');
 
-        // 更新事件統計
+        const isLockedByMe = message.lockedBy === this.getClientId();
+        if (isLockedByMe) {
+            this._pendingNicknameForCard = {
+                eventId: message.eventId,
+                cardIndex: message.cardIndex,
+            };
+            this.showNicknameModal().then(nickname => {
+                if (nickname && this._pendingNicknameForCard) {
+                    const { eventId, cardIndex } = this._pendingNicknameForCard;
+                    this.ws.send(
+                        JSON.stringify({
+                            type: 'submit-nickname',
+                            eventId,
+                            cardIndex,
+                            nickname,
+                        })
+                    );
+                }
+                this._pendingNicknameForCard = null;
+            });
+        }
+
         this.updateEventStats();
     }
 
@@ -330,6 +356,8 @@ class IchibanClient {
     }
 
     handlePaymentRedirect(message) {
+        this.hideNicknameModal();
+
         const confirmMessage = `即將跳轉到付款頁面\n金額: $${message.amount}\n卡片: ${message.cardIndex + 1}\n\n注意：請在5分鐘內完成付款，否則卡片將自動解鎖`;
 
         if (confirm(confirmMessage)) {
@@ -373,13 +401,23 @@ class IchibanClient {
     }
 
     closeNicknameModal(nickname) {
-        const modal = document.getElementById('nicknameModal');
-        if (modal) {
-            modal.classList.remove('show');
+        this.hideNicknameModal();
+        if (nickname == null && this._pendingNicknameForCard) {
+            const { eventId, cardIndex } = this._pendingNicknameForCard;
+            this.cancelPayment(eventId, cardIndex);
+            this.updateCardStatus(cardIndex, 'closed');
+            this._pendingNicknameForCard = null;
         }
         if (typeof this._nicknameModalResolve === 'function') {
             this._nicknameModalResolve(nickname);
             this._nicknameModalResolve = null;
+        }
+    }
+
+    hideNicknameModal() {
+        const modal = document.getElementById('nicknameModal');
+        if (modal) {
+            modal.classList.remove('show');
         }
     }
 
@@ -574,8 +612,13 @@ class IchibanClient {
         );
         if (cardElement) {
             cardElement.className = `card ${status}`;
-            cardElement.style.cursor =
-                status === 'opened' ? 'default' : 'pointer';
+            if (status === 'opened') {
+                cardElement.style.cursor = 'default';
+            } else if (status === 'locked') {
+                cardElement.style.cursor = 'not-allowed';
+            } else {
+                cardElement.style.cursor = 'pointer';
+            }
 
             // 只更新必要的內容，不重新創建整個卡片
             const cardNumber = cardElement.querySelector('.card-number');
@@ -714,22 +757,16 @@ class IchibanClient {
             return;
         }
 
-        this.showNicknameModal().then(nickname => {
-            if (nickname == null) {
-                return;
-            }
+        this.setCardLocked(cardIndex);
 
-            this.setCardLocked(cardIndex);
+        const message = {
+            type: 'lock-card',
+            eventId: this.eventId,
+            cardIndex: cardIndex,
+        };
 
-            const message = {
-                type: 'lock-card',
-                eventId: this.eventId,
-                cardIndex: cardIndex,
-                nickname: nickname,
-            };
-
-            this.ws.send(JSON.stringify(message));
-        });
+        this._pendingLockCardIndex = cardIndex;
+        this.ws.send(JSON.stringify(message));
     }
 
     joinEvent() {
