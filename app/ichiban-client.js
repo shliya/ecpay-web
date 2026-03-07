@@ -365,7 +365,7 @@ class IchibanClient {
     handlePaymentRedirect(message) {
         this.hideNicknameModal();
 
-        const confirmMessage = `即將跳轉到付款頁面\n金額: $${message.amount}\n卡片: ${message.cardIndex + 1}\n\n注意：請在5分鐘內完成付款，否則卡片將自動解鎖`;
+        const confirmMessage = `即將跳轉到付款頁面\n金額: $${message.amount}\n卡片: ${message.cardIndex + 1}\n\n注意：請在10分鐘內完成付款，否則卡片將自動解鎖`;
 
         if (confirm(confirmMessage)) {
             this.submitEcpayForm(

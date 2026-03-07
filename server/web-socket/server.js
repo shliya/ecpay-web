@@ -28,7 +28,7 @@ class IchibanWebSocketServer {
         this.rooms = new Map();
         this.paymentTimeouts = new Map(); // 存儲付款超時計時器
         this.pendingLocks = new Map(); // 已鎖定、尚未輸入暱稱的卡片，key: `${clientId}-${eventId}-${cardIndex}`
-        this.paymentTimeoutDuration = 5 * 60 * 1000; // 5分鐘超時
+        this.paymentTimeoutDuration = 10 * 60 * 1000; // 10分鐘超時
 
         if (this.server) {
             this.wss = new WebSocket.Server({

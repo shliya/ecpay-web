@@ -9,6 +9,8 @@ Hi 妳好！👋 歡迎來到這個專案！
 若不想自架，可直接使用雲端版：[**https://ecpay-web.onrender.com/**](https://ecpay-web.onrender.com/)  
 登入後即可使用斗內、一番賞、募資條等功能。
 
+**測試帳號**：`3002599`（可用來試用各項功能）
+
 ---
 
 ## ✨ 它可以幫妳做什麼？ (Features)
