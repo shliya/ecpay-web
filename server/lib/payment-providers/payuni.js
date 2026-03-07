@@ -127,6 +127,7 @@ function parseDonationCallback(reqBody, reqQuery, config) {
 
         return {
             merchantId: data.MerID,
+            merTradeNo: data.MerTradeNo,
             name: name || '',
             cost: Number(tradeAmt),
             message: msg || '',

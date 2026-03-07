@@ -1,6 +1,7 @@
 const {
     getIchibanEventByIdAndMerchantId,
 } = require('../../service/ichiban-event');
+const { getEcpayConfigByMerchantId } = require('../../store/ecpay-config');
 
 module.exports = async (req, res) => {
     try {
@@ -20,7 +21,17 @@ module.exports = async (req, res) => {
                 return res.status(404).json({ error: 'Event not found' });
             }
 
-            res.json(event);
+            const config = await getEcpayConfigByMerchantId(merchantId);
+            const availablePaymentMethods = {
+                ecpay: !!config?.merchantId,
+                payuni: !!config?.payuniMerchantId,
+            };
+
+            const plainEvent = event.get ? event.get({ plain: true }) : event;
+            res.json({
+                ...plainEvent,
+                availablePaymentMethods,
+            });
         } catch (error) {
             if (error.code === 'ENOENT') {
                 res.status(404).json({ error: 'Event not found' });

@@ -74,11 +74,17 @@ class IchibanClient {
             });
         }
 
-        const confirmNicknameBtn =
-            document.getElementById('confirmNicknameBtn');
-        if (confirmNicknameBtn) {
-            confirmNicknameBtn.addEventListener('click', () => {
-                this.confirmNicknameModal();
+        const confirmEcpayBtn = document.getElementById('confirmEcpayBtn');
+        if (confirmEcpayBtn) {
+            confirmEcpayBtn.addEventListener('click', () => {
+                this.confirmNicknameWithPayment('ecpay');
+            });
+        }
+
+        const confirmPayuniBtn = document.getElementById('confirmPayuniBtn');
+        if (confirmPayuniBtn) {
+            confirmPayuniBtn.addEventListener('click', () => {
+                this.confirmNicknameWithPayment('payuni');
             });
         }
 
@@ -95,7 +101,7 @@ class IchibanClient {
         if (nicknameInput) {
             nicknameInput.addEventListener('keydown', e => {
                 if (e.key === 'Enter') {
-                    this.confirmNicknameModal();
+                    e.preventDefault();
                 }
             });
         }
@@ -252,15 +258,16 @@ class IchibanClient {
                 eventId: message.eventId,
                 cardIndex: message.cardIndex,
             };
-            this.showNicknameModal().then(nickname => {
-                if (nickname && this._pendingNicknameForCard) {
+            this.showNicknameModal().then(result => {
+                if (result && this._pendingNicknameForCard) {
                     const { eventId, cardIndex } = this._pendingNicknameForCard;
                     this.ws.send(
                         JSON.stringify({
                             type: 'submit-nickname',
                             eventId,
                             cardIndex,
-                            nickname,
+                            nickname: result.nickname,
+                            paymentMethod: result.paymentMethod,
                         })
                     );
                 }
@@ -375,11 +382,22 @@ class IchibanClient {
     showNicknameModal() {
         const input = document.getElementById('nicknameInput');
         const modal = document.getElementById('nicknameModal');
+        const ecpayBtn = document.getElementById('confirmEcpayBtn');
+        const payuniBtn = document.getElementById('confirmPayuniBtn');
 
         if (input) {
             input.value = '';
             input.focus();
         }
+
+        const methods = this.eventData?.availablePaymentMethods || {};
+        if (ecpayBtn) {
+            ecpayBtn.style.display = methods.ecpay ? '' : 'none';
+        }
+        if (payuniBtn) {
+            payuniBtn.style.display = methods.payuni ? '' : 'none';
+        }
+
         if (modal) {
             modal.classList.add('show');
         }
@@ -389,7 +407,7 @@ class IchibanClient {
         });
     }
 
-    confirmNicknameModal() {
+    confirmNicknameWithPayment(paymentMethod) {
         const input = document.getElementById('nicknameInput');
         const nickname = input && input.value != null ? input.value.trim() : '';
 
@@ -397,19 +415,19 @@ class IchibanClient {
             this.showError('請輸入暱稱');
             return;
         }
-        this.closeNicknameModal(nickname);
+        this.closeNicknameModal({ nickname, paymentMethod });
     }
 
-    closeNicknameModal(nickname) {
+    closeNicknameModal(result) {
         this.hideNicknameModal();
-        if (nickname == null && this._pendingNicknameForCard) {
+        if (result == null && this._pendingNicknameForCard) {
             const { eventId, cardIndex } = this._pendingNicknameForCard;
             this.cancelPayment(eventId, cardIndex);
             this.updateCardStatus(cardIndex, 'closed');
             this._pendingNicknameForCard = null;
         }
         if (typeof this._nicknameModalResolve === 'function') {
-            this._nicknameModalResolve(nickname);
+            this._nicknameModalResolve(result);
             this._nicknameModalResolve = null;
         }
     }

@@ -3,7 +3,13 @@ const http = require('http');
 const IchibanEventStore = require('../store/ichiban-event');
 const IchibanCardStore = require('../store/ichiban-card');
 const { ENUM_ICHIBAN_CARD_STATUS } = require('../lib/enum');
-const { createPayment } = require('../lib/payment-providers/ecpay');
+const {
+    createPayment: createEcpayPayment,
+} = require('../lib/payment-providers/ecpay');
+const {
+    createPayment: createPayuniPayment,
+} = require('../lib/payment-providers/payuni');
+const { getEcpayConfigByMerchantId } = require('../store/ecpay-config');
 const {
     setPaymentOrder,
     getPaymentOrderByEventAndCard,
@@ -155,7 +161,8 @@ class IchibanWebSocketServer {
                         clientId,
                         message.eventId,
                         message.cardIndex,
-                        message.nickname
+                        message.nickname,
+                        message.paymentMethod
                     );
                     break;
                 case 'cancel-payment':
@@ -363,7 +370,13 @@ class IchibanWebSocketServer {
         }
     }
 
-    async handleSubmitNickname(clientId, eventId, cardIndex, nickname) {
+    async handleSubmitNickname(
+        clientId,
+        eventId,
+        cardIndex,
+        nickname,
+        paymentMethod
+    ) {
         const client = this.clients.get(clientId);
         if (!client) return;
 
@@ -377,6 +390,8 @@ class IchibanWebSocketServer {
             this.sendError(clientId, '請輸入暱稱');
             return;
         }
+
+        const method = paymentMethod === 'payuni' ? 'payuni' : 'ecpay';
 
         try {
             const card =
@@ -426,7 +441,8 @@ class IchibanWebSocketServer {
                 cardIndex,
                 card,
                 client,
-                nicknameTrimmed
+                nicknameTrimmed,
+                method
             );
         } catch (error) {
             console.error('Error submitting nickname:', error);
@@ -440,11 +456,14 @@ class IchibanWebSocketServer {
         cardIndex,
         card,
         client,
-        nickname
+        nickname,
+        paymentMethod = 'ecpay'
     ) {
         const { merchantId } = client;
         try {
-            console.log(`開始處理卡片 ${cardIndex} 的付款...`);
+            console.log(
+                `開始處理卡片 ${cardIndex} 的付款 (${paymentMethod})...`
+            );
 
             const event =
                 await IchibanEventStore.getIchibanEventByIdAndMerchantId(
@@ -467,9 +486,39 @@ class IchibanWebSocketServer {
                         : undefined,
             };
 
-            console.log(`創建付款訂單，金額: ${orderData.amount}`);
+            const config = await getEcpayConfigByMerchantId(merchantId);
+            let paymentResult;
 
-            const paymentResult = await createPayment(merchantId, orderData);
+            if (paymentMethod === 'payuni') {
+                if (
+                    !config?.payuniMerchantId ||
+                    !config?.payuniHashKey ||
+                    !config?.payuniHashIV
+                ) {
+                    this.sendError(clientId, 'PayUni 尚未設定');
+                    return;
+                }
+                paymentResult = createPayuniPayment(
+                    config.payuniMerchantId,
+                    orderData,
+                    {
+                        hashKey: config.payuniHashKey,
+                        hashIV: config.payuniHashIV,
+                    }
+                );
+            } else {
+                if (
+                    !config?.merchantId ||
+                    !config?.hashKey ||
+                    !config?.hashIV
+                ) {
+                    this.sendError(clientId, '綠界尚未設定');
+                    return;
+                }
+                paymentResult = await createEcpayPayment(merchantId, orderData);
+            }
+
+            console.log(`創建付款訂單，金額: ${orderData.amount}`);
             await setPaymentOrder(paymentResult.merchantTradeNo, {
                 eventId: eventId,
                 cardIndex: cardIndex,
