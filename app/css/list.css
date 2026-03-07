@@ -1,102 +1,257 @@
-.donation-list {
-    max-width: 800px;
-    margin: 20px auto;
+/* =========================
+   8-BIT PIXEL TREASURE CHEST SKIN
+   (寶箱樣式，上長下短終極可愛版)
+   ========================= */
+@font-face {
+    font-family: 'Cubic 11';
+    src: url('https://cdn.jsdelivr.net/gh/ACh-K/Cubic-11@master/fonts/web/Cubic_11.woff2')
+        format('woff2');
+    font-weight: normal;
+    font-style: normal;
+}
+body {
+    background: transparent !important;
 }
 
-.donation-item {
-    background: rgba(255, 255, 255, 0.9);
-    margin: 10px 0;
-    padding: 15px;
-    border-radius: 8px;
+* {
+    /* 強制套用像素字體，中文使用 Cubic 11，英文優先使用 Press Start 2P */
+    font-family:
+        'Press Start 2P', 'Cubic 11', 'Courier New', monospace !important;
+    -webkit-font-smoothing: none;
+    font-smoothing: none;
+    text-rendering: geometricPrecision;
+}
+
+.donation-list {
+    max-width: 650px;
+    margin: 20px auto;
+    padding: 10px;
+}
+
+/* -------------------------
+   各階層彩虹顏色 (從你的圖精準取色)
+   ------------------------- */
+.tier-1 {
+    --bg-color: #3b77ce;
+    --txt-color: #ffffff;
+    --txt-shadow: 2px 2px 0 #131235;
+} /* 藍色 */
+.tier-2 {
+    --bg-color: #42b9cd;
+    --txt-color: #000000;
+    --txt-shadow: none;
+} /* 青色 (黑字) */
+.tier-3 {
+    --bg-color: #5db494;
+    --txt-color: #000000;
+    --txt-shadow: none;
+} /* 綠色 (黑字) */
+.tier-4 {
+    --bg-color: #f1b539;
+    --txt-color: #000000;
+    --txt-shadow: none;
+} /* 黃色 (黑字) */
+.tier-5 {
+    --bg-color: #d95f2a;
+    --txt-color: #ffffff;
+    --txt-shadow: 2px 2px 0 #131235;
+} /* Orange */
+.tier-6 {
+    --bg-color: #b92c6c;
+    --txt-color: #ffffff;
+    --txt-shadow: 2px 2px 0 #131235;
+} /* Magenta */
+.tier-7 {
+    --bg-color: #cf251c;
+    --txt-color: #ffffff;
+    --txt-shadow: 2px 2px 0 #131235;
+} /* 紅色 */
+
+.custom-donation-card {
+    --pixel-border: #131235; /* 最外層的深藍黑色外框 */
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* 讓短短的下半部置中 */
+    margin-bottom: 35px; /* 卡片之間的距離 */
+    position: relative;
+    transition: transform 0.15s steps(2);
+    box-sizing: border-box;
+}
+
+.custom-donation-card:hover {
+    transform: translate(-2px, -2px);
+}
+
+/* =========================
+   寶箱外觀共用設定
+   ========================= */
+.custom-donation-header,
+.custom-donation-message {
+    background-color: var(--bg-color);
+    color: var(--txt-color);
+    text-shadow: var(--txt-shadow);
+    border: 5px solid var(--pixel-border); /* 粗邊框，增強可愛感 */
+    position: relative;
+    box-sizing: border-box;
+    /* 共用：整個物件的 3D 落影，堅硬實心，讓其有從畫面浮現的復古感 */
+    box-shadow:
+        inset -4px -4px 0 0 rgba(0, 0, 0, 0.2),
+        inset -4px -4px 0 0 rgba(0, 0, 0, 0.1),
+        8px 8px 0 0 rgba(0, 0, 0, 0.35); /* 堅硬實心的落影 */
+}
+
+/* 內層白色 8-bit 高光線條共用設定 */
+.custom-donation-header::after,
+.custom-donation-message::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    right: 3px;
+    bottom: 3px;
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    pointer-events: none;
+    z-index: 10;
+}
+
+/* =========================
+   像素角落支架 (最難的部分)
+   利用偽元素繪製 L 形像素角落點綴，還原「可愛」細節
+   ========================= */
+
+/* Header (蓋子) 左上角支架 */
+.custom-donation-header::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    width: 12px;
+    height: 12px;
+    background-color: transparent;
+    border-style: solid;
+    border-color: rgba(255, 255, 255, 0.85);
+    border-width: 5px 0 0 5px; /* 繪製 L 形左上 */
+    z-index: 15;
+    pointer-events: none;
+}
+
+/* 針對蓋子右側金額區域，微調右下角 */
+.custom-donation-header .custom-donation-amount {
+    position: relative;
+}
+.custom-donation-header .custom-donation-amount::before {
+    content: '';
+    position: absolute;
+    bottom: -16px;
+    right: -19px; /* 金額右下 */
+    width: 12px;
+    height: 12px;
+    background-color: transparent;
+    border-style: solid;
+    border-color: rgba(255, 255, 255, 0.85);
+    border-width: 0 5px 5px 0; /* 繪製 L 形右下 */
+    z-index: 15;
+    pointer-events: none;
+}
+
+/* Message (身體) 四個角落支架 */
+.custom-donation-message::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: -5px; /* 左上 */
+    width: 12px;
+    height: 12px;
+    background-color: transparent;
+    border-style: solid;
+    border-color: rgba(255, 255, 255, 0.85);
+    border-width: 5px 0 0 5px;
+    z-index: 15;
+    pointer-events: none;
+}
+
+/* 利用 Message 內的 .time-content::after 繪製右下角 */
+.custom-donation-message .custom-donation-time {
+    position: relative;
+}
+.custom-donation-message .custom-donation-time::after {
+    content: '';
+    position: absolute;
+    bottom: -20px;
+    right: -19px; /* 時間右下 */
+    width: 12px;
+    height: 12px;
+    background-color: transparent;
+    border-style: solid;
+    border-color: rgba(255, 255, 255, 0.85);
+    border-width: 0 5px 5px 0;
+    z-index: 15;
+    pointer-events: none;
+}
+
+/* 針對淺色底黑字的階層，微調角落支架透明度，使其更自然 */
+.tier-2 *::before,
+.tier-2 *::after,
+.tier-3 *::before,
+.tier-3 *::after,
+.tier-4 *::before,
+.tier-4 *::after {
+    border-color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* =========================
+   寶箱排版 - 蓋子(Header) - 【上長】
+   ========================= */
+.custom-donation-header {
+    width: 100%; /* 寶箱蓋子設定為全寬（長） */
+    padding: 14px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
+    margin-bottom: -5px; /* 關鍵：往下覆蓋粗邊框，讓上下兩塊融合為一條線 */
+    z-index: 2; /* 壓在下半部的上面 */
 }
 
-.donation-item:hover {
-    transform: translateX(10px);
-}
-
-.donation-content {
-    flex: 1;
-    margin-right: 15px;
-}
-
-.donation-name {
-    font-size: 1.2em;
-    font-weight: bold;
-    color: #333;
-    margin-bottom: 5px;
-}
-
-.donation-message {
-    color: #666;
-    font-size: 0.9em;
-    margin-bottom: 5px;
-}
-
-.donation-amount {
-    font-size: 1.2em;
-    font-weight: bold;
-    padding: 5px 10px;
-    border-radius: 4px;
-}
-
-/* 不同金額區間的顏色 */
-.amount-tier-1 {
-    background-color: #ffd700;
-    color: #000;
-}
-
-.amount-tier-2 {
-    background-color: #ff6b6b;
-    color: #fff;
-}
-
-.amount-tier-3 {
-    background-color: #4caf50;
-    color: #fff;
-}
-
-.amount-tier-4 {
-    background-color: #2196f3;
-    color: #fff;
-}
-
-.amount-tier-5 {
-    background-color: #9c27b0;
-    color: #fff;
-}
-
-.settings-btn {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    cursor: pointer;
-    transition: transform 0.2s;
-}
-
-.settings-btn:hover {
-    transform: rotate(45deg);
-}
-
-.header {
-    text-align: center;
-    margin-bottom: 30px;
+.custom-donation-id,
+.custom-donation-amount {
+    font-size: 16px; /*名字與金額 */
+    line-height: 1.4;
     position: relative;
+    z-index: 20;
 }
 
-.total-amount {
-    background: #4caf50;
-    color: white;
-    padding: 10px 20px;
-    border-radius: 20px;
-    display: inline-block;
-    margin-top: 10px;
+/* =========================
+   寶箱排版 - 身體(Message) - 【下短】
+   ========================= */
+.custom-donation-message {
+    width: calc(100% - 32px); /* 寶箱身體內縮，左右各縮 16px（短） */
+    margin: 0 auto; /* 置中對齊 */
+    padding: 24px 20px 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    z-index: 1;
 }
 
+.message-content {
+    font-size: 14px; /*留言字體 */
+    line-height: 1.6;
+    word-break: break-word;
+    position: relative;
+    z-index: 20;
+}
+
+.custom-donation-time {
+    font-size: 10px;
+    align-self: flex-end; /* 時間靠右下角 */
+    opacity: 0.85;
+    position: relative;
+    z-index: 20;
+}
+
+/* -------------------------
+   動畫特效
+   ------------------------- */
 @keyframes slideIn {
     from {
         transform: translateX(-100%);
@@ -107,261 +262,30 @@
         opacity: 1;
     }
 }
-
-.donation-item {
+.custom-donation-card {
     animation: slideIn 0.3s ease-out;
 }
 
-/* YouTube Super Chat 樣式 */
-.superchat-card {
-    display: flex;
-    align-items: flex-start;
-    border-radius: 18px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
-    margin: 18px 0;
-    padding: 16px 24px 12px 16px;
-    position: relative;
-    min-height: 72px;
-    font-size: 1.1em;
-    background: #fff;
-    transition:
-        transform 0.2s,
-        box-shadow 0.2s;
-    border: none;
-}
-.superchat-card:hover {
-    transform: scale(1.03);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
-}
-.superchat-avatar {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    margin-right: 16px;
-    object-fit: cover;
-    border: 2.5px solid #fff;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-.superchat-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    min-width: 0;
-}
-.superchat-header {
-    display: flex;
-    align-items: center;
-    margin-bottom: 2px;
-    min-width: 0;
-}
-.superchat-name {
-    font-weight: bold;
-    font-size: 1.13em;
-    margin-right: 10px;
-    color: #222;
-    white-space: nowrap; /* 不換行 */
-    max-width: 120px; /* 或你想要的寬度 */
-}
-.superchat-amount {
-    font-weight: bold;
-    font-size: 1.1em;
-    margin-left: auto;
-    padding: 2px 14px;
-    border-radius: 14px;
-    background: rgba(255, 255, 255, 0.7);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-    color: #222;
-    letter-spacing: 0.5px;
-}
-.superchat-message {
-    margin-top: 4px;
-    color: #222;
-    font-size: 1.08em;
-    word-break: break-word;
-    line-height: 1.5;
-    font-weight: 500;
-}
-.superchat-icon {
-    width: 28px;
-    height: 28px;
-    margin-left: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.superchat-title {
-    font-size: 0.98em;
-    color: #555;
-    margin-top: 2px;
-    margin-bottom: 2px;
-    font-weight: 400;
-}
-
-@media (max-width: 600px) {
-    .superchat-card {
-        padding: 10px 6px;
-        min-height: 48px;
+/* 最高 Tier 7 掉寶閃爍動畫 */
+@keyframes pixelDropFlash {
+    0% {
+        filter: brightness(1);
+        transform: scale(1);
     }
-    .superchat-avatar {
-        width: 32px;
-        height: 32px;
-        margin-right: 6px;
+    30% {
+        filter: brightness(1.3);
+        transform: scale(1.02);
     }
-    .superchat-header {
-        flex-direction: column;
-        align-items: flex-start;
+    60% {
+        filter: brightness(1.1);
+        transform: scale(1);
     }
-    .superchat-amount {
-        margin-left: 0;
-        margin-top: 4px;
+    100% {
+        filter: brightness(1);
+        transform: scale(1);
     }
 }
 
-.custom-donation-card {
-    border-radius: 10px;
-    overflow: hidden;
-    margin-bottom: 18px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    width: 100%;
-}
-.custom-donation-header {
-    background: #397872;
-    color: #fff;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 12px 8px 12px;
-    font-size: 1.18em;
-    font-weight: 500;
-}
-.custom-donation-id {
-    font-size: 1.08em;
-    font-weight: 400;
-}
-.custom-donation-amount {
-    background: #cbd8d6;
-    color: #222;
-    border-radius: 6px;
-    padding: 2px 12px;
-    font-weight: bold;
-    font-size: 1.08em;
-    margin-left: 10px;
-}
-.custom-donation-message {
-    background: #7edddc;
-    color: #111;
-    padding: 12px 12px 14px 12px;
-    font-size: 1.08em;
-    font-weight: 500;
-    word-break: break-all;
-}
-
-.custom-tier-header-1 {
-    background: #4976a4;
-}
-.custom-tier-message-1 {
-    background: #7eb6e0;
-}
-
-.custom-tier-header-2 {
-    background: #2584a3;
-}
-.custom-tier-message-2 {
-    background: #6bd3f6;
-}
-
-.custom-tier-header-3 {
-    background: #397872;
-}
-.custom-tier-message-3 {
-    background: #7edddc;
-}
-
-.custom-tier-header-4 {
-    background: #704100;
-}
-.custom-tier-message-4 {
-    background: #ffe066;
-}
-
-.custom-tier-header-5 {
-    background: #e67a00;
-}
-.custom-tier-message-5 {
-    background: #ffb184;
-}
-
-.custom-tier-header-6 {
-    background: #a8326d;
-}
-.custom-tier-message-6 {
-    background: #ff90c8;
-}
-
-.custom-tier-header-7 {
-    background: #c40000;
-}
-.custom-tier-message-7 {
-    background: #ff5c5c;
-}
-
-body {
-    background: transparent !important;
-}
-.donation-list {
-    background: transparent !important;
-    box-shadow: none !important;
-}
-
-.custom-donation-header,
-.custom-donation-id,
-.custom-donation-amount,
-.custom-donation-message {
-    font-family:
-        -apple-system, BlinkMacSystemFont, 'Microsoft JhengHei', 'Heiti TC', '黑體', 'Arial Black', Arial,
-        sans-serif !important;
-    font-weight: 700 !important;
-}
-
-#donationList {
-    position: relative;
-    overflow: hidden;
-    transition: transform 0.05s linear;
-    padding: 10px 0;
-}
-
-.custom-donation-card {
-    width: 100%;
-    margin-bottom: 10px;
-    transition: all 0.3s ease;
-    opacity: 1;
-    background: #fff;
-}
-
-.custom-donation-card:last-child {
-    margin-bottom: 0;
-}
-
-.donation-list-inner {
-    position: relative;
-    width: 100%;
-    will-change: transform;
-}
-
-.custom-donation-message {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 10px;
-}
-
-.message-content {
-    flex: 1;
-}
-
-.custom-donation-time {
-    font-size: 0.8em;
-    color: #666;
-    white-space: nowrap;
+.tier-7-drop {
+    animation: pixelDropFlash 0.6s steps(2) forwards;
 }
