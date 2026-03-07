@@ -108,7 +108,7 @@ _(在「串接設定」裡找到商店代號、Hash Key、Hash IV 喔！)_
 ![商店金流設定 - PayUni](./readmd-image/山老鼠-設定PAYUNI.png)
 _(選 PAYUNI 分頁，把串接設定裡的三個資料填進來！)_
 
-![設定畫面](./readmd-image/ex1.png)
+![設定畫面](./readmd-image/ex-1.png)
 _(把剛剛找到的資料填進來，不用擔心，這個只會存在妳的電腦裡！)_
 
 - **商店代號**：填入對應金流的 Merchant ID
