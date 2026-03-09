@@ -329,22 +329,6 @@ function handleViewEvent(event) {
     }
 }
 
-// 處理回首頁
-function handleGoHome() {
-    if (!eventListState.merchantId) {
-        console.warn('No merchant ID found, redirecting to login');
-        window.location.href = 'login.html';
-        return;
-    }
-
-    console.log(
-        'Navigating to home with merchantId:',
-        eventListState.merchantId
-    );
-    const homeUrl = `index.html?merchantId=${encodeURIComponent(eventListState.merchantId)}`;
-    window.location.href = homeUrl;
-}
-
 // 處理重新整理
 async function handleRefresh() {
     if (eventListState.merchantId) {

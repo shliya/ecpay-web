@@ -37,14 +37,17 @@ import './css/login.css';
 
     function redirectToMain(merchantId) {
         localStorage.setItem('merchantId', merchantId);
-        window.location.href = `index.html?id=${merchantId}`;
+        window.location.href = `index.html?merchantId=${encodeURIComponent(merchantId)}`;
     }
 
     async function checkMerchant(merchantId) {
         const response = await fetch(
-            `/api/v1/login/check-merchant/id=${merchantId}`
+            `/api/v1/login/check-merchant/id=${encodeURIComponent(merchantId)}`
         );
-        return response.json();
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        return response.json().catch(() => ({}));
     }
 
     async function verifyTotp(merchantId, token) {
@@ -57,7 +60,7 @@ import './css/login.css';
         return { ok: response.ok, data };
     }
 
-    loginForm.addEventListener('submit', async (e) => {
+    loginForm.addEventListener('submit', async e => {
         e.preventDefault();
         hideMessage();
 
@@ -70,8 +73,10 @@ import './css/login.css';
             const result = await checkMerchant(merchantId);
 
             if (!result.exists) {
-                alert('商店不存在，給我去填那個很麻煩的資料');
-                window.location.href = 'ecpay-setting.html';
+                showMessage('商店不存在，請先至設定頁面填寫資料', 'error');
+                setTimeout(() => {
+                    window.location.href = 'ecpay-setting.html';
+                }, 1500);
                 return;
             }
 
@@ -87,7 +92,7 @@ import './css/login.css';
         }
     });
 
-    totpForm.addEventListener('submit', async (e) => {
+    totpForm.addEventListener('submit', async e => {
         e.preventDefault();
         hideMessage();
 
