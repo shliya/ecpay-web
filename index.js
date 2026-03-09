@@ -18,6 +18,7 @@ global.ichibanWebSocketServer = ichibanWebSocketServer;
 
 const apiRoute = require('./server/routes/hamster-tools/index');
 
+app.set('trust proxy', 1);
 app.use(express.static(path.join(__dirname, 'public')));
 app.use((req, res, next) => {
     console.log(`${req.method} ${req.originalUrl}`);

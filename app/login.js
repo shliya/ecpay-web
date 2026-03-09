@@ -12,7 +12,7 @@ import './css/login.css';
         try {
             // 檢查商店是否存在
             const response = await fetch(
-                `/api/v1/comme/ecpay/check-merchant/id=${merchantId}`
+                `/api/v1/login/check-merchant/id=${merchantId}`
             );
             const result = await response.json();
 

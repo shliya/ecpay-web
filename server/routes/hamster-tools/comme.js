@@ -1,5 +1,6 @@
 const express = require('express');
 const router = new express.Router();
+const registrationRateLimiter = require('../../middleware/rate-limit-registration');
 const {
     beforeGetEcpayRequest,
     beforeCreateEcpaySettingRequest,
@@ -29,18 +30,24 @@ router.post(
 //建立綠界商店設定
 router.post(
     '/ecpay/setting',
+    registrationRateLimiter,
     beforeCreateEcpaySettingRequest,
     handleCreateEcpaySettingRequest
 );
 
 //建立PAYUNi商店設定
-router.post('/payuni/setting', handleCreatePayuniSettingRequest);
+router.post(
+    '/payuni/setting',
+    registrationRateLimiter,
+    handleCreatePayuniSettingRequest
+);
 
-//取得商戶是否存在
+//取得商戶是否存在（供 donate-list 等已登入頁面使用，不含 rate limit）
 router.get(
     '/ecpay/check-merchant/id=:merchantId',
     handleGetEcpayMerchantRequest
 );
+
 //綠界相關API
 router.get('/ecpay/donations/id=:merchantId', handleGetEcpayDonationsRequest);
 router.get(

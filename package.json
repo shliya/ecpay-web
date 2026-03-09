@@ -65,6 +65,7 @@
         "dotenv": "^16.4.5",
         "electron-store": "^10.0.1",
         "express": "^4.21.2",
+        "express-rate-limit": "^8.3.0",
         "html-webpack-plugin": "^5.6.3",
         "lodash": "^4.17.21",
         "mini-css-extract-plugin": "^2.9.2",
