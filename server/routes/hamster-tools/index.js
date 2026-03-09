@@ -1,5 +1,8 @@
 const express = require('express');
+const logApiCallerIp = require('../../middleware/log-api-caller-ip');
+
 const router = new express.Router();
+router.use(logApiCallerIp);
 router.use('/comme', require('./comme'));
 router.use('/health', require('./health'));
 router.use('/fundraising-events', require('./fundraising-event'));
