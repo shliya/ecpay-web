@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-TW">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>綁定 Google Authenticator</title>
+    </head>
+    <body>
+        <div class="totp-setup-container">
+            <h1>綁定 Google Authenticator</h1>
+            <p class="totp-hint">為保障帳號安全，請先綁定 Google Authenticator 以繼續使用</p>
+            <div id="qrContainer" class="qr-container" style="display: none">
+                <p>請使用 Google Authenticator 掃描下方 QR Code</p>
+                <div id="qrCode"></div>
+                <p class="manual-secret">或手動輸入金鑰：<code id="manualSecret"></code></p>
+            </div>
+            <div id="loadingMsg" class="loading-msg">載入中...</div>
+            <form id="confirmForm" style="display: none">
+                <div class="form-group">
+                    <label for="totpToken">驗證碼</label>
+                    <input
+                        type="text"
+                        id="totpToken"
+                        name="totpToken"
+                        maxlength="6"
+                        placeholder="請輸入 6 位數驗證碼"
+                        autocomplete="one-time-code"
+                    />
+                </div>
+                <button type="submit" class="btn-confirm">完成綁定</button>
+            </form>
+            <div id="message" class="message" style="display: none"></div>
+        </div>
+    </body>
+</html>

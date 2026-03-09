@@ -138,20 +138,24 @@ function parseUrlDonationCallback(reqBody, config) {
         return null;
     }
 
-    if (config && config.hashKey && config.hashIV) {
-        const receivedCheckMac = reqBody.CheckMacValue;
-        if (receivedCheckMac) {
-            const copy = { ...reqBody };
-            delete copy.CheckMacValue;
-            const expected = genCheckMacValue(
-                copy,
-                (config.hashKey || '').trim(),
-                (config.hashIV || '').trim()
-            );
-            if (expected !== receivedCheckMac) {
-                return null;
-            }
-        }
+    if (!config || !config.hashKey || !config.hashIV) {
+        return null;
+    }
+
+    const receivedCheckMac = reqBody.CheckMacValue;
+    if (!receivedCheckMac) {
+        return null;
+    }
+
+    const copy = { ...reqBody };
+    delete copy.CheckMacValue;
+    const expected = genCheckMacValue(
+        copy,
+        config.hashKey.trim(),
+        config.hashIV.trim()
+    );
+    if (expected !== receivedCheckMac) {
+        return null;
     }
 
     return {

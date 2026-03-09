@@ -1,0 +1,76 @@
+.totp-setup-container {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 12px;
+    padding: 40px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.totp-setup-container h1 {
+    text-align: center;
+    margin-bottom: 1rem;
+    color: #333;
+    font-size: 1.5rem;
+}
+
+.totp-setup-container .totp-hint {
+    text-align: center;
+    color: #666;
+    margin-bottom: 24px;
+    font-size: 14px;
+}
+
+.totp-setup-container .qr-container {
+    text-align: center;
+    margin: 24px 0;
+}
+
+.totp-setup-container .qr-container p {
+    margin-bottom: 12px;
+    color: #333;
+}
+
+.totp-setup-container #qrCode {
+    display: inline-block;
+    padding: 16px;
+    background: #fff;
+    border-radius: 8px;
+    margin-bottom: 16px;
+}
+
+.totp-setup-container .manual-secret {
+    font-size: 12px;
+    color: #666;
+    word-break: break-all;
+}
+
+.totp-setup-container .manual-secret code {
+    background: #f5f5f5;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.totp-setup-container .loading-msg {
+    text-align: center;
+    color: #666;
+    margin: 24px 0;
+}
+
+.totp-setup-container .btn-confirm {
+    width: 100%;
+    padding: 12px 20px;
+    background-color: #2196f3;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 16px;
+}
+
+.totp-setup-container .btn-confirm:hover {
+    background-color: #1976d2;
+}

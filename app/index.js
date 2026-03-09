@@ -6,6 +6,7 @@ let isInitialized = false;
 import './css/common.css';
 import './css/index.css';
 import richWomanImg from './assest/13.png';
+import checkTotpBinding from './js/totp-guard.js';
 
 // 儲存主頁狀態
 let indexState = {
@@ -36,6 +37,9 @@ async function initializeIndex() {
         redirectToLogin();
         return;
     }
+
+    const totpOk = await checkTotpBinding(merchantId);
+    if (!totpOk) return;
 
     indexState.merchantId = merchantId;
 

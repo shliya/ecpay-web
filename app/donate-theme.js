@@ -1,5 +1,6 @@
 import './css/common.css';
 import './css/donate-theme.css';
+import checkTotpBinding from './js/totp-guard.js';
 
 (function () {
     var themeKeys = [
@@ -142,12 +143,15 @@ import './css/donate-theme.css';
         });
     }
 
-    function init() {
+    async function init() {
         var merchantId = getMerchantId();
         if (!merchantId) {
             window.location.href = 'login.html';
             return;
         }
+
+        var totpOk = await checkTotpBinding(merchantId);
+        if (!totpOk) return;
 
         var backLink = document.getElementById('backToIndex');
         if (backLink) {

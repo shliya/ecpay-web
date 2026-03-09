@@ -6,6 +6,7 @@ let isInitialized = false;
 import './css/common.css';
 import './css/event-list.css';
 import ActiveStatusKeeper from './js/active-keeper.js';
+import checkTotpBinding from './js/totp-guard.js';
 
 // 儲存事件列表狀態
 let eventListState = {
@@ -37,6 +38,9 @@ async function initializeEventList() {
         showError('找不到商戶 ID，請重新登入');
         return;
     }
+
+    const totpOk = await checkTotpBinding(merchantId);
+    if (!totpOk) return;
 
     eventListState.merchantId = merchantId;
 

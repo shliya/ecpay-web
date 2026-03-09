@@ -3,10 +3,24 @@ const DonationStore = require('../store/donation');
 const FundraisingEventsStore = require('../store/fundraising-events');
 const { ENUM_FUNDRAISING_EVENT_TYPE } = require('../lib/enum');
 
-const SPECIAL_MESSAGE_CONDITION_MERCHANTS =
-    process.env.SPECIAL_MESSAGE_CONDITION_MERCHANTS.split(',');
+const SPECIAL_MESSAGE_CONDITION_MERCHANTS = (
+    process.env.SPECIAL_MESSAGE_CONDITION_MERCHANTS || ''
+)
+    .split(',')
+    .filter(Boolean);
 
-async function createDonation(row, { transaction } = {}) {
+async function createDonation(row, { transaction, skipDedupCheck } = {}) {
+    if (!skipDedupCheck) {
+        const isDuplicate = await DonationStore.isDuplicateDonation(
+            row.merchantId,
+            row.cost,
+            row.name
+        );
+        if (isDuplicate) {
+            return null;
+        }
+    }
+
     const txn = transaction || (await DonationStore.getTransaction());
     const shouldCommit = !transaction;
 

@@ -21,6 +21,27 @@
                 </div>
                 <button type="submit" class="btn-login">進入</button>
             </form>
+            <div id="totpSection" class="totp-section" style="display: none">
+                <p class="totp-hint">此商店已啟用雙重驗證，請輸入驗證碼</p>
+                <form id="totpForm">
+                    <div class="form-group">
+                        <label for="totpToken">驗證碼</label>
+                        <input
+                            type="text"
+                            id="totpToken"
+                            name="totpToken"
+                            maxlength="6"
+                            inputmode="numeric"
+                            pattern="[0-9]*"
+                            placeholder="請輸入 6 位數驗證碼"
+                            autocomplete="one-time-code"
+                            required
+                        />
+                    </div>
+                    <button type="submit" class="btn-login">驗證登入</button>
+                    <button type="button" id="btnBack" class="btn-back">返回</button>
+                </form>
+            </div>
             <div id="message" class="message" style="display: none"></div>
             <div class="register-link">
                 <a href="ecpay-setting.html"

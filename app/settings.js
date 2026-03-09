@@ -1,5 +1,6 @@
 import './css/common.css';
 import './css/settings.css';
+import { requireTotpVerification, getTotpToken } from './js/totp-guard.js';
 
 (function () {
     let merchantId = null;
@@ -24,6 +25,15 @@ import './css/settings.css';
         }, 3000);
     }
 
+    function buildAuthHeaders(extra = {}) {
+        const headers = { ...extra };
+        const token = getTotpToken();
+        if (token) {
+            headers['X-TOTP-Token'] = token;
+        }
+        return headers;
+    }
+
     async function loadConfig() {
         if (!merchantId) {
             showMessage('無法取得商店代號', 'error');
@@ -32,7 +42,8 @@ import './css/settings.css';
 
         try {
             const response = await fetch(
-                `/api/v1/comme/ecpay/config/id=${encodeURIComponent(merchantId)}`
+                `/api/v1/comme/ecpay/config/id=${encodeURIComponent(merchantId)}`,
+                { headers: buildAuthHeaders() }
             );
 
             if (!response.ok) {
@@ -111,9 +122,9 @@ import './css/settings.css';
                 `/api/v1/comme/ecpay/config/id=${encodeURIComponent(merchantId)}`,
                 {
                     method: 'PATCH',
-                    headers: {
+                    headers: buildAuthHeaders({
                         'Content-Type': 'application/json',
-                    },
+                    }),
                     body: JSON.stringify({
                         displayName: displayName || null,
                     }),
@@ -149,9 +160,9 @@ import './css/settings.css';
                 `/api/v1/comme/ecpay/config/id=${encodeURIComponent(merchantId)}`,
                 {
                     method: 'PATCH',
-                    headers: {
+                    headers: buildAuthHeaders({
                         'Content-Type': 'application/json',
-                    },
+                    }),
                     body: JSON.stringify({
                         hashKey,
                         hashIV,
@@ -187,9 +198,9 @@ import './css/settings.css';
                 `/api/v1/comme/ecpay/config/id=${encodeURIComponent(merchantId)}`,
                 {
                     method: 'PATCH',
-                    headers: {
+                    headers: buildAuthHeaders({
                         'Content-Type': 'application/json',
-                    },
+                    }),
                     body: JSON.stringify({
                         youtubeChannelHandle: youtubeChannelHandle || null,
                         youtubeChannelId: youtubeChannelId || null,
@@ -229,9 +240,9 @@ import './css/settings.css';
                 `/api/v1/comme/ecpay/config/id=${encodeURIComponent(merchantId)}`,
                 {
                     method: 'PATCH',
-                    headers: {
+                    headers: buildAuthHeaders({
                         'Content-Type': 'application/json',
-                    },
+                    }),
                     body: JSON.stringify({
                         payuniMerchantId,
                         payuniHashKey,
@@ -254,7 +265,7 @@ import './css/settings.css';
         }
     }
 
-    function initialize() {
+    async function initialize() {
         merchantId =
             getQueryParam('merchantId') || localStorage.getItem('merchantId');
 
@@ -265,6 +276,9 @@ import './css/settings.css';
             }, 2000);
             return;
         }
+
+        const totpOk = await requireTotpVerification(merchantId);
+        if (!totpOk) return;
 
         setupTabs();
         loadConfig();

@@ -147,8 +147,8 @@ module.exports = async (req, res) => {
                         if (row) break;
                     }
                 }
-            } else {
-                row = parseUrlDonationCallback(body, config || undefined);
+            } else if (config) {
+                row = parseUrlDonationCallback(body, config);
             }
 
             if (row) {
