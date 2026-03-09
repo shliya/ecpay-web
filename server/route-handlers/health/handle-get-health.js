@@ -1,5 +1,6 @@
 const fs = require('fs/promises');
 const path = require('path');
+const { getSafeApiErrorMessage } = require('../../lib/safe-error-message');
 
 module.exports = async (req, res) => {
     try {
@@ -12,7 +13,7 @@ module.exports = async (req, res) => {
     } catch (error) {
         res.status(500).json({
             status: 'error',
-            message: error.message,
+            message: getSafeApiErrorMessage(error),
         });
     }
 };

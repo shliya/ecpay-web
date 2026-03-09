@@ -23,7 +23,12 @@ app.use((req, res, next) => {
     console.log(`${req.method} ${req.originalUrl}`);
     next();
 });
-app.use(cors());
+const corsOrigin = process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(',')
+          .map(s => s.trim())
+          .filter(Boolean)
+    : true;
+app.use(cors({ origin: corsOrigin }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/api/v1', apiRoute);

@@ -1,5 +1,6 @@
 const { getEcpayConfigByMerchantId } = require('../../store/ecpay-config');
 const { createPayment } = require('../../lib/payment-providers/ecpay');
+const { getSafeApiErrorMessage } = require('../../lib/safe-error-message');
 
 module.exports = async (req, res) => {
     try {
@@ -17,6 +18,10 @@ module.exports = async (req, res) => {
         const amountNum = Number(amount);
         if (!Number.isInteger(amountNum) || amountNum <= 0) {
             res.status(400).json({ error: 'amount 須為正整數' });
+            return;
+        }
+        if (amountNum > 100000) {
+            res.status(400).json({ error: 'amount 不可超過 100000' });
             return;
         }
 
@@ -49,6 +54,8 @@ module.exports = async (req, res) => {
         });
     } catch (error) {
         console.error('[donate/ecpay]', error);
-        res.status(500).json({ error: error.message || '建立斗內訂單失敗' });
+        res.status(500).json({
+            error: getSafeApiErrorMessage(error, '建立斗內訂單失敗'),
+        });
     }
 };

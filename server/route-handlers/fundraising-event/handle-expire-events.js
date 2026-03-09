@@ -1,6 +1,7 @@
 const {
     autoExpireFundraisingEvents,
 } = require('../../service/auto-expire-fundraising-events');
+const { getSafeApiErrorMessage } = require('../../lib/safe-error-message');
 
 /**
  * 手動觸發過期募資活動檢查
@@ -30,7 +31,7 @@ module.exports = async (req, res) => {
         console.error('API 過期檢查失敗:', error);
         res.status(500).json({
             success: false,
-            message: `過期檢查失敗: ${error.message}`,
+            message: getSafeApiErrorMessage(error, '過期檢查失敗'),
             expiredCount: 0,
             timestamp: new Date().toISOString(),
         });

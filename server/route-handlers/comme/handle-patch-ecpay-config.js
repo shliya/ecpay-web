@@ -1,5 +1,6 @@
 const { updateEcpayConfig } = require('../../service/ecpay-config');
 const { getEcpayConfigByMerchantId } = require('../../store/ecpay-config');
+const { getSafeApiErrorMessage } = require('../../lib/safe-error-message');
 
 module.exports = async (req, res) => {
     try {
@@ -58,7 +59,7 @@ module.exports = async (req, res) => {
             return;
         }
         res.status(500).json({
-            error: error.message || '更新設定失敗',
+            error: getSafeApiErrorMessage(error, '更新設定失敗'),
         });
     }
 };

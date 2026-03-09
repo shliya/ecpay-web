@@ -1,6 +1,7 @@
 const { getEcpayConfigByMerchantId } = require('../../store/ecpay-config');
 const { createDonation } = require('../../service/donation');
 const { parseDonationCallback } = require('../../lib/payment-providers/ecpay');
+const { getSafeApiErrorMessage } = require('../../lib/safe-error-message');
 
 module.exports = async (req, res) => {
     try {
@@ -23,6 +24,8 @@ module.exports = async (req, res) => {
         res.send('1|OK');
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: error.message });
+        res.status(500).json({
+            error: getSafeApiErrorMessage(error),
+        });
     }
 };

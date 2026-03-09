@@ -1,4 +1,5 @@
 const { getIchibanEventsByMerchantId } = require('../../service/ichiban-event');
+const { getSafeApiErrorMessage } = require('../../lib/safe-error-message');
 
 module.exports = async (req, res) => {
     try {
@@ -17,6 +18,6 @@ module.exports = async (req, res) => {
         }
     } catch (error) {
         console.error('檢查商店時發生錯誤:', error);
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ error: getSafeApiErrorMessage(error) });
     }
 };

@@ -1,4 +1,5 @@
 const { getEcpayConfigByMerchantId } = require('../../store/ecpay-config');
+const { getSafeApiErrorMessage } = require('../../lib/safe-error-message');
 
 function toPublicConfig(config) {
     return {
@@ -27,6 +28,8 @@ module.exports = async (req, res) => {
         res.status(200).json(toPublicConfig(config));
     } catch (error) {
         console.error('[get-ecpay-config-public]', error);
-        res.status(500).json({ error: error.message || '取得設定失敗' });
+        res.status(500).json({
+            error: getSafeApiErrorMessage(error, '取得設定失敗'),
+        });
     }
 };

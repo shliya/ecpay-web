@@ -1,4 +1,5 @@
 const { getEcpayConfigByDisplayName } = require('../../store/ecpay-config');
+const { getSafeApiErrorMessage } = require('../../lib/safe-error-message');
 
 module.exports = async (req, res) => {
     try {
@@ -17,6 +18,8 @@ module.exports = async (req, res) => {
         res.status(200).json({ merchantId: config.merchantId });
     } catch (error) {
         console.error('[resolve-name]', error);
-        res.status(500).json({ error: error.message || '解析失敗' });
+        res.status(500).json({
+            error: getSafeApiErrorMessage(error, '解析失敗'),
+        });
     }
 };

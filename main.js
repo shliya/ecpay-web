@@ -8,7 +8,12 @@ const apiRoute = require('./server/routes/hamster-tools/index');
 const cors = require('cors');
 const { scheduler } = require('./server/lib/scheduler');
 
-server.use(cors());
+const corsOrigin = process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(',')
+          .map(s => s.trim())
+          .filter(Boolean)
+    : true;
+server.use(cors({ origin: corsOrigin }));
 server.use(express.json());
 server.use('/api/v1', apiRoute);
 

@@ -1,8 +1,9 @@
 const {
     getPayuniConfigByPayuniMerchantId,
     getPayuniMerchantIdByMerchantId,
-} = require('../../service/ecpay-config'); // 確認一下這裡檔名是不是 ecpay-config
+} = require('../../service/ecpay-config');
 const { createPayment } = require('../../lib/payment-providers/payuni');
+const { getSafeApiErrorMessage } = require('../../lib/safe-error-message');
 
 module.exports = async (req, res) => {
     try {
@@ -20,6 +21,10 @@ module.exports = async (req, res) => {
         const amountNum = Number(amount);
         if (!Number.isInteger(amountNum) || amountNum <= 0) {
             res.status(400).json({ error: 'amount 須為正整數' });
+            return;
+        }
+        if (amountNum > 100000) {
+            res.status(400).json({ error: 'amount 不可超過 100000' });
             return;
         }
         const ecpayConfig = await getPayuniMerchantIdByMerchantId(
@@ -71,6 +76,8 @@ module.exports = async (req, res) => {
         });
     } catch (error) {
         console.error('[donate/payuni]', error);
-        res.status(500).json({ error: error.message || '建立斗內訂單失敗' });
+        res.status(500).json({
+            error: getSafeApiErrorMessage(error, '建立斗內訂單失敗'),
+        });
     }
 };

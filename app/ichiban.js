@@ -471,7 +471,7 @@ class IchibanAdmin {
             totalCards > 0 ? Math.round((openedCards / totalCards) * 100) : 0;
 
         cardDiv.innerHTML = `
-            <div class="event-name">${event.eventName}</div>
+            <div class="event-name">${this.escapeHtml(event.eventName)}</div>
             <div class="event-info">
                 <div class="event-info-item">
                     <span class="event-info-label">價格:</span>
@@ -494,17 +494,39 @@ class IchibanAdmin {
                 ${this.getStatusText(event.status)}
             </div>
             <div class="event-actions">
-                <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); window.openClient('${event.id}')">
+                <button type="button" class="btn btn-primary btn-sm btn-open-client" data-event-id="${this.escapeHtml(String(event.id))}">
                     開啟客戶端
                 </button>
             </div>
         `;
 
-        cardDiv.addEventListener('click', () => {
-            this.selectEvent(event);
+        cardDiv.addEventListener('click', e => {
+            if (!e.target.closest('.btn-open-client')) {
+                this.selectEvent(event);
+            }
         });
 
+        const openClientBtn = cardDiv.querySelector('.btn-open-client');
+        if (openClientBtn) {
+            openClientBtn.addEventListener('click', e => {
+                e.stopPropagation();
+                this.openClient(event.id);
+            });
+        }
+
         return cardDiv;
+    }
+
+    escapeHtml(text) {
+        if (!text) return '';
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;',
+        };
+        return String(text).replace(/[&<>"']/g, m => map[m]);
     }
 
     getStatusText(status) {

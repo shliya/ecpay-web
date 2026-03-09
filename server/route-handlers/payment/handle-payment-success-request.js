@@ -16,6 +16,7 @@ const { createDonation } = require('../../service/donation');
 const {
     parseDonationCallback,
     parseUrlDonationCallback,
+    verifyEcpayReturnCheckMac,
 } = require('../../lib/payment-providers/ecpay');
 
 module.exports = async (req, res) => {
@@ -41,6 +42,12 @@ module.exports = async (req, res) => {
         if (orderInfo) {
             const { eventId, cardIndex, clientId, merchantId, nickname } =
                 orderInfo;
+
+            const config = await getEcpayConfigByMerchantId(merchantId);
+            if (!config || !verifyEcpayReturnCheckMac(req.body, config)) {
+                res.status(400).send('0|ERROR');
+                return;
+            }
 
             const card =
                 await IchibanCardStore.getIchibanCardByEventIdAndCardIndexAndStatus(
