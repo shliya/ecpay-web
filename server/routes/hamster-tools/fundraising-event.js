@@ -36,7 +36,16 @@ router.patch(
     handlePauseFundraisingEventRequest
 );
 
-// 手動觸發過期檢查
-router.post('/expire-check', handleExpireEventsRequest);
+router.post(
+    '/expire-check',
+    (req, res, next) => {
+        const apiKey = req.headers['x-api-key'];
+        if (!apiKey || apiKey !== process.env.INTERNAL_API_KEY) {
+            return res.status(403).json({ error: '未授權的存取' });
+        }
+        next();
+    },
+    handleExpireEventsRequest
+);
 
 module.exports = router;

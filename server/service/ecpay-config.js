@@ -1,7 +1,7 @@
 const ecpayConfigStore = require('../store/ecpay-config');
 const { ECPAY_CONFIG_DUPLICATE_CODE } = require('../lib/error/code');
 
-async function createEcpayConfig(row) {
+async function createConfigWithTransaction(row) {
     const txn = await ecpayConfigStore.getTransaction();
     try {
         const result = await ecpayConfigStore.createEcpayConfig(row, {
@@ -10,7 +10,6 @@ async function createEcpayConfig(row) {
         await txn.commit();
         return result;
     } catch (error) {
-        console.error('儲存設定時發生錯誤:', error);
         if (error.name === 'SequelizeUniqueConstraintError') {
             throw new Error(ECPAY_CONFIG_DUPLICATE_CODE.message);
         }
@@ -19,23 +18,44 @@ async function createEcpayConfig(row) {
     }
 }
 
+async function createEcpayConfig(row) {
+    return createConfigWithTransaction(row);
+}
+
 async function createPayuniConfig(row) {
-    // PAYUNi 商店設定，之後可能調整
-    const txn = await ecpayConfigStore.getTransaction();
-    try {
-        const result = await ecpayConfigStore.createEcpayConfig(row, {
-            transaction: txn,
-        });
-        await txn.commit();
-        return result;
-    } catch (error) {
-        console.error('儲存設定時發生錯誤:', error);
-        if (error.name === 'SequelizeUniqueConstraintError') {
-            throw new Error(ECPAY_CONFIG_DUPLICATE_CODE.message);
+    return createConfigWithTransaction(row);
+}
+
+const ALLOWED_THEME_COLOR_KEYS = new Set([
+    'primary',
+    'secondary',
+    'background',
+    'text',
+    'accent',
+    'headerBg',
+    'footerBg',
+    'buttonBg',
+    'buttonText',
+]);
+
+function normalizeUpdateField(field, value) {
+    if (field === 'themeColors') {
+        if (
+            value == null ||
+            typeof value !== 'object' ||
+            Array.isArray(value)
+        ) {
+            return null;
         }
-        await txn.rollback();
-        throw error;
+        const sanitized = {};
+        for (const key of Object.keys(value)) {
+            if (ALLOWED_THEME_COLOR_KEYS.has(key)) {
+                sanitized[key] = String(value[key]);
+            }
+        }
+        return Object.keys(sanitized).length ? sanitized : null;
     }
+    return value != null && String(value).trim() ? String(value).trim() : null;
 }
 
 async function updateEcpayConfig(merchantId, updates) {
@@ -53,41 +73,20 @@ async function updateEcpayConfig(merchantId, updates) {
     const updateData = {};
 
     for (const field of allowedFields) {
-        if (updates.hasOwnProperty(field)) {
-            if (field === 'themeColors') {
-                updateData[field] =
-                    updates[field] != null && typeof updates[field] === 'object'
-                        ? updates[field]
-                        : null;
-            } else if (field === 'displayName') {
-                updateData[field] =
-                    updates[field] != null && String(updates[field]).trim()
-                        ? String(updates[field]).trim()
-                        : null;
-            } else {
-                updateData[field] =
-                    updates[field] != null && String(updates[field]).trim()
-                        ? String(updates[field]).trim()
-                        : null;
-            }
+        if (Object.hasOwn(updates, field)) {
+            updateData[field] = normalizeUpdateField(field, updates[field]);
         }
     }
 
-    if (Object.keys(updateData).length === 0) {
-        const config =
-            await ecpayConfigStore.getEcpayConfigByMerchantId(merchantId);
-        return config;
+    if (!Object.keys(updateData).length) {
+        return ecpayConfigStore.getEcpayConfigByMerchantId(merchantId);
     }
 
     try {
-        const result = await ecpayConfigStore.updateEcpayConfig(
-            merchantId,
-            updateData
-        );
-        return result;
+        return await ecpayConfigStore.updateEcpayConfig(merchantId, updateData);
     } catch (error) {
         if (error.name === 'SequelizeUniqueConstraintError') {
-            throw new Error('displayName 已被使用，請選擇其他名稱');
+            throw new Error(ECPAY_CONFIG_DUPLICATE_CODE.message);
         }
         throw error;
     }

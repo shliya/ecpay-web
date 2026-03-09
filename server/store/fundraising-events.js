@@ -90,7 +90,11 @@ async function updateFundraisingEventByIdAndEcpayConfigId(
         where.type = type;
     }
     if (cost) {
-        update.cost = sequelize.literal(`"cost" + ${cost}`);
+        const numericCost = Number(cost);
+        if (!Number.isFinite(numericCost)) {
+            throw new Error('cost must be a valid number');
+        }
+        update.cost = sequelize.literal(`"cost" + ${numericCost}`);
     }
     return FundraisingEvents.update(update, {
         where,
@@ -120,9 +124,13 @@ async function batchUpdateFundraisingEventByEcpayConfigId(
     if (type) {
         where.type = type;
     }
+    const numericCost = Number(cost);
+    if (!Number.isFinite(numericCost)) {
+        throw new Error('cost must be a valid number');
+    }
     return FundraisingEvents.update(
         {
-            cost: sequelize.literal(`"cost" + ${cost}`),
+            cost: sequelize.literal(`"cost" + ${numericCost}`),
         },
         { where }
     );

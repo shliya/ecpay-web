@@ -39,7 +39,10 @@ function decryptTotpSecret(ciphertext) {
         authTagLength: TAG_LENGTH,
     });
     decipher.setAuthTag(tag);
-    return decipher.update(encrypted) + decipher.final('utf8');
+    return Buffer.concat([
+        decipher.update(encrypted),
+        decipher.final(),
+    ]).toString('utf8');
 }
 
 module.exports = {

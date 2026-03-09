@@ -8,21 +8,13 @@ module.exports = async (req, res) => {
         const { merchantId, id } = req.params;
         const { eventName } = req.body;
 
-        try {
-            await updateFundraisingEventByIdAndMerchantId(id, merchantId, {
-                eventName,
-            });
+        await updateFundraisingEventByIdAndMerchantId(id, merchantId, {
+            eventName,
+        });
 
-            res.sendStatus(201);
-        } catch (error) {
-            if (error.code === 'ENOENT') {
-                res.json([]);
-            } else {
-                throw error;
-            }
-        }
+        res.sendStatus(200);
     } catch (error) {
-        console.error('檢查商店時發生錯誤:', error);
+        console.error('更新募資活動時發生錯誤:', error);
         res.status(500).json({ error: getSafeApiErrorMessage(error) });
     }
 };

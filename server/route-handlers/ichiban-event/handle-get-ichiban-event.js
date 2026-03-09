@@ -12,36 +12,25 @@ module.exports = async (req, res) => {
             return res.status(400).json({ error: 'merchantId is required' });
         }
 
-        try {
-            const event = await getIchibanEventByIdAndMerchantId(
-                id,
-                merchantId
-            );
+        const event = await getIchibanEventByIdAndMerchantId(id, merchantId);
 
-            if (!event) {
-                return res.status(404).json({ error: 'Event not found' });
-            }
-
-            const config = await getEcpayConfigByMerchantId(merchantId);
-            const availablePaymentMethods = {
-                ecpay: !!config?.merchantId,
-                payuni: !!config?.payuniMerchantId,
-            };
-
-            const plainEvent = event.get ? event.get({ plain: true }) : event;
-            res.json({
-                ...plainEvent,
-                availablePaymentMethods,
-            });
-        } catch (error) {
-            if (error.code === 'ENOENT') {
-                res.status(404).json({ error: 'Event not found' });
-            } else {
-                throw error;
-            }
+        if (!event) {
+            return res.status(404).json({ error: '活動不存在' });
         }
+
+        const config = await getEcpayConfigByMerchantId(merchantId);
+        const availablePaymentMethods = {
+            ecpay: !!config?.merchantId,
+            payuni: !!config?.payuniMerchantId,
+        };
+
+        const plainEvent = event.get ? event.get({ plain: true }) : event;
+        res.json({
+            ...plainEvent,
+            availablePaymentMethods,
+        });
     } catch (error) {
-        console.error('檢查商店時發生錯誤:', error);
+        console.error('取得一番賞活動時發生錯誤:', error);
         res.status(500).json({ error: getSafeApiErrorMessage(error) });
     }
 };

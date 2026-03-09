@@ -6,23 +6,18 @@ const { getSafeApiErrorMessage } = require('../../lib/safe-error-message');
 module.exports = async (req, res) => {
     try {
         const { id, merchantId } = req.params;
+        const event = await getFundraisingEventByIdAndMerchantId(
+            id,
+            merchantId
+        );
 
-        try {
-            const event = await getFundraisingEventByIdAndMerchantId(
-                id,
-                merchantId
-            );
-
-            res.json(event);
-        } catch (error) {
-            if (error.code === 'ENOENT') {
-                res.json([]);
-            } else {
-                throw error;
-            }
+        if (!event) {
+            return res.status(404).json({ error: '活動不存在' });
         }
+
+        res.json(event);
     } catch (error) {
-        console.error('檢查商店時發生錯誤:', error);
+        console.error('取得募資活動時發生錯誤:', error);
         res.status(500).json({ error: getSafeApiErrorMessage(error) });
     }
 };

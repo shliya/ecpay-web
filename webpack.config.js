@@ -9,6 +9,7 @@ module.exports = {
     entry: {
         index: path.resolve(__dirname, 'app/index.js'),
         login: path.resolve(__dirname, 'app/login.js'),
+        totpSetup: path.resolve(__dirname, 'app/totp-setup.js'),
         ecpaySettings: path.resolve(__dirname, 'app/ecpay-setting.js'),
         settings: path.resolve(__dirname, 'app/settings.js'),
         event: path.resolve(__dirname, 'app/event.js'),
@@ -65,6 +66,18 @@ module.exports = {
             template: path.resolve(__dirname, 'app/templates/login.html'),
             filename: 'login.html',
             chunks: ['login'],
+            inject: true,
+            scriptLoading: 'defer',
+            minify: {
+                removeComments: true,
+                collapseWhitespace: true,
+            },
+            cache: false,
+        }),
+        new HtmlWebpackPlugin({
+            template: path.resolve(__dirname, 'app/templates/totp-setup.html'),
+            filename: 'totp-setup.html',
+            chunks: ['totpSetup'],
             inject: true,
             scriptLoading: 'defer',
             minify: {

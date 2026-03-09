@@ -109,13 +109,15 @@ async function _generateIchibanEventCards(
     newPrizes,
     { transaction } = {}
 ) {
-    const prizePool = [];
+    const prizePool = newPrizes.flatMap(prize =>
+        Array(prize.quantity).fill(prize.id)
+    );
 
-    newPrizes.forEach(prize => {
-        for (let i = 0; i < prize.quantity; i++) {
-            prizePool.push(prize.id);
-        }
-    });
+    if (prizePool.length !== totalCards) {
+        throw new Error(
+            `獎品數量總和 (${prizePool.length}) 與卡片總數 (${totalCards}) 不一致`
+        );
+    }
 
     for (let i = prizePool.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
