@@ -75,9 +75,7 @@ class IchibanClient {
             }
             return;
         }
-        this.showError(
-            '請在網址加上 name，例如：?id=活動ID&name=實況主名稱'
-        );
+        this.showError('請在網址加上 name，例如：?id=活動ID&name=實況主名稱');
     }
 
     setupEventListeners() {

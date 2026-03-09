@@ -186,7 +186,7 @@ import './css/donate-theme.css';
                 var theme = getCurrentTheme();
                 showMessage('儲存中…');
                 fetch(
-                    '/api/v1/comme/ecpay/config/public/id=' +
+                    '/api/v1/comme/ecpay/config/id=' +
                         encodeURIComponent(merchantId),
                     {
                         method: 'PATCH',
