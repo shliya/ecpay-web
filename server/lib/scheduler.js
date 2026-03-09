@@ -4,6 +4,23 @@ const {
 } = require('../schedule/event');
 const { handleYoutubeSuperChatWorker } = require('../schedule/youtube');
 
+const RUNNING_TASKS = new Set();
+
+function wrapWithTaskLock(taskName, taskFunction) {
+    return async function wrappedTask() {
+        if (RUNNING_TASKS.has(taskName)) {
+            console.log(`[${taskName}] 上次執行尚未完成，跳過本次排程`);
+            return;
+        }
+        RUNNING_TASKS.add(taskName);
+        try {
+            await taskFunction(taskName);
+        } finally {
+            RUNNING_TASKS.delete(taskName);
+        }
+    };
+}
+
 class TaskScheduler {
     constructor() {
         this.intervals = new Map();
@@ -73,9 +90,10 @@ class TaskScheduler {
             return;
         }
 
+        const wrappedTask = wrapWithTaskLock(taskName, taskFunction);
         const intervalId = setInterval(async () => {
             try {
-                await taskFunction(taskName);
+                await wrappedTask();
             } catch (error) {
                 console.error(`任務 ${taskName} 執行失敗:`, error);
             }

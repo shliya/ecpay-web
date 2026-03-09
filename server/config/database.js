@@ -26,9 +26,9 @@ const sequelize = new Sequelize(dbUrl, {
         idle_in_transaction_session_timeout: 60000,
     },
     pool: {
-        max: 10,
+        max: process.env.NODE_ENV === 'production' ? 5 : 10,
         min: 0,
-        acquire: 30000,
+        acquire: 60000,
         idle: 10000,
     },
 });
