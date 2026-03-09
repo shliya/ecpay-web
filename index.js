@@ -41,6 +41,10 @@ app.use((req, res, next) => {
 app.get('/', (req, res) => {
     res.redirect('/login.html');
 });
+app.get('/robots.txt', (req, res) => {
+    res.type('text/plain');
+    res.sendFile(path.join(__dirname, 'static', 'robots.txt'));
+});
 
 sequelize
     .authenticate()
