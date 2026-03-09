@@ -53,6 +53,8 @@ import './css/donate-theme.css';
         error: '--donate-error',
     };
 
+    var cachedDisplayName = null;
+
     function getMerchantId() {
         var p = new URLSearchParams(window.location.search);
         return (
@@ -153,13 +155,17 @@ import './css/donate-theme.css';
                 'index.html?merchantId=' + encodeURIComponent(merchantId);
         }
 
-        fetch('/api/v1/comme/ecpay/config/id=' + encodeURIComponent(merchantId))
+        fetch(
+            '/api/v1/comme/ecpay/config/public/id=' +
+                encodeURIComponent(merchantId)
+        )
             .then(function (r) {
                 return r.json().catch(function () {
                     return {};
                 });
             })
             .then(function (data) {
+                cachedDisplayName = data.displayName || null;
                 var theme =
                     data.themeColors && typeof data.themeColors === 'object'
                         ? Object.assign({}, defaultTheme, data.themeColors)
@@ -180,7 +186,7 @@ import './css/donate-theme.css';
                 var theme = getCurrentTheme();
                 showMessage('儲存中…');
                 fetch(
-                    '/api/v1/comme/ecpay/config/id=' +
+                    '/api/v1/comme/ecpay/config/public/id=' +
                         encodeURIComponent(merchantId),
                     {
                         method: 'PATCH',
@@ -211,11 +217,16 @@ import './css/donate-theme.css';
         document
             .getElementById('btnPreviewTab')
             .addEventListener('click', function () {
-                var merchantId = getMerchantId();
-                if (!merchantId) return;
+                if (!cachedDisplayName) {
+                    showMessage(
+                        '請先至設定頁面設定顯示名稱後才能預覽',
+                        'error'
+                    );
+                    return;
+                }
                 var url =
-                    'viewer-donate.html?merchantId=' +
-                    encodeURIComponent(merchantId);
+                    'viewer-donate.html?name=' +
+                    encodeURIComponent(cachedDisplayName);
                 window.open(url, '_blank');
             });
 

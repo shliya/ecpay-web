@@ -78,23 +78,26 @@ async function loadViewerDonateUrl(merchantId) {
 
     try {
         const res = await fetch(
-            `/api/v1/comme/ecpay/config/id=${encodeURIComponent(merchantId)}`
+            `/api/v1/comme/ecpay/config/public/id=${encodeURIComponent(merchantId)}`
         );
         const data = await res.json().catch(() => ({}));
         const baseUrl = getViewerDonateBaseUrl();
-        let url;
         if (res.ok && data.displayName) {
-            url = baseUrl + '?name=' + encodeURIComponent(data.displayName);
+            inputEl.value =
+                baseUrl + '?name=' + encodeURIComponent(data.displayName);
+            inputEl.placeholder = '';
+            inputEl.removeAttribute('data-no-display-name');
         } else {
-            url = baseUrl + '?merchantId=' + encodeURIComponent(merchantId);
+            inputEl.value = '';
+            inputEl.placeholder =
+                '請先至設定頁面設定顯示名稱後才能使用觀眾斗內連結';
+            inputEl.setAttribute('data-no-display-name', '1');
         }
-        inputEl.value = url;
-        inputEl.placeholder = '';
     } catch (err) {
-        const baseUrl = getViewerDonateBaseUrl();
-        inputEl.value =
-            baseUrl + '?merchantId=' + encodeURIComponent(merchantId);
-        inputEl.placeholder = '';
+        inputEl.value = '';
+        inputEl.placeholder =
+            '請先至設定頁面設定顯示名稱後才能使用觀眾斗內連結';
+        inputEl.setAttribute('data-no-display-name', '1');
     }
 }
 
@@ -146,7 +149,11 @@ function bindEventListeners() {
 function handleCopyDonateLink() {
     const inputEl = document.getElementById('viewerDonateUrl');
     const btn = document.getElementById('copyDonateLinkBtn');
-    if (!inputEl || !inputEl.value || !btn) return;
+    if (!inputEl || !btn) return;
+    if (inputEl.hasAttribute('data-no-display-name') || !inputEl.value) {
+        showError('請先至設定頁面設定顯示名稱後才能複製連結');
+        return;
+    }
     const url = inputEl.value;
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(url).then(

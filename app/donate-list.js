@@ -94,8 +94,8 @@ function updateDonationList(donations) {
             inner = document.createElement('div');
             inner.className = 'donation-list-inner';
 
-            donations.forEach(donation => {
-                inner.appendChild(createDonationCard(donation));
+            donations.forEach((donation, index) => {
+                inner.appendChild(createDonationCard(donation, index));
             });
 
             donationList.appendChild(inner);
@@ -128,7 +128,7 @@ function formatDate(dateString) {
 }
 
 // 建立卡片元素
-function createDonationCard(donation) {
+function createDonationCard(donation, cardIndex = 0) {
     const amount = parseInt(donation.cost) || 0;
     const message = donation.message || '';
     const tier = getCustomTierClass(amount);
@@ -136,7 +136,8 @@ function createDonationCard(donation) {
 
     const card = document.createElement('div');
     card.className = `custom-donation-card tier-${tier}`;
-    if (tier === 7) card.classList.add('tier-7-drop');
+    const showTier7Drop = tier === 7 || (isTestTier7Mode() && cardIndex === 0);
+    if (showTier7Drop) card.classList.add('tier-7-drop');
 
     // 建立上半部 Header (窄寶箱)
     const header = document.createElement('div');
@@ -204,6 +205,10 @@ function formatAmount(amount) {
         currency: 'TWD',
         minimumFractionDigits: 0,
     }).format(amount);
+}
+
+function isTestTier7Mode() {
+    return new URLSearchParams(window.location.search).get('testTier7') === '1';
 }
 
 function getCustomTierClass(amount) {

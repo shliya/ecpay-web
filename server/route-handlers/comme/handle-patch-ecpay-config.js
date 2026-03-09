@@ -24,18 +24,31 @@ module.exports = async (req, res) => {
             return;
         }
 
-        res.status(200).json({
+        const hasSensitiveEcpay =
+            updates.hasOwnProperty('hashKey') ||
+            updates.hasOwnProperty('hashIV');
+        const hasSensitivePayuni =
+            updates.hasOwnProperty('payuniHashKey') ||
+            updates.hasOwnProperty('payuniHashIV');
+
+        const body = {
             merchantId: updated.merchantId,
             displayName: updated.displayName || null,
-            hashKey: updated.hashKey || null,
-            hashIV: updated.hashIV || null,
             payuniMerchantId: updated.payuniMerchantId || null,
-            payuniHashKey: updated.payuniHashKey || null,
-            payuniHashIV: updated.payuniHashIV || null,
             youtubeChannelHandle: updated.youtubeChannelHandle || null,
             youtubeChannelId: updated.youtubeChannelId || null,
             themeColors: updated.themeColors || null,
-        });
+        };
+        if (hasSensitiveEcpay) {
+            body.hashKey = updated.hashKey || null;
+            body.hashIV = updated.hashIV || null;
+        }
+        if (hasSensitivePayuni) {
+            body.payuniHashKey = updated.payuniHashKey || null;
+            body.payuniHashIV = updated.payuniHashIV || null;
+        }
+
+        res.status(200).json(body);
     } catch (error) {
         console.error('[patch-ecpay-config]', error);
         if (error.message && error.message.includes('displayName')) {

@@ -10,6 +10,7 @@ const {
     handleGetEcpayMerchantRequest,
     handleGetEcpayDonationsRequest,
     handleGetEcpayConfigRequest,
+    handleGetEcpayConfigPublicRequest,
     handlePatchEcpayConfigRequest,
     handleCreateDonateEcpayRequest,
     handleResolveDisplayNameRequest,
@@ -42,6 +43,10 @@ router.get(
 );
 //綠界相關API
 router.get('/ecpay/donations/id=:merchantId', handleGetEcpayDonationsRequest);
+router.get(
+    '/ecpay/config/public/id=:merchantId',
+    handleGetEcpayConfigPublicRequest
+);
 router.get('/ecpay/config/id=:merchantId', handleGetEcpayConfigRequest);
 router.patch('/ecpay/config/id=:merchantId', handlePatchEcpayConfigRequest);
 router.post('/donate/ecpay', handleCreateDonateEcpayRequest);

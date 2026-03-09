@@ -80,15 +80,25 @@ import './css/viewer-donate.css';
         });
     }
 
-    function resolveMerchantIdByName(name) {
-        return fetch(
+    async function resolveMerchantIdByName(name) {
+        const res = await fetch(
             '/api/v1/comme/resolve-name?name=' + encodeURIComponent(name)
-        ).then(function (res) {
-            return res.json().then(function (data) {
-                if (res.ok && data.merchantId) return data.merchantId;
-                return null;
-            });
-        });
+        );
+        const data = await res.json();
+        if (res.ok && data.merchantId) return data.merchantId;
+        return null;
+    }
+
+    async function fetchConfigByMerchantId(merchantId) {
+        const r = await fetch(
+            '/api/v1/comme/ecpay/config/public/id=' +
+                encodeURIComponent(merchantId)
+        );
+        try {
+            return await r.json();
+        } catch {
+            return {};
+        }
     }
 
     function init() {
@@ -96,7 +106,21 @@ import './css/viewer-donate.css';
         var nameParam = getQuery('name');
 
         if (merchantId) {
-            runPage(merchantId);
+            showError('正在載入…');
+            fetchConfigByMerchantId(merchantId)
+                .then(function (config) {
+                    showError('');
+                    if (config.displayName) {
+                        runPage(merchantId);
+                    } else {
+                        showError(
+                            '此實況主尚未設定顯示名稱，請先至設定頁面設定後再使用'
+                        );
+                    }
+                })
+                .catch(function () {
+                    showError('無法取得設定，請稍後再試');
+                });
             return;
         }
         if (nameParam) {
@@ -150,11 +174,16 @@ import './css/viewer-donate.css';
     }
 
     function runPage(merchantId) {
-        fetch('/api/v1/comme/ecpay/config/id=' + encodeURIComponent(merchantId))
-            .then(function (r) {
-                return r.json().catch(function () {
+        fetch(
+            '/api/v1/comme/ecpay/config/public/id=' +
+                encodeURIComponent(merchantId)
+        )
+            .then(async function (r) {
+                try {
+                    return await r.json();
+                } catch {
                     return {};
-                });
+                }
             })
             .then(function (data) {
                 if (data.themeColors) applyTheme(data.themeColors);
@@ -272,10 +301,9 @@ import './css/viewer-donate.css';
                         message: message.trim() || undefined,
                     }),
                 })
-                    .then(function (res) {
-                        return res.json().then(function (data) {
-                            return { res: res, data: data };
-                        });
+                    .then(async function (res) {
+                        const data = await res.json();
+                        return { res: res, data: data };
                     })
                     .catch(function () {
                         return { res: { ok: false }, data: {} };

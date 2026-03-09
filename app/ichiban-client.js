@@ -19,19 +19,65 @@ class IchibanClient {
     init() {
         this.parseUrlParams();
         this.setupEventListeners();
-        this.connectWebSocket();
-        this.loadEventData();
+        this.resolveMerchantIdAndRun();
     }
 
     parseUrlParams() {
         const urlParams = new URLSearchParams(window.location.search);
         this.eventId = urlParams.get('id');
         this.merchantId = urlParams.get('merchantId');
+        this.nameParam = urlParams.get('name');
+    }
 
-        if (!this.eventId || !this.merchantId) {
-            this.showError('缺少必要的參數 (id 或 merchantId)');
+    async resolveMerchantIdAndRun() {
+        if (!this.eventId) {
+            this.showError('缺少必要的參數 (id)');
             return;
         }
+        if (this.nameParam) {
+            try {
+                const res = await fetch(
+                    '/api/v1/comme/resolve-name?name=' +
+                        encodeURIComponent(this.nameParam)
+                );
+                const data = await res.json().catch(() => ({}));
+                if (res.ok && data.merchantId) {
+                    this.merchantId = data.merchantId;
+                    this.connectWebSocket();
+                    this.loadEventData();
+                } else {
+                    this.showError(
+                        '找不到對應的實況主（請確認網址的 name 是否正確）'
+                    );
+                }
+            } catch (err) {
+                this.showError('無法解析實況主名稱，請稍後再試');
+            }
+            return;
+        }
+        if (this.merchantId) {
+            try {
+                const res = await fetch(
+                    '/api/v1/comme/ecpay/config/public/id=' +
+                        encodeURIComponent(this.merchantId)
+                );
+                const config = await res.json().catch(() => ({}));
+                if (config.displayName) {
+                    this.connectWebSocket();
+                    this.loadEventData();
+                } else {
+                    this.showError(
+                        '此實況主尚未設定顯示名稱，請先至設定頁面設定後再使用'
+                    );
+                }
+            } catch (err) {
+                this.showError('無法取得設定，請稍後再試');
+            }
+            return;
+        }
+        this.showError(
+            '請在網址加上 name，例如：?id=活動ID&name=實況主名稱'
+        );
     }
 
     setupEventListeners() {

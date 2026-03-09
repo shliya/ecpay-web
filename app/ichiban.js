@@ -5,6 +5,7 @@ import './css/ichiban.css';
 class IchibanAdmin {
     constructor() {
         this.merchantId = null;
+        this.displayName = null;
         this.ws = null;
         this.events = [];
         this.selectedEvent = null;
@@ -409,6 +410,7 @@ class IchibanAdmin {
 
             this.events = await response.json();
             this.renderEvents();
+            await this.fetchDisplayName();
 
             if (this.selectedEvent) {
                 const updated = this.events.find(
@@ -914,9 +916,25 @@ class IchibanAdmin {
         }
     }
 
-    // 開啟客戶端方法
+    async fetchDisplayName() {
+        try {
+            const res = await fetch(
+                `/api/v1/comme/ecpay/config/public/id=${encodeURIComponent(this.merchantId)}`
+            );
+            const data = await res.json().catch(() => ({}));
+            this.displayName =
+                res.ok && data.displayName ? data.displayName : null;
+        } catch (err) {
+            this.displayName = null;
+        }
+    }
+
     openClient(eventId) {
-        const clientUrl = `ichiban-client.html?id=${eventId}&merchantId=${this.merchantId}`;
+        if (!this.displayName) {
+            this.showError('請先至設定頁面設定顯示名稱後才能開啟觀眾抽獎連結');
+            return;
+        }
+        const clientUrl = `ichiban-client.html?id=${eventId}&name=${encodeURIComponent(this.displayName)}`;
         window.open(clientUrl, '_blank');
     }
 

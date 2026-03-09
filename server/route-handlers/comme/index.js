@@ -6,6 +6,7 @@ module.exports = {
     handleCreateDonateEcpayRequest: require('./handle-create-donate-ecpay'),
     handleResolveDisplayNameRequest: require('./handle-resolve-display-name'),
     handleGetEcpayConfigRequest: require('./handle-get-ecpay-config'),
+    handleGetEcpayConfigPublicRequest: require('./handle-get-ecpay-config-public'),
     handlePatchEcpayConfigRequest: require('./handle-patch-ecpay-config'),
     // PAYUNi相關API
     handleGetPayuniNotifyRequest: require('./handle-get-payuni-notify'),
