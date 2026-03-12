@@ -1,69 +1,84 @@
 const IchibanCardStore = require('../../store/ichiban-card');
 const { ENUM_ICHIBAN_CARD_STATUS } = require('../../lib/enum');
-const { ichibanWebSocketServer } = global;
 const {
     getPaymentOrder,
     deletePaymentOrder,
 } = require('../../store/payment-order');
+const {
+    getEcpayConfigByMerchantId,
+} = require('../../store/ecpay-config');
+const {
+    verifyEcpayReturnCheckMac,
+} = require('../../lib/payment-providers/ecpay');
 
 module.exports = async (req, res) => {
     try {
-        const { MerchantTradeNo, TradeNo, PaymentDate, TotalAmount } = req.body;
+        const body = req.body || {};
+        const { MerchantTradeNo } = body;
 
-        console.log('綠界付款失敗回調:', req.body);
+        if (process.env.NODE_ENV !== 'production') {
+            console.log('[ecpay-failed] 收到回調', {
+                MerchantTradeNo,
+                hasBody: !!req.body,
+            });
+        }
 
-        // 根據 MerchantTradeNo 找到對應的訂單資訊
         const orderInfo = getPaymentOrder(MerchantTradeNo);
 
-        if (orderInfo) {
-            const { eventId, cardIndex, clientId, merchantId } = orderInfo;
+        if (!orderInfo) {
+            res.status(200).send('1|OK');
+            return;
+        }
 
-            // 找到對應的卡片
-            const card =
-                await IchibanCardStore.getIchibanCardByEventIdAndCardIndexAndStatus(
-                    eventId,
-                    cardIndex,
-                    ENUM_ICHIBAN_CARD_STATUS.LOCKED
-                );
+        const { eventId, cardIndex, clientId, merchantId } = orderInfo;
 
-            if (card) {
-                // 恢復卡片狀態為可點擊
-                await IchibanCardStore.updateIchibanCardByIdAndStatus(card.id, {
-                    status: ENUM_ICHIBAN_CARD_STATUS.CLOSED,
-                    openedAt: null,
-                    openedBy: null,
-                });
+        const config = await getEcpayConfigByMerchantId(merchantId);
+        if (!config || !verifyEcpayReturnCheckMac(body, config)) {
+            res.status(400).send('0|ERROR');
+            return;
+        }
 
-                console.log(`付款失敗: 卡片 ${cardIndex} 已恢復為可點擊狀態`);
+        const card =
+            await IchibanCardStore.getIchibanCardByEventIdAndCardIndexAndStatus(
+                eventId,
+                cardIndex,
+                ENUM_ICHIBAN_CARD_STATUS.LOCKED
+            );
 
-                // 通知 WebSocket 客戶端付款失敗
+        if (card) {
+            await IchibanCardStore.updateIchibanCardByIdAndStatus(card.id, {
+                status: ENUM_ICHIBAN_CARD_STATUS.CLOSED,
+                openedAt: null,
+                openedBy: null,
+            });
+
+            const { ichibanWebSocketServer } = global;
+            if (ichibanWebSocketServer) {
+                const timestamp = new Date().toISOString();
                 ichibanWebSocketServer.broadcastToEvent(eventId, {
                     type: 'card-payment-failed',
-                    eventId: eventId,
-                    cardIndex: cardIndex,
-                    clientId: clientId,
-                    timestamp: new Date().toISOString(),
+                    eventId,
+                    cardIndex,
+                    clientId,
+                    timestamp,
                 });
-
                 ichibanWebSocketServer.broadcastToRoom(
                     `merchant-${merchantId}`,
                     {
                         type: 'card-payment-failed-notification',
-                        eventId: eventId,
-                        cardIndex: cardIndex,
-                        clientId: clientId,
-                        timestamp: new Date().toISOString(),
+                        eventId,
+                        cardIndex,
+                        clientId,
+                        timestamp,
                     }
                 );
             }
-
-            // 清理訂單資訊
-            deletePaymentOrder(MerchantTradeNo);
         }
 
+        deletePaymentOrder(MerchantTradeNo);
         res.status(200).send('1|OK');
     } catch (error) {
-        console.error('付款失敗回調處理錯誤:', error);
+        console.error('[ecpay-failed] 處理錯誤:', error);
         res.status(500).send('0|ERROR');
     }
 };

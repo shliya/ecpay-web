@@ -6,6 +6,7 @@ let isInitialized = false;
 import './css/common.css';
 import './css/list.css';
 import ActiveStatusKeeper from './js/active-keeper.js';
+import checkTotpBinding from './js/totp-guard.js';
 
 // 儲存動畫狀態
 let donationScrollState = {
@@ -40,6 +41,9 @@ async function initializeApp() {
         window.location.href = '/login.html';
         return;
     }
+
+    const totpOk = await checkTotpBinding(merchantId);
+    if (!totpOk) return;
 
     try {
         const checkResponse = await fetch(

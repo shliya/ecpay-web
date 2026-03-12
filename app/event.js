@@ -5,6 +5,7 @@ let isInitialized = false;
 // 在檔案最上方引入 CSS
 import './css/common.css';
 import './css/event.css';
+import checkTotpBinding from './js/totp-guard.js';
 
 // 儲存血條狀態
 let healthBarState = {
@@ -37,6 +38,9 @@ async function initializeHealthBar() {
         console.error('No merchant ID found');
         return;
     }
+
+    const totpOk = await checkTotpBinding(merchantId);
+    if (!totpOk) return;
 
     try {
         await loadHealthData(merchantId, id);

@@ -1,32 +1,119 @@
-// 在檔案最上方引入 CSS
 import './css/common.css';
 import './css/login.css';
 
 (function () {
-    document.getElementById('loginForm').addEventListener('submit', async e => {
-        e.preventDefault();
+    const loginForm = document.getElementById('loginForm');
+    const totpSection = document.getElementById('totpSection');
+    const totpForm = document.getElementById('totpForm');
+    const btnBack = document.getElementById('btnBack');
+    const messageDiv = document.getElementById('message');
+    const merchantIdInput = document.getElementById('merchantId');
 
-        const merchantId = document.getElementById('merchantId').value;
-        const messageDiv = document.getElementById('message');
+    let currentMerchantId = '';
+
+    function showMessage(text, type) {
+        messageDiv.className = `message ${type}`;
+        messageDiv.textContent = text;
+        messageDiv.style.display = 'block';
+    }
+
+    function hideMessage() {
+        messageDiv.style.display = 'none';
+    }
+
+    function showTotpStep() {
+        loginForm.style.display = 'none';
+        totpSection.style.display = 'block';
+        hideMessage();
+        document.getElementById('totpToken').focus();
+    }
+
+    function showLoginStep() {
+        totpSection.style.display = 'none';
+        loginForm.style.display = 'block';
+        hideMessage();
+        currentMerchantId = '';
+    }
+
+    function redirectToMain(merchantId) {
+        localStorage.setItem('merchantId', merchantId);
+        window.location.href = `index.html?merchantId=${encodeURIComponent(merchantId)}`;
+    }
+
+    async function checkMerchant(merchantId) {
+        const response = await fetch(
+            `/api/v1/login/check-merchant/id=${encodeURIComponent(merchantId)}`
+        );
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        return response.json().catch(() => ({}));
+    }
+
+    async function verifyTotp(merchantId, token) {
+        const response = await fetch('/api/v1/login/verify-totp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ merchantId, token }),
+        });
+        const data = await response.json();
+        return { ok: response.ok, data };
+    }
+
+    loginForm.addEventListener('submit', async e => {
+        e.preventDefault();
+        hideMessage();
+
+        const merchantId = merchantIdInput.value.trim();
+        if (!merchantId) {
+            return;
+        }
 
         try {
-            // 檢查商店是否存在
-            const response = await fetch(
-                `/api/v1/login/check-merchant/id=${merchantId}`
-            );
-            const result = await response.json();
+            const result = await checkMerchant(merchantId);
 
-            if (response.ok && result.exists) {
-                localStorage.setItem('merchantId', merchantId);
-                window.location.href = `index.html?id=${merchantId}`;
-            } else {
-                alert('商店不存在，給我去填那個很麻煩的資料');
-                window.location.href = 'ecpay-setting.html';
+            if (!result.exists) {
+                showMessage('商店不存在，請先至設定頁面填寫資料', 'error');
+                setTimeout(() => {
+                    window.location.href = 'ecpay-setting.html';
+                }, 1500);
+                return;
             }
-        } catch (error) {
-            messageDiv.className = 'message error';
-            messageDiv.textContent = '檢查商店時發生錯誤，請稍後再試';
-            messageDiv.style.display = 'block';
+
+            currentMerchantId = merchantId;
+
+            if (result.totpEnabled) {
+                showTotpStep();
+            } else {
+                window.location.href = `totp-setup.html?merchantId=${encodeURIComponent(merchantId)}`;
+            }
+        } catch {
+            showMessage('檢查商店時發生錯誤，請稍後再試', 'error');
         }
     });
+
+    totpForm.addEventListener('submit', async e => {
+        e.preventDefault();
+        hideMessage();
+
+        const token = document.getElementById('totpToken').value.trim();
+        if (!token || token.length !== 6) {
+            showMessage('請輸入6位數驗證碼', 'error');
+            return;
+        }
+
+        try {
+            const { ok, data } = await verifyTotp(currentMerchantId, token);
+
+            if (ok && data.success) {
+                redirectToMain(currentMerchantId);
+            } else {
+                showMessage(data.error || '驗證失敗', 'error');
+            }
+        } catch {
+            showMessage('驗證時發生錯誤，請稍後再試', 'error');
+        }
+    });
+
+    btnBack.addEventListener('click', showLoginStep);
 })();

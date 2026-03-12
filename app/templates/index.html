@@ -6,10 +6,18 @@
         <title>山老鼠-不敢互動</title>
     </head>
     <body>
-        <div class="container">
-            <div class="header">
+        <div class="app-layout">
+            <header class="app-header">
                 <div class="header-left">
-                    <h1>鼠做小工具</h1>
+                    <h1 class="app-title">鼠做小工具</h1>
+                    <div class="merchant-info">
+                        <span>商店代號：</span>
+                        <span id="merchantId" class="merchant-id loading"
+                            >載入中...</span
+                        >
+                    </div>
+                </div>
+                <div class="header-right">
                     <button
                         class="btn btn-settings"
                         id="settingsBtn"
@@ -17,86 +25,147 @@
                     >
                         ⚙️ 設定
                     </button>
-                </div>
-                <div class="merchant-info">
-                    <span>商店代號：</span>
-                    <span id="merchantId" class="merchant-id">載入中...</span>
-                </div>
-            </div>
-
-            <div class="main-content">
-                <div class="welcome-section">
-                    <p>下面是目前的功能</p>
-                </div>
-
-                <div class="feature-cards">
-                    <div class="feature-card" id="donateCard">
-                        <div class="card-icon"><img alt="尋求富婆" /></div>
-                        <div class="card-content">
-                            <h3>我的錢錢列表</h3>
-                            <p>看看有誰給你錢錢</p>
-                        </div>
-                        <div class="card-arrow">→</div>
-                    </div>
-
-                    <div class="feature-card" id="eventCard">
-                        <div class="card-icon"><img alt="尋求富婆" /></div>
-                        <div class="card-content">
-                            <h3>血條/募資條/血壓條</h3>
-                            <p>如果錢滿了.....</p>
-                        </div>
-                        <div class="card-arrow">→</div>
-                    </div>
-
-                    <div class="feature-card" id="ichibanCard">
-                        <div class="card-icon">🎰</div>
-                        <div class="card-content">
-                            <h3>一番賞管理</h3>
-                            <p>看誰還在想吃A賞</p>
-                        </div>
-                        <div class="card-arrow">→</div>
-                    </div>
-
-                    <div class="feature-card" id="donateThemeCard">
-                        <div class="card-icon">🎨</div>
-                        <div class="card-content">
-                            <h3>斗內頁顏色</h3>
-                            <p>自訂你的斗內頁色塊、即時預覽</p>
-                        </div>
-                        <div class="card-arrow">→</div>
-                    </div>
-                </div>
-
-                <div class="donate-link-section">
-                    <label class="donate-link-label">觀眾斗內連結</label>
-                    <div class="donate-link-row">
-                        <input
-                            type="text"
-                            id="viewerDonateUrl"
-                            class="donate-link-input"
-                            readonly
-                            placeholder="載入中…"
-                        />
-                        <button
-                            type="button"
-                            class="btn btn-copy-link"
-                            id="copyDonateLinkBtn"
-                        >
-                            複製連結
-                        </button>
-                    </div>
-                </div>
-
-                <div class="quick-actions">
                     <button class="btn btn-logout" id="logoutBtn">登出</button>
                 </div>
+            </header>
+
+            <div class="app-body">
+                <nav class="sidebar" id="sidebar">
+                    <ul class="nav-list">
+                        <li
+                            class="nav-item"
+                            data-page="donate-list"
+                            id="navDonateList"
+                        >
+                            <span class="nav-icon">💰</span>
+                            <span class="nav-label">錢錢列表</span>
+                        </li>
+                        <li
+                            class="nav-item"
+                            data-page="event-list"
+                            id="navEventList"
+                        >
+                            <span class="nav-icon">📊</span>
+                            <span class="nav-label">募資條/血壓條</span>
+                        </li>
+                        <li
+                            class="nav-item"
+                            data-page="ichiban"
+                            id="navIchiban"
+                        >
+                            <span class="nav-icon">🎰</span>
+                            <span class="nav-label">一番賞管理</span>
+                        </li>
+                        <li
+                            class="nav-item"
+                            data-page="donate-theme"
+                            id="navDonateTheme"
+                        >
+                            <span class="nav-icon">🎨</span>
+                            <span class="nav-label">斗內頁顏色</span>
+                        </li>
+                    </ul>
+
+                    <button
+                        class="sidebar-toggle"
+                        id="sidebarToggle"
+                        title="收合選單"
+                    >
+                        ‹
+                    </button>
+                </nav>
+
+                <main class="content-area">
+                    <div
+                        id="contentToolbar"
+                        class="content-toolbar"
+                        style="display: none"
+                    >
+                        <h2 class="toolbar-title" id="toolbarTitle"></h2>
+                        <div class="toolbar-links" id="toolbarLinks"></div>
+                    </div>
+
+                    <div id="homeContent" class="content-page active">
+                        <div class="home-welcome">
+                            <div class="welcome-icon">
+                                <img alt="尋求富婆" />
+                            </div>
+                            <h2>歡迎使用鼠做小工具</h2>
+                            <p class="welcome-desc">
+                                從左側選單選擇你要使用的功能
+                            </p>
+                        </div>
+
+                        <div class="home-cards">
+                            <div class="home-card" data-nav="donate-list">
+                                <span class="home-card-icon">💰</span>
+                                <div class="home-card-info">
+                                    <h3>錢錢列表</h3>
+                                    <p>看看有誰給你錢錢</p>
+                                </div>
+                            </div>
+                            <div class="home-card" data-nav="event-list">
+                                <span class="home-card-icon">📊</span>
+                                <div class="home-card-info">
+                                    <h3>募資條/血壓條</h3>
+                                    <p>如果錢滿了.....</p>
+                                </div>
+                            </div>
+                            <div class="home-card" data-nav="ichiban">
+                                <span class="home-card-icon">🎰</span>
+                                <div class="home-card-info">
+                                    <h3>一番賞管理</h3>
+                                    <p>看誰還在想吃A賞</p>
+                                </div>
+                            </div>
+                            <div class="home-card" data-nav="donate-theme">
+                                <span class="home-card-icon">🎨</span>
+                                <div class="home-card-info">
+                                    <h3>斗內頁顏色</h3>
+                                    <p>自訂你的斗內頁色塊、即時預覽</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="donate-link-section">
+                            <label class="donate-link-label"
+                                >觀眾斗內連結</label
+                            >
+                            <div class="donate-link-row">
+                                <input
+                                    type="text"
+                                    id="viewerDonateUrl"
+                                    class="donate-link-input"
+                                    readonly
+                                    placeholder="載入中…"
+                                />
+                                <button
+                                    type="button"
+                                    class="btn btn-copy-link"
+                                    id="copyDonateLinkBtn"
+                                >
+                                    複製連結
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <iframe
+                        id="contentFrame"
+                        class="content-frame"
+                        style="display: none"
+                    ></iframe>
+                </main>
             </div>
-            <div class="footer">
+
+            <footer class="app-footer">
                 <p>不介意可以給鼠一點錢拉嘿嘿</p>
                 <a target="_blank" href="https://p.ecpay.com.tw/9C1A29E"
                     >養我</a
                 >
-            </div>
+                <span class="footer-sep">|</span>
+                <span class="footer-contact">有問題歡迎聯絡鼠鼠</span>
+            </footer>
         </div>
     </body>
 </html>

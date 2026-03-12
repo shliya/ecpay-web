@@ -1,6 +1,8 @@
 const express = require('express');
 const router = new express.Router();
 const registrationRateLimiter = require('../../middleware/rate-limit-registration');
+const loginRateLimiter = require('../../middleware/rate-limit-login');
+const requireTotp = require('../../middleware/require-totp');
 const {
     beforeGetEcpayRequest,
     beforeCreateEcpaySettingRequest,
@@ -48,19 +50,31 @@ router.get(
     handleGetEcpayMerchantRequest
 );
 
-//綠界相關API
 router.get('/ecpay/donations/id=:merchantId', handleGetEcpayDonationsRequest);
 router.get(
     '/ecpay/config/public/id=:merchantId',
     handleGetEcpayConfigPublicRequest
 );
-router.get('/ecpay/config/id=:merchantId', handleGetEcpayConfigRequest);
-router.patch('/ecpay/config/id=:merchantId', handlePatchEcpayConfigRequest);
-router.post('/donate/ecpay', handleCreateDonateEcpayRequest);
+router.get(
+    '/ecpay/config/id=:merchantId',
+    requireTotp,
+    loginRateLimiter,
+    handleGetEcpayConfigRequest
+);
+router.patch(
+    '/ecpay/config/id=:merchantId',
+    loginRateLimiter,
+    requireTotp,
+    handlePatchEcpayConfigRequest
+);
+router.post('/donate/ecpay', loginRateLimiter, handleCreateDonateEcpayRequest);
 
-//PAYUNi notify回調
 router.post('/payuni/id=:merchantId', handleGetPayuniNotifyRequest);
-router.post('/donate/payuni', handleCreateDonatePayuniRequest);
+router.post(
+    '/donate/payuni',
+    loginRateLimiter,
+    handleCreateDonatePayuniRequest
+);
 
 router.get('/resolve-name', handleResolveDisplayNameRequest);
 

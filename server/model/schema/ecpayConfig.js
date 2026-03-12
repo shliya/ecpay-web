@@ -71,6 +71,22 @@ const EcpayConfig = sequelize.define(
             field: 'payuniHashIV',
             unique: true,
         },
+        totpSecret: {
+            type: DataTypes.STRING(255),
+            allowNull: true,
+            field: 'totpSecret',
+        },
+        totpEnabled: {
+            type: DataTypes.BOOLEAN,
+            allowNull: true,
+            defaultValue: false,
+            field: 'totpEnabled',
+        },
+        rebindAllowedUntil: {
+            type: DataTypes.DATE,
+            allowNull: true,
+            field: 'rebindAllowedUntil',
+        },
     },
     {
         tableName: 'ecpay_config',

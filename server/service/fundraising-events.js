@@ -1,37 +1,26 @@
 const FundraisingEventsStore = require('../store/fundraising-events');
-const DonationStore = require('../store/donation');
 
 async function getFundraisingEventsByMerchantId(merchantId) {
-    const events =
-        await FundraisingEventsStore.getActiveFundraisingEventsByMerchantId(
-            merchantId
-        );
-
-    // const donations = await DonationStore.getDonationsByMerchantIdAndDate(
-    //     merchantId,
-    //     { startDate: event.startMonth, endDate: event.endMonth }
-    // );
-
-    // const totalCost = donations.reduce(
-    //     (acc, donation) => acc + donation.cost,
-    //     0
-    // );
-
-    // event.dataValues.cost = totalCost;
-
-    return events;
+    return FundraisingEventsStore.getActiveFundraisingEventsByMerchantId(
+        merchantId
+    );
 }
 
 async function createFundraisingEvent(row, { transaction } = {}) {
-    const txn = await FundraisingEventsStore.getTransaction();
+    const txn = transaction || (await FundraisingEventsStore.getTransaction());
+    const shouldCommit = !transaction;
 
     try {
         await FundraisingEventsStore.createFundraisingEvent(row, {
             transaction: txn,
         });
-        await txn.commit();
+        if (shouldCommit) {
+            await txn.commit();
+        }
     } catch (error) {
-        await txn.rollback();
+        if (shouldCommit) {
+            await txn.rollback();
+        }
         throw error;
     }
 }
@@ -50,17 +39,11 @@ async function updateFundraisingEventByIdAndMerchantId(
     merchantId,
     { cost, eventName }
 ) {
-    try {
-        const event =
-            await FundraisingEventsStore.updateFundraisingEventByIdAndMerchantId(
-                id,
-                merchantId,
-                { cost, eventName }
-            );
-        return event;
-    } catch (error) {
-        throw error;
-    }
+    return FundraisingEventsStore.updateFundraisingEventByIdAndMerchantId(
+        id,
+        merchantId,
+        { cost, eventName }
+    );
 }
 
 module.exports = {

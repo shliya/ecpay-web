@@ -9,7 +9,8 @@ module.exports = async (req, res) => {
             if (result === null) {
                 throw new Error('商店不存在');
             }
-            res.json({ exists: true });
+            const totpEnabled = Boolean(result.totpEnabled);
+            res.json({ exists: true, totpEnabled });
         } catch {
             res.json({ exists: false });
         }

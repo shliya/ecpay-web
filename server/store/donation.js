@@ -96,6 +96,26 @@ async function checkDuplicateSuperChat(
     return !!existingDonation;
 }
 
+async function isDuplicateDonation(merchantId, cost, name) {
+    const DEDUP_WINDOW_MS = 60_000;
+    const ecpayConfigId = await resolveEcpayConfigId(merchantId);
+    if (ecpayConfigId == null) {
+        return false;
+    }
+
+    const windowStart = new Date(Date.now() - DEDUP_WINDOW_MS);
+    const existing = await donationModel.findOne({
+        where: {
+            ecpayConfigId,
+            cost,
+            name: name || '',
+            created_at: { [Op.gte]: windowStart },
+        },
+    });
+
+    return !!existing;
+}
+
 async function createDonation(row, { transaction } = {}) {
     const resolved = { ...row };
     if (resolved.ecpayConfigId == null && resolved.merchantId) {
@@ -116,6 +136,7 @@ module.exports = {
     getDonationsByMerchantIdAndDate,
     getDonationsByEcpayConfigIdAndDate,
     createDonation,
+    isDuplicateDonation,
     checkDuplicateSuperChat,
     getLastSuperChatTime,
 };

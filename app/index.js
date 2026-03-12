@@ -1,70 +1,80 @@
-// app/index.js
-// 使用一個標記來防止重複初始化
-let isInitialized = false;
-
-// 在檔案最上方引入 CSS 和圖片
 import './css/common.css';
 import './css/index.css';
 import richWomanImg from './assest/13.png';
+import checkTotpBinding from './js/totp-guard.js';
 
-// 儲存主頁狀態
+let isInitialized = false;
+
 let indexState = {
     merchantId: null,
-    isLoading: false,
+    currentPage: 'home',
+    viewerDonateUrl: '',
+};
+
+const PAGE_CONFIG = {
+    'donate-list': {
+        file: 'donate-list.html',
+        title: '💰 錢錢列表',
+        links: [{ label: 'OBS 瀏覽器來源網址', type: 'page-url' }],
+    },
+    'event-list': {
+        file: 'event-list.html',
+        title: '📊 斗內活動列表',
+        links: [],
+    },
+    ichiban: {
+        file: 'ichiban.html',
+        title: '🎰 一番賞管理',
+        links: [],
+    },
+    'donate-theme': {
+        file: 'donate-theme.html',
+        title: '🎨 斗內頁顏色',
+        links: [{ label: '觀眾斗內連結', type: 'viewer-donate' }],
+    },
 };
 
 async function initializeIndex() {
     if (isInitialized) {
-        console.log('Index already initialized');
         return;
     }
 
-    function getQueryParam(name) {
-        const url = new URL(window.location.href);
-        return url.searchParams.get(name);
-    }
-
     isInitialized = true;
-    console.log('Initializing index...');
 
-    // 從 URL 或 localStorage 獲取 merchantId
-    const urlMerchantId = getQueryParam('merchantId');
-    const merchantId = urlMerchantId || localStorage.getItem('merchantId');
+    const merchantId =
+        getQueryParam('merchantId') || localStorage.getItem('merchantId');
 
-    if (merchantId === 'null' || merchantId === null) {
-        console.error('No merchant ID found, redirecting to login');
+    if (!merchantId || merchantId === 'null') {
         redirectToLogin();
         return;
     }
 
+    const totpOk = await checkTotpBinding(merchantId);
+    if (!totpOk) {
+        return;
+    }
+
     indexState.merchantId = merchantId;
-
-    // 顯示 merchant ID
-    displayMerchantId(merchantId);
-
-    // 用商戶 ID 撈出 displayName，組出觀眾斗內連結
-    loadViewerDonateUrl(merchantId);
-
-    // 設置圖片
-    setupImages();
-
-    // 綁定事件監聽器
-    bindEventListeners();
-
-    // 儲存到 localStorage
     localStorage.setItem('merchantId', merchantId);
 
-    console.log('Index initialized successfully');
+    displayMerchantId(merchantId);
+    loadViewerDonateUrl(merchantId);
+    setupImages();
+    bindEventListeners();
+}
+
+function getQueryParam(name) {
+    const url = new URL(window.location.href);
+    return url.searchParams.get(name);
 }
 
 function displayMerchantId(merchantId) {
-    const merchantIdElement = document.getElementById('merchantId');
-    if (merchantIdElement) {
-        merchantIdElement.textContent = merchantId;
-        if (merchantIdElement) {
-            merchantIdElement.classList.remove('loading');
-        }
+    const el = document.getElementById('merchantId');
+    if (!el) {
+        return;
     }
+    el.textContent = merchantId;
+    el.classList.remove('loading');
 }
 
 function getViewerDonateBaseUrl() {
@@ -74,7 +84,9 @@ function getViewerDonateBaseUrl() {
 
 async function loadViewerDonateUrl(merchantId) {
     const inputEl = document.getElementById('viewerDonateUrl');
-    if (!inputEl) return;
+    if (!inputEl) {
+        return;
+    }
 
     try {
         const res = await fetch(
@@ -82,169 +94,229 @@ async function loadViewerDonateUrl(merchantId) {
         );
         const data = await res.json().catch(() => ({}));
         const baseUrl = getViewerDonateBaseUrl();
+
         if (res.ok && data.displayName) {
-            inputEl.value =
+            const url =
                 baseUrl + '?name=' + encodeURIComponent(data.displayName);
+            indexState.viewerDonateUrl = url;
+            inputEl.value = url;
             inputEl.placeholder = '';
             inputEl.removeAttribute('data-no-display-name');
         } else {
-            inputEl.value = '';
-            inputEl.placeholder =
-                '請先至設定頁面設定顯示名稱後才能使用觀眾斗內連結';
-            inputEl.setAttribute('data-no-display-name', '1');
+            setDonateLinkPlaceholder(inputEl);
         }
-    } catch (err) {
-        inputEl.value = '';
-        inputEl.placeholder =
-            '請先至設定頁面設定顯示名稱後才能使用觀眾斗內連結';
-        inputEl.setAttribute('data-no-display-name', '1');
+    } catch {
+        setDonateLinkPlaceholder(inputEl);
     }
+}
+
+function setDonateLinkPlaceholder(inputEl) {
+    if (!inputEl) {
+        return;
+    }
+    inputEl.value = '';
+    inputEl.placeholder = '請先至設定頁面設定顯示名稱後才能使用觀眾斗內連結';
+    inputEl.setAttribute('data-no-display-name', '1');
 }
 
 function setupImages() {
-    // 設置卡片圖片
-    const cardImages = document.querySelectorAll('.card-icon img');
-    cardImages.forEach(img => {
-        img.src = richWomanImg;
-    });
+    const welcomeImg = document.querySelector('.welcome-icon img');
+    if (welcomeImg) {
+        welcomeImg.src = richWomanImg;
+    }
 }
 
 function bindEventListeners() {
-    const donateCard = document.getElementById('donateCard');
-    if (donateCard) {
-        donateCard.addEventListener('click', handleDonateCardClick);
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', () => navigateTo(item.dataset.page));
+    });
+
+    document.querySelectorAll('.home-card').forEach(card => {
+        card.addEventListener('click', () => navigateTo(card.dataset.nav));
+    });
+
+    bindElement('logoutBtn', 'click', handleLogout);
+    bindElement('settingsBtn', 'click', handleSettings);
+    bindElement('copyDonateLinkBtn', 'click', handleCopyDonateLink);
+    bindElement('sidebarToggle', 'click', toggleSidebar);
+}
+
+function bindElement(id, event, handler) {
+    const el = document.getElementById(id);
+    if (el) {
+        el.addEventListener(event, handler);
+    }
+}
+
+function navigateTo(page) {
+    if (indexState.currentPage === page) {
+        return;
     }
 
-    const eventCard = document.getElementById('eventCard');
-    if (eventCard) {
-        eventCard.addEventListener('click', handleEventCardClick);
+    indexState.currentPage = page;
+
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.toggle('active', item.dataset.page === page);
+    });
+
+    const homeContent = document.getElementById('homeContent');
+    const frame = document.getElementById('contentFrame');
+    const toolbar = document.getElementById('contentToolbar');
+
+    if (page === 'home') {
+        frame.style.display = 'none';
+        frame.src = '';
+        if (toolbar) {
+            toolbar.style.display = 'none';
+        }
+        homeContent.classList.add('active');
+        return;
     }
 
-    const ichibanCard = document.getElementById('ichibanCard');
-    if (ichibanCard) {
-        ichibanCard.addEventListener('click', handleIchibanCardClick);
+    homeContent.classList.remove('active');
+
+    const config = PAGE_CONFIG[page];
+    if (!config) {
+        return;
     }
 
-    const donateThemeCard = document.getElementById('donateThemeCard');
-    if (donateThemeCard) {
-        donateThemeCard.addEventListener('click', handleDonateThemeCardClick);
+    renderToolbar(config);
+
+    const url = buildPageUrl(config.file);
+    frame.src = url;
+    frame.style.display = 'block';
+    frame.classList.add('active');
+}
+
+function buildPageUrl(pageFile) {
+    const merchantId = encodeURIComponent(indexState.merchantId);
+    return `${pageFile}?merchantId=${merchantId}`;
+}
+
+function buildFullUrl(pageFile) {
+    const path = window.location.pathname.replace(/[^/]*$/, '');
+    const merchantId = encodeURIComponent(indexState.merchantId);
+    return (
+        window.location.origin + path + pageFile + '?merchantId=' + merchantId
+    );
+}
+
+function getLinkUrl(type, pageFile) {
+    if (type === 'page-url') {
+        return buildFullUrl(pageFile);
+    }
+    if (type === 'viewer-donate') {
+        return indexState.viewerDonateUrl || '';
+    }
+    return '';
+}
+
+function renderToolbar(config) {
+    const toolbar = document.getElementById('contentToolbar');
+    const titleEl = document.getElementById('toolbarTitle');
+    const linksEl = document.getElementById('toolbarLinks');
+    if (!toolbar || !titleEl || !linksEl) {
+        return;
     }
 
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', handleLogout);
-    }
+    titleEl.textContent = config.title;
+    linksEl.innerHTML = '';
 
-    const settingsBtn = document.getElementById('settingsBtn');
-    if (settingsBtn) {
-        settingsBtn.addEventListener('click', handleSettings);
-    }
+    config.links.forEach(link => {
+        const url = getLinkUrl(link.type, config.file);
 
-    const copyDonateLinkBtn = document.getElementById('copyDonateLinkBtn');
-    if (copyDonateLinkBtn) {
-        copyDonateLinkBtn.addEventListener('click', handleCopyDonateLink);
+        const group = document.createElement('div');
+        group.className = 'toolbar-link-group';
+
+        const label = document.createElement('span');
+        label.className = 'toolbar-link-label';
+        label.textContent = link.label;
+
+        const row = document.createElement('div');
+        row.className = 'toolbar-link-row';
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'toolbar-link-input';
+        input.readOnly = true;
+        input.value = url;
+        if (!url) {
+            input.placeholder = '請先至設定頁面設定顯示名稱';
+        }
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'btn btn-copy-link';
+        btn.textContent = '複製連結';
+        btn.addEventListener('click', () => handleCopyToolbarLink(input, btn));
+
+        row.appendChild(input);
+        row.appendChild(btn);
+        group.appendChild(label);
+        group.appendChild(row);
+        linksEl.appendChild(group);
+    });
+
+    toolbar.style.display = 'block';
+}
+
+function copyToClipboard(text, inputEl, btn) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(
+            () => flashButtonText(btn, '已複製'),
+            () => inputEl.select()
+        );
+    } else {
+        inputEl.select();
+        if (document.execCommand('copy')) {
+            flashButtonText(btn, '已複製');
+        }
+    }
+}
+
+function handleCopyToolbarLink(input, btn) {
+    if (!input.value) {
+        showError('請先至設定頁面設定顯示名稱後才能複製連結');
+        return;
+    }
+    copyToClipboard(input.value, input, btn);
+}
+
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar) {
+        sidebar.classList.toggle('collapsed');
     }
 }
 
 function handleCopyDonateLink() {
     const inputEl = document.getElementById('viewerDonateUrl');
     const btn = document.getElementById('copyDonateLinkBtn');
-    if (!inputEl || !btn) return;
+    if (!inputEl || !btn) {
+        return;
+    }
     if (inputEl.hasAttribute('data-no-display-name') || !inputEl.value) {
         showError('請先至設定頁面設定顯示名稱後才能複製連結');
         return;
     }
-    const url = inputEl.value;
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(url).then(
-            () => {
-                const orig = btn.textContent;
-                btn.textContent = '已複製';
-                setTimeout(() => {
-                    btn.textContent = orig;
-                }, 1500);
-            },
-            () => {
-                if (confirm('無法複製，是否改為選取網址？')) {
-                    inputEl.select();
-                }
-            }
-        );
-    } else {
-        inputEl.select();
-        if (document.execCommand('copy')) {
-            const orig = btn.textContent;
-            btn.textContent = '已複製';
-            setTimeout(() => {
-                btn.textContent = orig;
-            }, 1500);
-        }
-    }
+    copyToClipboard(inputEl.value, inputEl, btn);
 }
 
-function handleDonateCardClick() {
-    if (!indexState.merchantId) {
-        showError('商店代號不存在，請重新登入');
-        return;
-    }
-
-    console.log(
-        'Navigating to donate-list with merchantId:',
-        indexState.merchantId
-    );
-    const donateUrl = `donate-list.html?merchantId=${encodeURIComponent(indexState.merchantId)}`;
-    window.open(donateUrl, '_blank');
-}
-
-function handleEventCardClick() {
-    if (!indexState.merchantId) {
-        showError('商店代號不存在，請重新登入');
-        return;
-    }
-
-    console.log(
-        'Navigating to event-list with merchantId:',
-        indexState.merchantId
-    );
-    const eventUrl = `event-list.html?merchantId=${encodeURIComponent(indexState.merchantId)}`;
-    window.location.href = eventUrl;
-}
-
-function handleIchibanCardClick() {
-    if (!indexState.merchantId) {
-        showError('商店代號不存在，請重新登入');
-        return;
-    }
-
-    console.log(
-        'Navigating to ichiban management with merchantId:',
-        indexState.merchantId
-    );
-    const ichibanUrl = `ichiban.html?merchantId=${encodeURIComponent(indexState.merchantId)}`;
-    window.open(ichibanUrl, '_blank');
-}
-
-function handleDonateThemeCardClick() {
-    if (!indexState.merchantId) {
-        showError('商店代號不存在，請重新登入');
-        return;
-    }
-    const themeUrl = `donate-theme.html?merchantId=${encodeURIComponent(indexState.merchantId)}`;
-    window.location.href = themeUrl;
+function flashButtonText(btn, text) {
+    const orig = btn.textContent;
+    btn.textContent = text;
+    setTimeout(() => {
+        btn.textContent = orig;
+    }, 1500);
 }
 
 function handleLogout() {
-    // 顯示確認訊息
-    if (confirm('確定要登出嗎？')) {
-        // 清除儲存的資料
-        localStorage.removeItem('merchantId');
-
-        // 清除當前狀態
-        indexState.merchantId = null;
-
-        console.log('User logged out, clearing session data');
-        redirectToLogin();
+    if (!confirm('確定要登出嗎？')) {
+        return;
     }
+    localStorage.removeItem('merchantId');
+    indexState.merchantId = null;
+    redirectToLogin();
 }
 
 function handleSettings() {
@@ -252,123 +324,45 @@ function handleSettings() {
         showError('商店代號不存在，請重新登入');
         return;
     }
-    console.log('Navigating to settings');
     window.location.href = `settings.html?merchantId=${encodeURIComponent(indexState.merchantId)}`;
 }
 
 function redirectToLogin() {
-    console.log('Redirecting to login');
     window.location.href = 'login.html';
 }
 
 function showError(message) {
-    // 創建臨時錯誤訊息元素
-    const errorElement = document.createElement('div');
-    errorElement.className = 'error-message';
-    errorElement.textContent = message;
-    errorElement.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background-color: #ffebee;
-        color: #c62828;
-        padding: 15px 20px;
-        border-radius: 6px;
+    const el = document.createElement('div');
+    el.textContent = message;
+    el.style.cssText = `
+        position: fixed; top: 20px; right: 20px;
+        background: #ffebee; color: #c62828;
+        padding: 15px 20px; border-radius: 6px;
         border-left: 4px solid #c62828;
-        z-index: 1000;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         animation: slideIn 0.3s ease-out;
     `;
-
-    // 添加動畫樣式
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateX(100%);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-    `;
-    document.head.appendChild(style);
-
-    document.body.appendChild(errorElement);
-
-    // 3秒後自動移除
-    setTimeout(() => {
-        if (errorElement.parentNode) {
-            errorElement.parentNode.removeChild(errorElement);
-        }
-        if (style.parentNode) {
-            style.parentNode.removeChild(style);
-        }
-    }, 3000);
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 3000);
 }
 
-// 添加卡片點擊效果
-function addCardClickEffect(element) {
-    element.addEventListener('mousedown', () => {
-        element.style.transform = 'translateY(-3px) scale(0.98)';
-    });
+document.addEventListener('DOMContentLoaded', () => initializeIndex(), {
+    once: true,
+});
 
-    element.addEventListener('mouseup', () => {
-        element.style.transform = 'translateY(-5px) scale(1)';
-    });
-
-    element.addEventListener('mouseleave', () => {
-        element.style.transform = 'translateY(0) scale(1)';
-    });
-}
-
-// 頁面載入完成時初始化
-document.addEventListener(
-    'DOMContentLoaded',
-    () => {
-        initializeIndex();
-
-        // 為卡片添加點擊效果
-        const cards = document.querySelectorAll('.feature-card');
-        cards.forEach(card => {
-            addCardClickEffect(card);
-        });
-    },
-    { once: true }
-);
-
-// 處理頁面可見性變化
 document.addEventListener('visibilitychange', () => {
     if (!document.hidden && indexState.merchantId) {
-        console.log('Page became visible, refreshing merchant info');
         displayMerchantId(indexState.merchantId);
     }
 });
 
-// 處理瀏覽器返回事件
-window.addEventListener('popstate', event => {
-    console.log('Browser back/forward detected');
-    // 重新初始化以確保狀態正確
+window.addEventListener('popstate', () => {
     isInitialized = false;
     initializeIndex();
 });
 
-// 防止意外離開頁面（開發時可移除）
-window.addEventListener('beforeunload', event => {
-    if (indexState.merchantId) {
-        // 在開發環境下可以註解掉這行
-        // event.preventDefault();
-        // event.returnValue = '';
-    }
-});
-
-// 導出一些有用的函數供其他模組使用
 window.indexUtils = {
     getMerchantId: () => indexState.merchantId,
-    navigateToDonate: handleDonateCardClick,
-    navigateToEvent: handleEventCardClick,
-    navigateToIchiban: handleIchibanCardClick,
+    navigateTo,
     logout: handleLogout,
 };

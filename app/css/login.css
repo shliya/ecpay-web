@@ -116,6 +116,56 @@ body {
     text-decoration: underline;
 }
 
+/* TOTP 驗證區塊 */
+.totp-section {
+    animation: fadeIn 0.3s ease;
+}
+
+.totp-section .totp-hint {
+    text-align: center;
+    color: #666;
+    margin-bottom: 20px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.totp-section .form-group input {
+    text-align: center;
+    font-size: 24px;
+    letter-spacing: 8px;
+    font-weight: 600;
+}
+
+.btn-back {
+    width: 100%;
+    padding: 12px 20px;
+    background-color: transparent;
+    color: #666;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 8px;
+}
+
+.btn-back:hover {
+    background-color: #f5f5f5;
+    border-color: #ccc;
+    color: #333;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 /* 響應式設計 */
 @media (max-width: 768px) {
     .login-container {

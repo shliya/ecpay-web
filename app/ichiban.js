@@ -1,6 +1,7 @@
 // 引入CSS
 import './css/common.css';
 import './css/ichiban.css';
+import checkTotpBinding from './js/totp-guard.js';
 
 class IchibanAdmin {
     constructor() {
@@ -18,8 +19,14 @@ class IchibanAdmin {
         this.init();
     }
 
-    init() {
+    async init() {
         this.parseUrlParams();
+        if (!this.merchantId) {
+            this.showError('缺少必要的參數 (merchantId)');
+            return;
+        }
+        const totpOk = await checkTotpBinding(this.merchantId);
+        if (!totpOk) return;
         this.setupEventListeners();
         this.connectWebSocket();
         this.loadEvents();
@@ -28,11 +35,6 @@ class IchibanAdmin {
     parseUrlParams() {
         const urlParams = new URLSearchParams(window.location.search);
         this.merchantId = urlParams.get('merchantId');
-
-        if (!this.merchantId) {
-            this.showError('缺少必要的參數 (merchantId)');
-            return;
-        }
     }
 
     setupEventListeners() {
