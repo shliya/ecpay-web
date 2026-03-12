@@ -184,7 +184,7 @@ function showOverlay(merchantId) {
             const token = input.value.trim();
 
             if (!token || token.length !== 6) {
-                errorDiv.textContent = '請輸入 6 位數驗證碼';
+                errorDiv.textContent = '請輸入6位數驗證碼';
                 return;
             }
 

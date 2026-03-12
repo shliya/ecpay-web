@@ -98,7 +98,7 @@ import './css/login.css';
 
         const token = document.getElementById('totpToken').value.trim();
         if (!token || token.length !== 6) {
-            showMessage('請輸入 6 位數驗證碼', 'error');
+            showMessage('請輸入6位數驗證碼', 'error');
             return;
         }
 

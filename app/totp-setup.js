@@ -55,12 +55,12 @@ import './css/totp-setup.css';
         }
     }
 
-    confirmForm.addEventListener('submit', async (e) => {
+    confirmForm.addEventListener('submit', async e => {
         e.preventDefault();
         const token = document.getElementById('totpToken').value.trim();
         if (!token || token.length !== 6) {
             messageDiv.className = 'message error';
-            messageDiv.textContent = '請輸入 6 位數驗證碼';
+            messageDiv.textContent = '請輸入6位數驗證碼';
             messageDiv.style.display = 'block';
             return;
         }
