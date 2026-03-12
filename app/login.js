@@ -21,11 +21,25 @@ import './css/login.css';
         messageDiv.style.display = 'none';
     }
 
+    function isTestMerchantId(merchantId) {
+        if (!merchantId) {
+            return false;
+        }
+        const id = String(merchantId).trim();
+        return id === '3002599' || id === 'S008915545';
+    }
+
     function showTotpStep() {
         loginForm.style.display = 'none';
         totpSection.style.display = 'block';
         hideMessage();
-        document.getElementById('totpToken').focus();
+        const totpInput = document.getElementById('totpToken');
+        if (isTestMerchantId(currentMerchantId)) {
+            totpInput.placeholder = '測試帳號:123456';
+        } else {
+            totpInput.placeholder = '請輸入6位數驗證碼';
+        }
+        totpInput.focus();
     }
 
     function showLoginStep() {
@@ -98,7 +112,11 @@ import './css/login.css';
 
         const token = document.getElementById('totpToken').value.trim();
         if (!token || token.length !== 6) {
-            showMessage('請輸入6位數驗證碼', 'error');
+            if (isTestMerchantId(currentMerchantId)) {
+                showMessage('測試帳號:123456', 'error');
+            } else {
+                showMessage('請輸入6位數驗證碼', 'error');
+            }
             return;
         }
 
