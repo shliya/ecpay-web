@@ -1,19 +1,16 @@
 const sequelize = require('../config/database');
 const { Op } = require('sequelize');
 const FundraisingEvents = require('../model/fundraising-events');
-const { ENUM_FUNDRAISING_EVENT_STATUS } = require('../lib/enum');
+const {
+    ENUM_FUNDRAISING_EVENT_STATUS,
+    ENUM_FUNDRAISING_EVENT_TYPE,
+} = require('../lib/enum');
 const { getEcpayConfigByMerchantId } = require('./ecpay-config');
 
 async function resolveEcpayConfigId(merchantId) {
     if (!merchantId) return null;
     const config = await getEcpayConfigByMerchantId(merchantId.trim());
     return config ? config.id : null;
-}
-
-async function getActiveFundraisingEventsByMerchantId(merchantId) {
-    const ecpayConfigId = await resolveEcpayConfigId(merchantId);
-    if (ecpayConfigId == null) return [];
-    return getActiveFundraisingEventsByEcpayConfigId(ecpayConfigId);
 }
 
 async function getActiveFundraisingEventsByEcpayConfigId(ecpayConfigId) {
@@ -101,18 +98,6 @@ async function updateFundraisingEventByIdAndEcpayConfigId(
     });
 }
 
-async function batchUpdateFundraisingEventByMerchantId(
-    merchantId,
-    { cost, type }
-) {
-    const ecpayConfigId = await resolveEcpayConfigId(merchantId);
-    if (ecpayConfigId == null) return [0];
-    return batchUpdateFundraisingEventByEcpayConfigId(ecpayConfigId, {
-        cost,
-        type,
-    });
-}
-
 async function batchUpdateFundraisingEventByEcpayConfigId(
     ecpayConfigId,
     { cost, type }
@@ -123,6 +108,11 @@ async function batchUpdateFundraisingEventByEcpayConfigId(
     };
     if (type) {
         where.type = type;
+    } else {
+        where.type = [
+            ENUM_FUNDRAISING_EVENT_TYPE.UP,
+            ENUM_FUNDRAISING_EVENT_TYPE.DOWN,
+        ];
     }
     const numericCost = Number(cost);
     if (!Number.isFinite(numericCost)) {
@@ -220,7 +210,6 @@ async function expireOutdatedEvents() {
 }
 
 module.exports = {
-    getActiveFundraisingEventsByMerchantId,
     getActiveFundraisingEventsByEcpayConfigId,
     createFundraisingEvent,
     getTransaction,
@@ -228,7 +217,6 @@ module.exports = {
     getFundraisingEventByIdAndEcpayConfigId,
     updateFundraisingEventByIdAndMerchantId,
     updateFundraisingEventByIdAndEcpayConfigId,
-    batchUpdateFundraisingEventByMerchantId,
     batchUpdateFundraisingEventByEcpayConfigId,
     disableFundraisingEventByIdAndMerchantId,
     disableFundraisingEventByIdAndEcpayConfigId,
@@ -237,4 +225,5 @@ module.exports = {
     pauseFundraisingEventByIdAndMerchantId,
     pauseFundraisingEventByIdAndEcpayConfigId,
     expireOutdatedEvents,
+    resolveEcpayConfigId,
 };

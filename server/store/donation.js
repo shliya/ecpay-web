@@ -3,6 +3,7 @@ const donationModel = require('../model/donation');
 const sequelize = require('../config/database');
 const { ENUM_DONATION_TYPE } = require('../lib/enum');
 const { getEcpayConfigByMerchantId } = require('./ecpay-config');
+const ecpayConfigModel = require('../model/ecpayConfig');
 
 async function resolveEcpayConfigId(merchantId) {
     if (!merchantId) return null;
@@ -19,7 +20,15 @@ async function getDonationsByMerchantId(merchantId) {
 async function getDonationsByEcpayConfigId(ecpayConfigId) {
     return donationModel.findAll({
         where: { ecpayConfigId },
+        include: [
+            {
+                model: ecpayConfigModel,
+                as: 'ecpayConfig',
+                attributes: ['blockedKeywords'],
+            },
+        ],
         order: [['created_at', 'DESC']],
+        raw: false,
     });
 }
 

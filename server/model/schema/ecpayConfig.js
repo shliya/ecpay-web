@@ -87,6 +87,12 @@ const EcpayConfig = sequelize.define(
             allowNull: true,
             field: 'rebindAllowedUntil',
         },
+        blockedKeywords: {
+            type: DataTypes.JSON,
+            allowNull: true,
+            field: 'blockedKeywords',
+            defaultValue: [],
+        },
     },
     {
         tableName: 'ecpay_config',

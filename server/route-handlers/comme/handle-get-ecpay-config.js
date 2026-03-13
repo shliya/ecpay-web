@@ -18,14 +18,11 @@ module.exports = async (req, res) => {
         res.status(200).json({
             merchantId: config.merchantId,
             displayName: config.displayName || null,
-            hashKey: config.hashKey || null,
-            hashIV: config.hashIV || null,
             payuniMerchantId: config.payuniMerchantId || null,
-            payuniHashKey: config.payuniHashKey || null,
-            payuniHashIV: config.payuniHashIV || null,
             youtubeChannelHandle: config.youtubeChannelHandle || null,
             youtubeChannelId: config.youtubeChannelId || null,
             themeColors: config.themeColors || null,
+            blockedKeywords: config.blockedKeywords || [],
         });
     } catch (error) {
         console.error('[get-ecpay-config]', error);

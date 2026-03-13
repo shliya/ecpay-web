@@ -54,6 +54,29 @@
                                     >此名稱會用於生成觀眾斗內連結</small
                                 >
                             </div>
+                            <div class="form-group">
+                                <label for="blockedKeywords"
+                                    >封鎖關鍵字（逗號分隔）</label
+                                >
+                                <input
+                                    type="text"
+                                    id="blockedKeywords"
+                                    name="blockedKeywords"
+                                    placeholder="測試,test,123"
+                                />
+                                <small class="form-hint"
+                                    >多個關鍵字請以逗號分隔，將不會顯示含有這些字詞的留言</small
+                                >
+                            </div>
+                            <div class="form-group">
+                                <label>目前已封鎖的關鍵字</label>
+                                <div
+                                    id="blockedKeywordsList"
+                                    class="blocked-keywords-list"
+                                >
+                                    尚未設定任何封鎖關鍵字
+                                </div>
+                            </div>
                             <button type="submit" class="btn btn-save">
                                 儲存
                             </button>

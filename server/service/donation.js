@@ -1,6 +1,8 @@
 require('dotenv').config();
 const DonationStore = require('../store/donation');
-const FundraisingEventsStore = require('../store/fundraising-events');
+const {
+    batchUpdateFundraisingEventByMerchantId,
+} = require('./fundraising-events');
 const { ENUM_FUNDRAISING_EVENT_TYPE } = require('../lib/enum');
 
 const SPECIAL_MESSAGE_CONDITION_MERCHANTS = (
@@ -29,22 +31,15 @@ async function createDonation(row, { transaction, skipDedupCheck } = {}) {
             transaction: txn,
         });
 
-        if (
-            row.message === '' &&
-            SPECIAL_MESSAGE_CONDITION_MERCHANTS.includes(row.merchantId)
-        ) {
-            await FundraisingEventsStore.batchUpdateFundraisingEventByMerchantId(
-                row.merchantId,
-                {
-                    cost: row.cost,
-                    type: ENUM_FUNDRAISING_EVENT_TYPE.BLOOD_PRESSURE,
-                }
-            );
+        if (row.message === '') {
+            await batchUpdateFundraisingEventByMerchantId(row.merchantId, {
+                cost: row.cost,
+                type: ENUM_FUNDRAISING_EVENT_TYPE.BLOOD_PRESSURE,
+            });
         } else {
-            await FundraisingEventsStore.batchUpdateFundraisingEventByMerchantId(
-                row.merchantId,
-                { cost: row.cost }
-            );
+            await batchUpdateFundraisingEventByMerchantId(row.merchantId, {
+                cost: row.cost,
+            });
         }
 
         if (shouldCommit) {
@@ -58,7 +53,21 @@ async function createDonation(row, { transaction, skipDedupCheck } = {}) {
     }
 }
 
+async function getDonationsByEcpayConfigId(ecpayConfigId) {
+    const donations =
+        await DonationStore.getDonationsByMerchantId(ecpayConfigId);
+    const filteredDonations = donations.filter(donation => {
+        const blockedKeywords = donation.ecpayConfig.blockedKeywords;
+        return blockedKeywords.every(
+            keyword =>
+                !donation.message?.toLowerCase().includes(keyword.toLowerCase())
+        );
+    });
+    return filteredDonations;
+}
+
 module.exports = {
     getDonationsByMerchantId: DonationStore.getDonationsByMerchantId,
+    getDonationsByEcpayConfigId,
     createDonation,
 };

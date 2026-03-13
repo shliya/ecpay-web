@@ -1,11 +1,11 @@
-const { getDonationsByMerchantId } = require('../../store/donation');
+const { getDonationsByEcpayConfigId } = require('../../service/donation');
 
 module.exports = async (req, res) => {
     try {
         const { merchantId } = req.params;
 
         try {
-            const donations = await getDonationsByMerchantId(merchantId);
+            const donations = await getDonationsByEcpayConfigId(merchantId);
 
             res.json(donations);
         } catch (error) {

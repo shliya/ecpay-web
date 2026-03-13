@@ -55,7 +55,7 @@ function normalizeUpdateField(field, value) {
         }
         return Object.keys(sanitized).length ? sanitized : null;
     }
-    return value != null && String(value).trim() ? String(value).trim() : null;
+    return value;
 }
 
 async function updateEcpayConfig(merchantId, updates) {
@@ -69,6 +69,7 @@ async function updateEcpayConfig(merchantId, updates) {
         'youtubeChannelHandle',
         'youtubeChannelId',
         'themeColors',
+        'blockedKeywords',
     ];
     const updateData = {};
 

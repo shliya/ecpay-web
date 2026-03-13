@@ -137,6 +137,30 @@
     margin-top: -4px;
 }
 
+.blocked-keywords-list {
+    background: #263238;
+    border: 1px solid #555;
+    border-radius: 6px;
+    padding: 10px 12px;
+    min-height: 40px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.blocked-keyword-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #455a64;
+    color: #e0e0e0;
+    font-size: 0.85rem;
+    border: 1px solid #607d8b;
+    white-space: nowrap;
+}
+
 /* PAYUNi Notice */
 .payuni-notice {
     background: #ff9800;

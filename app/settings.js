@@ -58,11 +58,43 @@ import { requireTotpVerification, getTotpToken } from './js/totp-guard.js';
         }
     }
 
-    function populateForms(config) {
-        if (config.displayName) {
-            const displayNameEl = document.getElementById('displayName');
-            if (displayNameEl) displayNameEl.value = config.displayName || '';
+    function renderBlockedKeywordsList(keywords) {
+        const listEl = document.getElementById('blockedKeywordsList');
+        if (!listEl) {
+            return;
         }
+
+        if (!Array.isArray(keywords) || !keywords.length) {
+            listEl.textContent = '尚未設定任何封鎖關鍵字';
+            return;
+        }
+
+        listEl.textContent = '';
+        keywords.forEach(keyword => {
+            const span = document.createElement('span');
+            span.className = 'blocked-keyword-tag';
+            span.textContent = keyword;
+            listEl.appendChild(span);
+        });
+    }
+
+    function populateForms(config) {
+        const displayNameEl = document.getElementById('displayName');
+        if (displayNameEl) {
+            displayNameEl.value = (config.displayName || '').trim();
+        }
+
+        const blockedKeywords =
+            Array.isArray(config.blockedKeywords) && config.blockedKeywords
+                ? config.blockedKeywords
+                : [];
+
+        const blockedKeywordsEl = document.getElementById('blockedKeywords');
+        if (blockedKeywordsEl) {
+            blockedKeywordsEl.value = blockedKeywords.join(',');
+        }
+
+        renderBlockedKeywordsList(blockedKeywords);
 
         const merchantIdEl = document.getElementById('merchantId');
         if (merchantIdEl) merchantIdEl.value = config.merchantId || '';
@@ -116,6 +148,12 @@ import { requireTotpVerification, getTotpToken } from './js/totp-guard.js';
     async function saveBasicSettings(e) {
         e.preventDefault();
         const displayName = document.getElementById('displayName').value.trim();
+        const blockedKeywordsRaw =
+            document.getElementById('blockedKeywords').value;
+        const blockedKeywords = blockedKeywordsRaw
+            .split(',')
+            .map(keyword => keyword.trim())
+            .filter(keyword => keyword);
 
         try {
             const response = await fetch(
@@ -127,6 +165,7 @@ import { requireTotpVerification, getTotpToken } from './js/totp-guard.js';
                     }),
                     body: JSON.stringify({
                         displayName: displayName || null,
+                        blockedKeywords,
                     }),
                 }
             );
@@ -139,6 +178,11 @@ import { requireTotpVerification, getTotpToken } from './js/totp-guard.js';
 
             showMessage('基本設定已儲存', 'success');
             currentConfig = result;
+            renderBlockedKeywordsList(
+                Array.isArray(result.blockedKeywords)
+                    ? result.blockedKeywords
+                    : []
+            );
         } catch (error) {
             console.error('儲存基本設定錯誤:', error);
             showMessage('儲存失敗: ' + error.message, 'error');
