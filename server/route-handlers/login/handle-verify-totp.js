@@ -1,7 +1,27 @@
+const crypto = require('crypto');
 const speakeasy = require('speakeasy');
 const { getEcpayConfigByMerchantId } = require('../../store/ecpay-config');
 const { decryptTotpSecret } = require('../../service/totp-crypto');
 const { isTestMerchantId } = require('../../lib/test-merchants');
+
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+const SESSION_SECRET =
+    process.env.TOTP_SESSION_SECRET || 'CHANGE_THIS_TOTP_SESSION_SECRET';
+
+function createSessionToken(merchantId) {
+    const trimmedMerchantId = String(merchantId).trim();
+    const expiresAt = Date.now() + ONE_DAY_MS;
+    const payload = `${trimmedMerchantId}:${expiresAt}`;
+    const signature = crypto
+        .createHmac('sha256', SESSION_SECRET)
+        .update(payload)
+        .digest('hex');
+
+    return {
+        token: `${payload}:${signature}`,
+        expiresAt,
+    };
+}
 
 module.exports = async (req, res) => {
     try {
@@ -16,7 +36,12 @@ module.exports = async (req, res) => {
         if (isTestMerchantId(trimmedMerchantId)) {
             const numericToken = String(token).replace(/\s/g, '');
             if (/^[0-9]{6}$/.test(numericToken)) {
-                res.json({ success: true });
+                const session = createSessionToken(trimmedMerchantId);
+                res.json({
+                    success: true,
+                    sessionToken: session.token,
+                    expiresAt: session.expiresAt,
+                });
                 return;
             }
         }
@@ -45,7 +70,13 @@ module.exports = async (req, res) => {
             return;
         }
 
-        res.json({ success: true });
+        const session = createSessionToken(trimmedMerchantId);
+
+        res.json({
+            success: true,
+            sessionToken: session.token,
+            expiresAt: session.expiresAt,
+        });
     } catch (error) {
         console.error('[verify-totp] 驗證失敗:', error);
         res.status(500).json({ error: '伺服器錯誤' });

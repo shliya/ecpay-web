@@ -1,4 +1,41 @@
 let resolvedToken = null;
+const SESSION_KEY_PREFIX = 'totpSession_';
+
+function getSessionStorageKey(merchantId) {
+    return `${SESSION_KEY_PREFIX}${String(merchantId).trim()}`;
+}
+
+function loadSession(merchantId) {
+    try {
+        const key = getSessionStorageKey(merchantId);
+        const raw = window.localStorage.getItem(key);
+        if (!raw) {
+            return null;
+        }
+
+        const parsed = JSON.parse(raw);
+        if (!parsed || !parsed.sessionToken || !parsed.expiresAt) {
+            return null;
+        }
+
+        return parsed;
+    } catch {
+        return null;
+    }
+}
+
+function saveSession(merchantId, sessionToken, expiresAt) {
+    try {
+        const key = getSessionStorageKey(merchantId);
+        const payload = {
+            sessionToken,
+            expiresAt,
+        };
+        window.localStorage.setItem(key, JSON.stringify(payload));
+    } catch {
+        // ignore storage error
+    }
+}
 
 /**
  * 檢查商戶是否存在且已綁定 TOTP，未綁定則導向綁定頁
@@ -43,6 +80,8 @@ async function requireTotpVerification(merchantId) {
         return false;
     }
 
+    // 設定頁需求：每次進入都必須輸入 TOTP，並刷新 24 小時 session
+    resolvedToken = null;
     return showOverlay(merchantId);
 }
 
@@ -202,7 +241,17 @@ function showOverlay(merchantId) {
                 const data = await response.json();
 
                 if (response.ok && data.success) {
-                    resolvedToken = token;
+                    if (data.sessionToken) {
+                        const expiresAt =
+                            typeof data.expiresAt === 'number'
+                                ? data.expiresAt
+                                : Date.now() + 24 * 60 * 60 * 1000;
+                        resolvedToken = data.sessionToken;
+                        saveSession(merchantId, data.sessionToken, expiresAt);
+                    } else {
+                        resolvedToken = token;
+                    }
+
                     overlay.remove();
                     resolve(true);
                 } else {

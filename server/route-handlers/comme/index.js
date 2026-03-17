@@ -8,6 +8,7 @@ module.exports = {
     handleGetEcpayConfigRequest: require('./handle-get-ecpay-config'),
     handleGetEcpayConfigPublicRequest: require('./handle-get-ecpay-config-public'),
     handlePatchEcpayConfigRequest: require('./handle-patch-ecpay-config'),
+    handlePatchEcpayThemeRequest: require('./handle-patch-ecpay-theme'),
     // PAYUNi相關API
     handleGetPayuniNotifyRequest: require('./handle-get-payuni-notify'),
     handleCreateDonatePayuniRequest: require('./handle-create-donate-payuni'),

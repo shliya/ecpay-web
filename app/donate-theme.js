@@ -190,7 +190,7 @@ import checkTotpBinding from './js/totp-guard.js';
                 var theme = getCurrentTheme();
                 showMessage('儲存中…');
                 fetch(
-                    '/api/v1/comme/ecpay/config/id=' +
+                    '/api/v1/comme/ecpay/theme/id=' +
                         encodeURIComponent(merchantId),
                     {
                         method: 'PATCH',

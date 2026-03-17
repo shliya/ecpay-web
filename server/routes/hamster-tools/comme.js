@@ -20,6 +20,7 @@ const {
     handleGetPayuniNotifyRequest,
     handleCreateDonatePayuniRequest,
     handleCreatePayuniSettingRequest,
+    handlePatchEcpayThemeRequest,
 } = require('../../route-handlers/comme');
 
 //綠界notify回調
@@ -67,6 +68,7 @@ router.patch(
     requireTotp,
     handlePatchEcpayConfigRequest
 );
+router.patch('/ecpay/theme/id=:merchantId', handlePatchEcpayThemeRequest);
 router.post('/donate/ecpay', loginRateLimiter, handleCreateDonateEcpayRequest);
 
 router.post('/payuni/id=:merchantId', handleGetPayuniNotifyRequest);

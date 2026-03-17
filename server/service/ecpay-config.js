@@ -93,10 +93,15 @@ async function updateEcpayConfig(merchantId, updates) {
     }
 }
 
+async function updateEcpayTheme(merchantId, themeColors) {
+    return await ecpayConfigStore.updateThemeColors(merchantId, themeColors);
+}
+
 module.exports = {
     createEcpayConfig,
     createPayuniConfig,
     updateEcpayConfig,
+    updateEcpayTheme,
     getPayuniMerchantIdByMerchantId:
         ecpayConfigStore.getPayuniMerchantIdByMerchantId,
     getPayuniConfigByPayuniMerchantId:
