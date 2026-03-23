@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="zh-Hant">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>OBS 斗內通知</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@600;800&display=swap"
+            rel="stylesheet"
+        />
+    </head>
+    <body>
+        <div class="donation-overlay-settings-page">
+            <header class="dos-header">
+                <h1>OBS 斗內通知</h1>
+                <p class="dos-desc">
+                    取得用於 OBS
+                    的網址，直播時顯示斗內人、金額與留言並播放提示音。
+                </p>
+            </header>
+
+            <div class="dos-layout">
+                <section class="dos-panel">
+                    <h2 class="dos-panel-title">OBS 瀏覽器來源網址</h2>
+                    <p class="dos-panel-lead">
+                        將下列網址貼到 OBS「瀏覽器」來源；寬高可依版面自行調整。
+                    </p>
+                    <div class="dos-url-row">
+                        <input
+                            type="text"
+                            id="overlayPageUrl"
+                            class="dos-url-input"
+                            readonly
+                            placeholder="載入中…"
+                            autocomplete="off"
+                        />
+                        <button
+                            type="button"
+                            class="btn dos-btn-copy"
+                            id="btnCopyOverlayUrl"
+                        >
+                            複製網址
+                        </button>
+                    </div>
+                    <div class="dos-actions">
+                        <button
+                            type="button"
+                            class="btn dos-btn-preview"
+                            id="btnOpenOverlayPreview"
+                        >
+                            在新分頁開啟預覽
+                        </button>
+                    </div>
+                    <ul class="dos-hints">
+                        <li>
+                            在 OBS 新增「瀏覽器」來源，貼上網址；建議勾選「透過
+                            OBS 控制音訊」才聽得到提示音。
+                        </li>
+                        <li>
+                            此畫面與登入無關，請勿外流網址，以免他人訂閱你的斗內推播。
+                        </li>
+                    </ul>
+
+                    <div class="dos-test-block">
+                        <h3 class="dos-test-title">本地預覽測試</h3>
+                        <p class="dos-test-desc">
+                            僅在瀏覽器內模擬通知畫面與提示音，不會寫入資料庫。固定為：姓名「測試」、金額
+                            NT$100、留言「測試斗內」。
+                        </p>
+                        <button
+                            type="button"
+                            class="btn dos-btn-test"
+                            id="btnTestDonationOverlay"
+                        >
+                            播放測試通知
+                        </button>
+                        <div
+                            id="donationOverlayPreviewRoot"
+                            class="dos-overlay-preview"
+                            aria-live="polite"
+                        ></div>
+                    </div>
+                </section>
+
+                <section class="dos-panel dos-panel-custom">
+                    <h2 class="dos-panel-title">自訂通知外觀</h2>
+                    <p class="dos-future">
+                        即將開放：上傳自訂背景圖等設定（與斗內頁顏色分開管理）。
+                    </p>
+                    <div
+                        class="dos-placeholder-box"
+                        id="customImagePlaceholder"
+                        aria-hidden="true"
+                    >
+                        <span class="dos-placeholder-icon">🖼️</span>
+                        <span class="dos-placeholder-text"
+                            >圖片上傳功能預留區</span
+                        >
+                    </div>
+                </section>
+            </div>
+        </div>
+    </body>
+</html>

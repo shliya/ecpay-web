@@ -6,6 +6,7 @@ let isInitialized = false;
 import './css/common.css';
 import './css/list.css';
 import ActiveStatusKeeper from './js/active-keeper.js';
+import { playDonationBell } from './js/play-donation-bell.js';
 import checkTotpBinding from './js/totp-guard.js';
 
 // 儲存動畫狀態
@@ -52,7 +53,14 @@ async function initializeApp() {
         const checkResult = await checkResponse.json();
         await loadDonations(merchantId);
 
-        const activeKeeper = new ActiveStatusKeeper(merchantId, 3001);
+        const activeKeeper = new ActiveStatusKeeper(merchantId, 3001, {
+            onMessage(msg) {
+                if (msg.type === 'new-donation') {
+                    playDonationBell();
+                    loadDonations(merchantId);
+                }
+            },
+        });
         activeKeeper.connect();
 
         window.addEventListener('beforeunload', () => {

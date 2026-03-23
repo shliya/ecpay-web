@@ -1,0 +1,127 @@
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: sans-serif;
+    background: transparent;
+}
+
+.donation-overlay-root {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 12px;
+}
+
+.donation-overlay-card {
+    align-self: center;
+    max-width: min(520px, 92vw);
+    padding: 16px 20px;
+    border-radius: 12px;
+    background: linear-gradient(145deg, #1a1a2e 0%, #16213e 100%);
+    color: #f8f8f2;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    opacity: 0;
+    transform: translateY(12px);
+    pointer-events: none;
+    transition:
+        opacity 0.35s ease,
+        transform 0.35s ease;
+}
+
+.donation-overlay-card.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.donation-overlay-title {
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #a8b2d1;
+    margin-bottom: 8px;
+}
+
+.donation-overlay-name {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+    word-break: break-word;
+}
+
+.donation-overlay-amount {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #ffd166;
+    margin-bottom: 10px;
+}
+
+.donation-overlay-message {
+    font-size: 0.95rem;
+    line-height: 1.45;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: #e8e8e8;
+}
+
+.donation-overlay-empty {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #888;
+    font-size: 0.95rem;
+    padding: 24px;
+    text-align: center;
+}
+
+.donation-overlay-attribution {
+    margin-top: auto;
+    padding-top: 16px;
+    font-size: 0.65rem;
+    line-height: 1.45;
+    color: rgba(255, 255, 255, 0.35);
+    text-align: center;
+}
+
+.donation-overlay-attribution a {
+    color: rgba(200, 210, 255, 0.55);
+}
+
+/* 首次須點擊以通過瀏覽器自動播放政策（含 OBS Browser Source） */
+.donation-overlay-audio-hint {
+    position: fixed;
+    inset: 0;
+    z-index: 2147483647;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 0 16px 20px;
+    pointer-events: auto;
+    background: transparent;
+}
+
+.donation-overlay-audio-hint-inner {
+    max-width: 420px;
+    padding: 12px 18px;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.72);
+    color: #eee;
+    font-size: 14px;
+    line-height: 1.45;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+}
+
+.donation-overlay-audio-hint-inner kbd {
+    font-size: 12px;
+    opacity: 0.85;
+}

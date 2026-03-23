@@ -3,7 +3,10 @@ const DonationStore = require('../store/donation');
 const {
     batchUpdateFundraisingEventByMerchantId,
 } = require('./fundraising-events');
-const { ENUM_FUNDRAISING_EVENT_TYPE } = require('../lib/enum');
+const {
+    ENUM_FUNDRAISING_EVENT_TYPE,
+    ENUM_DONATION_TYPE,
+} = require('../lib/enum');
 
 const SPECIAL_MESSAGE_CONDITION_MERCHANTS = (
     process.env.SPECIAL_MESSAGE_CONDITION_MERCHANTS || ''
@@ -44,6 +47,18 @@ async function createDonation(row, { transaction, skipDedupCheck } = {}) {
 
         if (shouldCommit) {
             await txn.commit();
+            const { ichibanWebSocketServer } = global;
+            if (ichibanWebSocketServer && row.merchantId) {
+                ichibanWebSocketServer.broadcastToMerchant(row.merchantId, {
+                    type: 'new-donation',
+                    name: row.name,
+                    cost: row.cost,
+                    message: row.message || '',
+                    donationType:
+                        row.type != null ? row.type : ENUM_DONATION_TYPE.ECPAY,
+                    timestamp: new Date().toISOString(),
+                });
+            }
         }
     } catch (error) {
         if (shouldCommit) {

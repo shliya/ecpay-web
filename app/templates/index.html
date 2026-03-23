@@ -64,7 +64,39 @@
                             <span class="nav-icon">🎨</span>
                             <span class="nav-label">斗內頁顏色</span>
                         </li>
+                        <li
+                            class="nav-item"
+                            data-page="donation-overlay-settings"
+                            id="navDonationOverlaySettings"
+                        >
+                            <span class="nav-icon">📺</span>
+                            <span class="nav-label">OBS 斗內通知</span>
+                        </li>
                     </ul>
+
+                    <div class="sidebar-links">
+                        <div class="donate-link-section">
+                            <label class="donate-link-label"
+                                >觀眾斗內連結</label
+                            >
+                            <div class="donate-link-row">
+                                <input
+                                    type="text"
+                                    id="viewerDonateUrl"
+                                    class="donate-link-input"
+                                    readonly
+                                    placeholder="載入中…"
+                                />
+                                <button
+                                    type="button"
+                                    class="btn btn-copy-link"
+                                    id="copyDonateLinkBtn"
+                                >
+                                    複製
+                                </button>
+                            </div>
+                        </div>
+                    </div>
 
                     <button
                         class="sidebar-toggle"
@@ -86,67 +118,11 @@
                     </div>
 
                     <div id="homeContent" class="content-page active">
-                        <div class="home-welcome">
-                            <div class="welcome-icon">
-                                <img alt="尋求富婆" />
-                            </div>
-                            <h2>歡迎使用鼠做小工具</h2>
-                            <p class="welcome-desc">
-                                從左側選單選擇你要使用的功能
+                        <div class="home-empty-hint">
+                            <p>請從左側選單選擇功能</p>
+                            <p class="home-empty-narrow">
+                                若畫面太窄看不到左側「觀眾斗內連結」，請將視窗拉寬或使用電腦複製。
                             </p>
-                        </div>
-
-                        <div class="home-cards">
-                            <div class="home-card" data-nav="donate-list">
-                                <span class="home-card-icon">💰</span>
-                                <div class="home-card-info">
-                                    <h3>錢錢列表</h3>
-                                    <p>看看有誰給你錢錢</p>
-                                </div>
-                            </div>
-                            <div class="home-card" data-nav="event-list">
-                                <span class="home-card-icon">📊</span>
-                                <div class="home-card-info">
-                                    <h3>募資條/血壓條</h3>
-                                    <p>如果錢滿了.....</p>
-                                </div>
-                            </div>
-                            <div class="home-card" data-nav="ichiban">
-                                <span class="home-card-icon">🎰</span>
-                                <div class="home-card-info">
-                                    <h3>一番賞管理</h3>
-                                    <p>看誰還在想吃A賞</p>
-                                </div>
-                            </div>
-                            <div class="home-card" data-nav="donate-theme">
-                                <span class="home-card-icon">🎨</span>
-                                <div class="home-card-info">
-                                    <h3>斗內頁顏色</h3>
-                                    <p>自訂你的斗內頁色塊、即時預覽</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="donate-link-section">
-                            <label class="donate-link-label"
-                                >觀眾斗內連結</label
-                            >
-                            <div class="donate-link-row">
-                                <input
-                                    type="text"
-                                    id="viewerDonateUrl"
-                                    class="donate-link-input"
-                                    readonly
-                                    placeholder="載入中…"
-                                />
-                                <button
-                                    type="button"
-                                    class="btn btn-copy-link"
-                                    id="copyDonateLinkBtn"
-                                >
-                                    複製連結
-                                </button>
-                            </div>
                         </div>
                     </div>
 

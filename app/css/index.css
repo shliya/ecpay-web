@@ -87,7 +87,7 @@ body {
 
 /* ── Sidebar ── */
 .sidebar {
-    width: 220px;
+    width: 280px;
     background: #16213e;
     border-right: 1px solid #2a2a4a;
     display: flex;
@@ -96,6 +96,7 @@ body {
     transition: width 0.25s ease;
     overflow: hidden;
     position: relative;
+    padding-bottom: 52px;
 }
 
 .sidebar.collapsed {
@@ -105,8 +106,9 @@ body {
 .nav-list {
     list-style: none;
     margin: 0;
-    padding: 12px 0;
+    padding: 12px 0 0;
     flex: 1;
+    min-height: 0;
     overflow-y: auto;
 }
 
@@ -179,6 +181,56 @@ body {
 
 .sidebar.collapsed .sidebar-toggle {
     transform: translateX(-50%) rotate(180deg);
+}
+
+/* ── Sidebar: 觀眾連結 / OBS 連結 ── */
+.sidebar-links {
+    flex-shrink: 0;
+    padding: 12px 14px 16px;
+    border-top: 1px solid #2a2a4a;
+    max-height: min(42vh, 360px);
+    overflow-y: auto;
+}
+
+.sidebar.collapsed .sidebar-links {
+    display: none;
+}
+
+.sidebar-links .donate-link-section {
+    max-width: none;
+    margin: 0;
+}
+
+.sidebar-links .donate-link-section + .donate-link-section {
+    margin-top: 16px;
+}
+
+.sidebar-links .donate-link-label {
+    font-size: 12px;
+    margin-bottom: 6px;
+}
+
+.sidebar-links .donate-link-hint {
+    font-size: 11px;
+    margin-bottom: 8px;
+}
+
+.sidebar-links .donate-link-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+}
+
+.sidebar-links .donate-link-input {
+    font-size: 11px;
+    padding: 8px 10px;
+    min-width: 0;
+}
+
+.sidebar-links .btn-copy-link {
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 13px;
 }
 
 /* ── Content Area ── */
@@ -271,103 +323,57 @@ body {
     border-color: #4fc3f7;
 }
 
-/* ── Home Content ── */
+/* ── Home Content（空白首頁提示） ── */
 #homeContent {
-    padding: 40px;
+    padding: 0;
     display: none;
+    height: 100%;
 }
 
 #homeContent.active {
-    display: block;
-}
-
-.home-welcome {
-    text-align: center;
-    margin-bottom: 48px;
-}
-
-.home-welcome .welcome-icon {
-    width: 80px;
-    height: 80px;
-    margin: 0 auto 16px;
-    border-radius: 50%;
-    overflow: hidden;
-    background: linear-gradient(135deg, #4fc3f7, #1976d2);
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 20px rgba(79, 195, 247, 0.25);
 }
 
-.home-welcome .welcome-icon img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.home-welcome h2 {
-    color: #e0e0e0;
-    font-size: 1.8rem;
-    font-weight: 600;
-    margin: 0 0 8px;
-}
-
-.welcome-desc {
-    color: #666;
+.home-empty-hint {
+    text-align: center;
+    color: #5c6b8a;
     font-size: 1rem;
     margin: 0;
-}
-
-/* ── Home Quick Cards ── */
-.home-cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 20px;
-    max-width: 800px;
-    margin: 0 auto 48px;
-}
-
-.home-card {
-    background: #16213e;
-    border: 1px solid #2a2a4a;
-    border-radius: 12px;
     padding: 24px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    cursor: pointer;
-    transition: all 0.25s ease;
 }
 
-.home-card:hover {
-    background: #1a2744;
-    border-color: #4fc3f7;
-    transform: translateY(-3px);
-    box-shadow: 0 6px 24px rgba(79, 195, 247, 0.12);
-}
-
-.home-card-icon {
-    font-size: 2rem;
-    flex-shrink: 0;
-}
-
-.home-card-info h3 {
-    margin: 0 0 4px;
-    color: #ccd6f6;
-    font-size: 1.05rem;
-    font-weight: 600;
-}
-
-.home-card-info p {
+.home-empty-hint p {
     margin: 0;
-    color: #666;
-    font-size: 0.85rem;
 }
 
-/* ── Donate Link Section ── */
+.home-empty-narrow {
+    display: none;
+    margin-top: 16px !important;
+    font-size: 0.88rem;
+    color: #6a7899;
+    max-width: 320px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.5;
+}
+
+/* ── Donate Link Section（工具列等共用） ── */
 .donate-link-section {
     max-width: 600px;
     margin: 0 auto;
+}
+
+.donate-link-section + .donate-link-section {
+    margin-top: 28px;
+}
+
+.donate-link-hint {
+    margin: 0 0 10px;
+    font-size: 13px;
+    color: #8892b0;
+    line-height: 1.45;
 }
 
 .donate-link-label {
@@ -492,6 +498,10 @@ body {
         width: 0;
     }
 
+    .sidebar-links {
+        display: none;
+    }
+
     .sidebar-toggle {
         display: none;
     }
@@ -509,10 +519,10 @@ body {
     }
 
     #homeContent {
-        padding: 24px 16px;
+        padding: 16px;
     }
 
-    .home-cards {
-        grid-template-columns: 1fr;
+    .home-empty-narrow {
+        display: block;
     }
 }

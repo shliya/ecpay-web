@@ -1,0 +1,103 @@
+.donation-overlay-root--water {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 0;
+}
+
+/* 主區塊：全透明背景（OBS 疊圖，非綠幕去背） */
+.donation-water-stage {
+    background-color: transparent;
+    width: 100%;
+    flex: 1;
+    min-height: min(70vh, 420px);
+    display: flex;
+    flex-direction: column;
+    font-family:
+        'Open Sans',
+        system-ui,
+        -apple-system,
+        sans-serif;
+    text-shadow:
+        0 0 1px #000,
+        0 0 2px #000,
+        0 0 3px #000,
+        0 0 4px #000,
+        0 0 5px #000;
+    opacity: 0;
+    transform: translateY(12px);
+    transition:
+        opacity 0.35s ease,
+        transform 0.35s ease;
+    pointer-events: none;
+}
+
+.donation-water-stage.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.donation-water-wrap {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.donation-water-row-image {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.donation-water-image {
+    width: 100%;
+    flex: 1;
+    min-height: 140px;
+    background-position: center bottom;
+    background-repeat: no-repeat;
+    background-size: contain;
+}
+
+.donation-water-row-text {
+    flex-shrink: 0;
+    padding: 20px;
+    text-align: center;
+}
+
+.donation-water-alert-msg {
+    font-size: 36px;
+    font-weight: 800;
+    color: #d48e26;
+    text-align: center;
+    line-height: 1.2;
+}
+
+.donation-water-user-msg {
+    font-size: 28px;
+    font-weight: 600;
+    color: #ffe082;
+    text-align: center;
+    white-space: pre-wrap;
+    word-break: break-word;
+    line-height: 1.35;
+    margin-top: 10px;
+}
+
+.donation-overlay-root--water .donation-overlay-attribution {
+    margin-top: 0;
+    padding: 10px 12px 16px;
+    font-size: 0.65rem;
+    line-height: 1.45;
+    color: rgba(255, 255, 255, 0.45);
+    text-align: center;
+    background: transparent;
+}
+
+.donation-overlay-root--water .donation-overlay-attribution a {
+    color: rgba(200, 210, 255, 0.65);
+}

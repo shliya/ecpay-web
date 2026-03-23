@@ -1,6 +1,5 @@
 import './css/common.css';
 import './css/index.css';
-import richWomanImg from './assest/13.png';
 import checkTotpBinding from './js/totp-guard.js';
 
 let isInitialized = false;
@@ -32,6 +31,16 @@ const PAGE_CONFIG = {
         title: '🎨 斗內頁顏色',
         links: [{ label: '觀眾斗內連結', type: 'viewer-donate' }],
     },
+    'donation-overlay-settings': {
+        file: 'donation-overlay-settings.html',
+        title: '📺 OBS 斗內通知',
+        links: [
+            {
+                label: 'OBS 瀏覽器來源（斗內通知畫面）',
+                type: 'donation-overlay',
+            },
+        ],
+    },
 };
 
 async function initializeIndex() {
@@ -59,7 +68,6 @@ async function initializeIndex() {
 
     displayMerchantId(merchantId);
     loadViewerDonateUrl(merchantId);
-    setupImages();
     bindEventListeners();
 }
 
@@ -119,20 +127,9 @@ function setDonateLinkPlaceholder(inputEl) {
     inputEl.setAttribute('data-no-display-name', '1');
 }
 
-function setupImages() {
-    const welcomeImg = document.querySelector('.welcome-icon img');
-    if (welcomeImg) {
-        welcomeImg.src = richWomanImg;
-    }
-}
-
 function bindEventListeners() {
     document.querySelectorAll('.nav-item').forEach(item => {
         item.addEventListener('click', () => navigateTo(item.dataset.page));
-    });
-
-    document.querySelectorAll('.home-card').forEach(card => {
-        card.addEventListener('click', () => navigateTo(card.dataset.nav));
     });
 
     bindElement('logoutBtn', 'click', handleLogout);
@@ -208,6 +205,9 @@ function getLinkUrl(type, pageFile) {
     if (type === 'viewer-donate') {
         return indexState.viewerDonateUrl || '';
     }
+    if (type === 'donation-overlay') {
+        return buildFullUrl('donation-overlay.html');
+    }
     return '';
 }
 
@@ -241,7 +241,12 @@ function renderToolbar(config) {
         input.readOnly = true;
         input.value = url;
         if (!url) {
-            input.placeholder = '請先至設定頁面設定顯示名稱';
+            if (link.type === 'viewer-donate') {
+                input.placeholder = '請先至設定頁面設定顯示名稱';
+                input.setAttribute('data-requires-display-name', '1');
+            } else {
+                input.placeholder = '';
+            }
         }
 
         const btn = document.createElement('button');
@@ -276,7 +281,11 @@ function copyToClipboard(text, inputEl, btn) {
 
 function handleCopyToolbarLink(input, btn) {
     if (!input.value) {
-        showError('請先至設定頁面設定顯示名稱後才能複製連結');
+        if (input.hasAttribute('data-requires-display-name')) {
+            showError('請先至設定頁面設定顯示名稱後才能複製連結');
+        } else {
+            showError('無法複製連結');
+        }
         return;
     }
     copyToClipboard(input.value, input, btn);

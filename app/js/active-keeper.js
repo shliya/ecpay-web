@@ -1,6 +1,7 @@
 export default class ActiveStatusKeeper {
-    constructor(merchantId, port = 3001) {
+    constructor(merchantId, port = 3001, options = {}) {
         this.merchantId = merchantId;
+        this.onMessage = options.onMessage || null;
 
         const isProduction = window.location.protocol === 'https:';
         const wsProtocol = isProduction ? 'wss:' : 'ws:';
@@ -37,6 +38,18 @@ export default class ActiveStatusKeeper {
         this.ws.onerror = error => {
             console.error('[ActiveKeeper] 連線錯誤:', error);
             this.ws.close();
+        };
+
+        this.ws.onmessage = event => {
+            if (!this.onMessage) {
+                return;
+            }
+            try {
+                const msg = JSON.parse(event.data);
+                this.onMessage(msg);
+            } catch (err) {
+                // 忽略非 JSON 訊息
+            }
         };
     }
 
