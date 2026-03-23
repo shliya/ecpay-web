@@ -1,5 +1,6 @@
 require('dotenv').config();
 const DonationStore = require('../store/donation');
+const { getEcpayConfigByMerchantId } = require('../store/ecpay-config');
 const {
     batchUpdateFundraisingEventByMerchantId,
 } = require('./fundraising-events');
@@ -13,6 +14,30 @@ const SPECIAL_MESSAGE_CONDITION_MERCHANTS = (
 )
     .split(',')
     .filter(Boolean);
+
+/**
+ * WebSocket 房間名為 merchant-${id}，前端一律用綠界特店代號連線。
+ * PAYUNi 回調的 row.merchantId 為 PAYUNi MerID，需對應到 ecpay_config.merchantId。
+ * @param {Object} row
+ * @returns {Promise<string|null>}
+ */
+async function resolveMerchantIdForWebSocket(row) {
+    const key = String(row.merchantId || '').trim();
+    if (!key) {
+        return null;
+    }
+    const cfg = await getEcpayConfigByMerchantId(key);
+    if (!cfg) {
+        return key;
+    }
+    if (cfg.merchantId && String(cfg.merchantId).trim()) {
+        return String(cfg.merchantId).trim();
+    }
+    if (cfg.payuniMerchantId && String(cfg.payuniMerchantId).trim()) {
+        return String(cfg.payuniMerchantId).trim();
+    }
+    return key;
+}
 
 async function createDonation(row, { transaction, skipDedupCheck } = {}) {
     if (!skipDedupCheck) {
@@ -48,16 +73,21 @@ async function createDonation(row, { transaction, skipDedupCheck } = {}) {
         if (shouldCommit) {
             await txn.commit();
             const { ichibanWebSocketServer } = global;
-            if (ichibanWebSocketServer && row.merchantId) {
-                ichibanWebSocketServer.broadcastToMerchant(row.merchantId, {
-                    type: 'new-donation',
-                    name: row.name,
-                    cost: row.cost,
-                    message: row.message || '',
-                    donationType:
-                        row.type != null ? row.type : ENUM_DONATION_TYPE.ECPAY,
-                    timestamp: new Date().toISOString(),
-                });
+            if (ichibanWebSocketServer) {
+                const wsMerchantId = await resolveMerchantIdForWebSocket(row);
+                if (wsMerchantId) {
+                    ichibanWebSocketServer.broadcastToMerchant(wsMerchantId, {
+                        type: 'new-donation',
+                        name: row.name,
+                        cost: row.cost,
+                        message: row.message || '',
+                        donationType:
+                            row.type != null
+                                ? row.type
+                                : ENUM_DONATION_TYPE.ECPAY,
+                        timestamp: new Date().toISOString(),
+                    });
+                }
             }
         }
     } catch (error) {
