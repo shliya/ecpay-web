@@ -19,6 +19,11 @@ module.exports = {
         ichiban: path.resolve(__dirname, 'app/ichiban.js'),
         viewerDonate: path.resolve(__dirname, 'app/viewer-donate.js'),
         donateTheme: path.resolve(__dirname, 'app/donate-theme.js'),
+        donationOverlay: path.resolve(__dirname, 'app/donation-overlay.js'),
+        donationOverlaySettings: path.resolve(
+            __dirname,
+            'app/donation-overlay-settings.js'
+        ),
     },
     output: {
         path: path.resolve(__dirname, 'public'),
@@ -37,10 +42,10 @@ module.exports = {
                 use: [MiniCssExtractPlugin.loader, 'css-loader'],
             },
             {
-                test: /\.(png|jpe?g|gif|svg)$/i,
+                test: /\.(png|jpe?g|gif|svg|wav|mp3|m4a|ogg)$/i,
                 type: 'asset/resource',
                 generator: {
-                    filename: 'images/[name].[contenthash][ext]',
+                    filename: 'assets/[name].[contenthash][ext]',
                 },
             },
         ],
@@ -198,6 +203,36 @@ module.exports = {
             ),
             filename: 'donate-theme.html',
             chunks: ['donateTheme'],
+            inject: true,
+            scriptLoading: 'defer',
+            minify: {
+                removeComments: true,
+                collapseWhitespace: true,
+            },
+            cache: false,
+        }),
+        new HtmlWebpackPlugin({
+            template: path.resolve(
+                __dirname,
+                'app/templates/donation-overlay.html'
+            ),
+            filename: 'donation-overlay.html',
+            chunks: ['donationOverlay'],
+            inject: true,
+            scriptLoading: 'defer',
+            minify: {
+                removeComments: true,
+                collapseWhitespace: true,
+            },
+            cache: false,
+        }),
+        new HtmlWebpackPlugin({
+            template: path.resolve(
+                __dirname,
+                'app/templates/donation-overlay-settings.html'
+            ),
+            filename: 'donation-overlay-settings.html',
+            chunks: ['donationOverlaySettings'],
             inject: true,
             scriptLoading: 'defer',
             minify: {
