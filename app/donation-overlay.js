@@ -3,6 +3,7 @@ import './css/donation-overlay-water.css';
 import ActiveStatusKeeper from './js/active-keeper.js';
 import { showDonationOverlayAlert } from './js/donation-overlay-alert.js';
 import {
+    initDonationBellVolumeFromUrl,
     isDonationBellAudioUnlocked,
     playDonationBell,
     unlockDonationBellAudio,
@@ -33,6 +34,8 @@ function init() {
     }
 
     const id = merchantId.trim();
+
+    initDonationBellVolumeFromUrl(new URL(window.location.href).searchParams);
 
     installDonationOverlayAudioUnlock();
 

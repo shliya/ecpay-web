@@ -63,6 +63,34 @@
                         </li>
                     </ul>
 
+                    <div class="dos-volume-block">
+                        <h3 class="dos-volume-title">提示音音量</h3>
+                        <p class="dos-volume-desc">
+                            調整提示音大小（0% 為靜音）。上方網址會帶上
+                            <code class="dos-inline-code">volume</code>
+                            參數；請複製最新網址到 OBS。
+                        </p>
+                        <div class="dos-volume-row">
+                            <input
+                                type="range"
+                                id="donationBellVolume"
+                                class="dos-volume-range"
+                                min="0"
+                                max="100"
+                                value="100"
+                                aria-valuemin="0"
+                                aria-valuemax="100"
+                                aria-valuenow="100"
+                                aria-label="提示音音量"
+                            />
+                            <span
+                                id="donationBellVolumeLabel"
+                                class="dos-volume-label"
+                                >100%</span
+                            >
+                        </div>
+                    </div>
+
                     <div class="dos-test-block">
                         <h3 class="dos-test-title">本地預覽測試</h3>
                         <p class="dos-test-desc">

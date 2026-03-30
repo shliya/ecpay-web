@@ -3,7 +3,11 @@ import './css/donation-overlay.css';
 import './css/donation-overlay-water.css';
 import './css/donation-overlay-settings.css';
 import { showDonationOverlayAlert } from './js/donation-overlay-alert.js';
-import { playDonationBell } from './js/play-donation-bell.js';
+import {
+    getDonationBellVolumePercent,
+    playDonationBell,
+    setDonationBellVolumePercent,
+} from './js/play-donation-bell.js';
 import checkTotpBinding from './js/totp-guard.js';
 
 const TEST_DONATION = {
@@ -25,8 +29,9 @@ function buildDonationOverlayPageUrl() {
         return '';
     }
     const path = window.location.pathname.replace(/[^/]*$/, '');
-    const q = encodeURIComponent(merchantId);
-    return `${window.location.origin}${path}donation-overlay.html?merchantId=${q}`;
+    const mid = encodeURIComponent(merchantId);
+    const volume = getDonationBellVolumePercent();
+    return `${window.location.origin}${path}donation-overlay.html?merchantId=${mid}&volume=${encodeURIComponent(String(volume))}`;
 }
 
 function flashButton(btn, text) {
@@ -72,7 +77,6 @@ async function init() {
     const previewBtn = document.getElementById('btnOpenOverlayPreview');
 
     if (inputEl) {
-        inputEl.value = buildDonationOverlayPageUrl();
         inputEl.placeholder = '';
     }
 
@@ -97,6 +101,45 @@ async function init() {
 
     const testBtn = document.getElementById('btnTestDonationOverlay');
     const previewRoot = document.getElementById('donationOverlayPreviewRoot');
+    const volumeRange = document.getElementById('donationBellVolume');
+    const volumeLabel = document.getElementById('donationBellVolumeLabel');
+
+    function syncVolumeLabel(percent) {
+        if (volumeLabel) {
+            volumeLabel.textContent = `${percent}%`;
+        }
+        if (volumeRange) {
+            volumeRange.setAttribute('aria-valuenow', String(percent));
+        }
+    }
+
+    function applyVolumeFromStorage() {
+        const percent = getDonationBellVolumePercent();
+        if (volumeRange) {
+            volumeRange.value = String(percent);
+        }
+        syncVolumeLabel(percent);
+    }
+
+    if (volumeRange) {
+        applyVolumeFromStorage();
+        volumeRange.addEventListener('input', () => {
+            const percent = Number.parseInt(volumeRange.value, 10);
+            if (Number.isNaN(percent)) {
+                return;
+            }
+            setDonationBellVolumePercent(percent);
+            syncVolumeLabel(percent);
+            if (inputEl) {
+                inputEl.value = buildDonationOverlayPageUrl();
+            }
+        });
+    }
+
+    if (inputEl) {
+        inputEl.value = buildDonationOverlayPageUrl();
+    }
+
     if (testBtn && previewRoot) {
         testBtn.addEventListener('click', () => {
             playDonationBell();
