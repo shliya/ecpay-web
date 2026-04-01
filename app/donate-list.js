@@ -30,12 +30,6 @@ const donationTypeFilterState = {
     [DONATION_TYPE.PAYUNI]: true,
 };
 
-const DONATION_TYPE_LABEL_MAP = {
-    [DONATION_TYPE.ECPAY]: '綠界',
-    [DONATION_TYPE.YOUTUBE_SUPER_CHAT]: 'YT',
-    [DONATION_TYPE.PAYUNI]: 'PAYUNI',
-};
-
 async function initializeApp() {
     if (isInitialized) {
         return;
@@ -153,13 +147,6 @@ function isDonationTypeEnabled(donation) {
     return Boolean(donationTypeFilterState[donationType]);
 }
 
-function getDonationTypeLabel(donationType) {
-    return (
-        DONATION_TYPE_LABEL_MAP[donationType] ||
-        DONATION_TYPE_LABEL_MAP[DONATION_TYPE.ECPAY]
-    );
-}
-
 function ensureDonationListInnerContainer() {
     const donationList = document.getElementById('donationList');
     if (!donationList) {
@@ -228,8 +215,6 @@ function createDonationCard(donation, cardIndex = 0) {
     const message = donation.message || '';
     const tier = getCustomTierClass(amount);
     const createdAt = formatDate(donation.created_at || '');
-    const donationType = Number(donation.type) || DONATION_TYPE.ECPAY;
-    const donationTypeLabel = getDonationTypeLabel(donationType);
 
     const card = document.createElement('div');
     card.className = `custom-donation-card tier-${tier}`;
@@ -259,16 +244,11 @@ function createDonationCard(donation, cardIndex = 0) {
     messageContent.className = 'message-content';
     messageContent.textContent = message;
 
-    const typeSpan = document.createElement('div');
-    typeSpan.className = 'custom-donation-type';
-    typeSpan.textContent = donationTypeLabel;
-
     const timeSpan = document.createElement('div');
     timeSpan.className = 'custom-donation-time';
     timeSpan.textContent = createdAt;
 
     messageDiv.appendChild(messageContent);
-    messageDiv.appendChild(typeSpan);
     messageDiv.appendChild(timeSpan);
 
     card.appendChild(header);
@@ -283,8 +263,6 @@ function updateDonationCard(card, donation) {
     const message = donation.message || '';
     const tier = getCustomTierClass(amount);
     const createdAt = formatDate(donation.created_at || '');
-    const donationType = Number(donation.type) || DONATION_TYPE.ECPAY;
-    const donationTypeLabel = getDonationTypeLabel(donationType);
 
     // 更新外層 class 控制顏色
     card.className = `custom-donation-card tier-${tier}`;
@@ -299,11 +277,6 @@ function updateDonationCard(card, donation) {
     const messageEl = card.querySelector('.message-content');
     if (messageEl) {
         messageEl.textContent = message;
-    }
-
-    const typeEl = card.querySelector('.custom-donation-type');
-    if (typeEl) {
-        typeEl.textContent = donationTypeLabel;
     }
 
     const timeEl = card.querySelector('.custom-donation-time');

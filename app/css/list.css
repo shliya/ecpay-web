@@ -276,14 +276,6 @@ body {
     z-index: 20;
 }
 
-.custom-donation-type {
-    font-size: 10px;
-    align-self: flex-start;
-    opacity: 0.95;
-    position: relative;
-    z-index: 20;
-}
-
 /* -------------------------
    動畫特效
    ------------------------- */
