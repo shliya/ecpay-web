@@ -28,6 +28,33 @@ body {
     padding: 10px;
 }
 
+.donation-type-filter {
+    max-width: 650px;
+    margin: 10px auto 0;
+    padding: 10px;
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.donation-type-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #000000;
+    font-size: 12px;
+    text-shadow: none;
+    font-weight: 700;
+}
+
+.donation-type-option input[type='checkbox'] {
+    width: 16px;
+    height: 16px;
+    accent-color: #3b77ce;
+}
+
 /* -------------------------
    各階層彩虹顏色 (從你的圖精準取色)
    ------------------------- */
@@ -245,6 +272,14 @@ body {
     font-size: 10px;
     align-self: flex-end; /* 時間靠右下角 */
     opacity: 0.85;
+    position: relative;
+    z-index: 20;
+}
+
+.custom-donation-type {
+    font-size: 10px;
+    align-self: flex-start;
+    opacity: 0.95;
     position: relative;
     z-index: 20;
 }

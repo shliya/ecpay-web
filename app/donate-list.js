@@ -6,7 +6,6 @@ let isInitialized = false;
 import './css/common.css';
 import './css/list.css';
 import ActiveStatusKeeper from './js/active-keeper.js';
-import { playDonationBell } from './js/play-donation-bell.js';
 import checkTotpBinding from './js/totp-guard.js';
 
 // 儲存動畫狀態
@@ -16,9 +15,31 @@ let donationScrollState = {
     animationStarted: false,
     lastData: [],
 };
+let donationSourceData = [];
+const DONATION_TYPES_QUERY_PARAM = 'donationTypes';
+
+const DONATION_TYPE = {
+    ECPAY: 1,
+    YOUTUBE_SUPER_CHAT: 2,
+    PAYUNI: 3,
+};
+
+const donationTypeFilterState = {
+    [DONATION_TYPE.ECPAY]: true,
+    [DONATION_TYPE.YOUTUBE_SUPER_CHAT]: true,
+    [DONATION_TYPE.PAYUNI]: true,
+};
+
+const DONATION_TYPE_LABEL_MAP = {
+    [DONATION_TYPE.ECPAY]: '綠界',
+    [DONATION_TYPE.YOUTUBE_SUPER_CHAT]: 'YT',
+    [DONATION_TYPE.PAYUNI]: 'PAYUNI',
+};
 
 async function initializeApp() {
-    if (isInitialized) return;
+    if (isInitialized) {
+        return;
+    }
 
     function getQueryParam(name) {
         const url = new URL(window.location.href);
@@ -44,7 +65,11 @@ async function initializeApp() {
     }
 
     const totpOk = await checkTotpBinding(merchantId);
-    if (!totpOk) return;
+    if (!totpOk) {
+        return;
+    }
+
+    syncDonationTypeFilterStateFromUrl();
 
     try {
         const checkResponse = await fetch(
@@ -56,7 +81,6 @@ async function initializeApp() {
         const activeKeeper = new ActiveStatusKeeper(merchantId, 3001, {
             onMessage(msg) {
                 if (msg.type === 'new-donation') {
-                    playDonationBell();
                     loadDonations(merchantId);
                 }
             },
@@ -86,31 +110,90 @@ async function loadDonations(merchantId) {
             `/api/v1/comme/ecpay/donations/id=${merchantId}`
         );
         const donations = await response.json();
-        updateDonationList(donations);
+        donationSourceData = Array.isArray(donations) ? donations : [];
+        renderFilteredDonations();
     } catch (error) {
         console.error('載入斗內資料失敗:', error);
     }
 }
 
+function syncDonationTypeFilterStateFromUrl() {
+    const url = new URL(window.location.href);
+    const donationTypeParams = url.searchParams.get(DONATION_TYPES_QUERY_PARAM);
+    if (!donationTypeParams) {
+        return;
+    }
+
+    const selectedTypeSet = new Set(
+        donationTypeParams
+            .split(',')
+            .map(value => Number(value.trim()))
+            .filter(value => Number.isInteger(value))
+    );
+    const hasAnyValidType = selectedTypeSet.size > 0;
+    if (!hasAnyValidType) {
+        return;
+    }
+
+    Object.keys(donationTypeFilterState).forEach(typeKey => {
+        const type = Number(typeKey);
+        donationTypeFilterState[type] = selectedTypeSet.has(type);
+    });
+}
+
+function renderFilteredDonations() {
+    const filteredDonations = donationSourceData.filter(donation =>
+        isDonationTypeEnabled(donation)
+    );
+    updateDonationList(filteredDonations);
+}
+
+function isDonationTypeEnabled(donation) {
+    const donationType = Number(donation.type) || DONATION_TYPE.ECPAY;
+    return Boolean(donationTypeFilterState[donationType]);
+}
+
+function getDonationTypeLabel(donationType) {
+    return (
+        DONATION_TYPE_LABEL_MAP[donationType] ||
+        DONATION_TYPE_LABEL_MAP[DONATION_TYPE.ECPAY]
+    );
+}
+
+function ensureDonationListInnerContainer() {
+    const donationList = document.getElementById('donationList');
+    if (!donationList) {
+        return null;
+    }
+
+    let inner = donationScrollState.inner;
+    if (!inner || !donationList.contains(inner)) {
+        inner = document.createElement('div');
+        inner.className = 'donation-list-inner';
+        donationList.appendChild(inner);
+        donationScrollState.inner = inner;
+    }
+
+    return inner;
+}
+
 function updateDonationList(donations) {
     try {
-        const donationList = document.getElementById('donationList');
-        if (!donationList) return;
+        const inner = ensureDonationListInnerContainer();
+        if (!inner) {
+            return;
+        }
 
-        let inner = donationScrollState.inner;
         const needRebuild =
             !inner || inner.children.length !== donations.length;
 
         if (needRebuild) {
-            donationList.innerHTML = '';
-            inner = document.createElement('div');
-            inner.className = 'donation-list-inner';
+            inner.innerHTML = '';
 
             donations.forEach((donation, index) => {
                 inner.appendChild(createDonationCard(donation, index));
             });
 
-            donationList.appendChild(inner);
             donationScrollState.inner = inner;
             donationScrollState.cardCount = donations.length;
             donationScrollState.lastData = donations;
@@ -145,6 +228,8 @@ function createDonationCard(donation, cardIndex = 0) {
     const message = donation.message || '';
     const tier = getCustomTierClass(amount);
     const createdAt = formatDate(donation.created_at || '');
+    const donationType = Number(donation.type) || DONATION_TYPE.ECPAY;
+    const donationTypeLabel = getDonationTypeLabel(donationType);
 
     const card = document.createElement('div');
     card.className = `custom-donation-card tier-${tier}`;
@@ -174,11 +259,16 @@ function createDonationCard(donation, cardIndex = 0) {
     messageContent.className = 'message-content';
     messageContent.textContent = message;
 
+    const typeSpan = document.createElement('div');
+    typeSpan.className = 'custom-donation-type';
+    typeSpan.textContent = donationTypeLabel;
+
     const timeSpan = document.createElement('div');
     timeSpan.className = 'custom-donation-time';
     timeSpan.textContent = createdAt;
 
     messageDiv.appendChild(messageContent);
+    messageDiv.appendChild(typeSpan);
     messageDiv.appendChild(timeSpan);
 
     card.appendChild(header);
@@ -193,6 +283,8 @@ function updateDonationCard(card, donation) {
     const message = donation.message || '';
     const tier = getCustomTierClass(amount);
     const createdAt = formatDate(donation.created_at || '');
+    const donationType = Number(donation.type) || DONATION_TYPE.ECPAY;
+    const donationTypeLabel = getDonationTypeLabel(donationType);
 
     // 更新外層 class 控制顏色
     card.className = `custom-donation-card tier-${tier}`;
@@ -205,10 +297,19 @@ function updateDonationCard(card, donation) {
     if (amountEl) amountEl.textContent = formatAmount(amount);
 
     const messageEl = card.querySelector('.message-content');
-    if (messageEl) messageEl.textContent = message;
+    if (messageEl) {
+        messageEl.textContent = message;
+    }
+
+    const typeEl = card.querySelector('.custom-donation-type');
+    if (typeEl) {
+        typeEl.textContent = donationTypeLabel;
+    }
 
     const timeEl = card.querySelector('.custom-donation-time');
-    if (timeEl) timeEl.textContent = createdAt;
+    if (timeEl) {
+        timeEl.textContent = createdAt;
+    }
 }
 
 function formatAmount(amount) {

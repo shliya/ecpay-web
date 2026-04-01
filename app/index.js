@@ -8,7 +8,20 @@ let indexState = {
     merchantId: null,
     currentPage: 'home',
     viewerDonateUrl: '',
+    selectedDonationTypes: [1, 2, 3],
 };
+
+const DONATION_TYPE = {
+    ECPAY: 1,
+    YOUTUBE_SUPER_CHAT: 2,
+    PAYUNI: 3,
+};
+
+const DONATION_TYPE_OPTIONS = [
+    { type: DONATION_TYPE.ECPAY, label: '綠界' },
+    { type: DONATION_TYPE.YOUTUBE_SUPER_CHAT, label: 'YT' },
+    { type: DONATION_TYPE.PAYUNI, label: 'PAYUNI' },
+];
 
 const PAGE_CONFIG = {
     'donate-list': {
@@ -187,15 +200,41 @@ function navigateTo(page) {
 
 function buildPageUrl(pageFile) {
     const merchantId = encodeURIComponent(indexState.merchantId);
-    return `${pageFile}?merchantId=${merchantId}`;
+    const url = new URL(pageFile, window.location.origin);
+    url.searchParams.set('merchantId', merchantId);
+
+    if (pageFile === 'donate-list.html') {
+        const donationTypes = getDonationTypesQueryValue();
+        if (donationTypes) {
+            url.searchParams.set('donationTypes', donationTypes);
+        }
+    }
+
+    return `${url.pathname.split('/').pop()}${url.search}`;
 }
 
 function buildFullUrl(pageFile) {
     const path = window.location.pathname.replace(/[^/]*$/, '');
     const merchantId = encodeURIComponent(indexState.merchantId);
-    return (
-        window.location.origin + path + pageFile + '?merchantId=' + merchantId
-    );
+    const url = new URL(window.location.origin + path + pageFile);
+    url.searchParams.set('merchantId', merchantId);
+
+    if (pageFile === 'donate-list.html') {
+        const donationTypes = getDonationTypesQueryValue();
+        if (donationTypes) {
+            url.searchParams.set('donationTypes', donationTypes);
+        }
+    }
+
+    return url.toString();
+}
+
+function getDonationTypesQueryValue() {
+    if (!indexState.selectedDonationTypes.length) {
+        return '';
+    }
+
+    return indexState.selectedDonationTypes.join(',');
 }
 
 function getLinkUrl(type, pageFile) {
@@ -259,10 +298,72 @@ function renderToolbar(config) {
         row.appendChild(btn);
         group.appendChild(label);
         group.appendChild(row);
+
+        if (link.type === 'page-url' && config.file === 'donate-list.html') {
+            const checkboxRow = createDonationTypeCheckboxRow(input);
+            group.appendChild(checkboxRow);
+        }
+
         linksEl.appendChild(group);
     });
 
     toolbar.style.display = 'block';
+}
+
+function createDonationTypeCheckboxRow(linkInput) {
+    const row = document.createElement('div');
+    row.className = 'toolbar-checkbox-row';
+
+    DONATION_TYPE_OPTIONS.forEach(({ type, label }) => {
+        const item = document.createElement('label');
+        item.className = 'toolbar-checkbox-item';
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = indexState.selectedDonationTypes.includes(type);
+        checkbox.addEventListener('change', () => {
+            updateDonationTypeSelection(type, checkbox.checked);
+            const updatedUrl = getLinkUrl('page-url', 'donate-list.html');
+            linkInput.value = updatedUrl;
+            refreshDonateListFrameUrl();
+        });
+
+        const text = document.createElement('span');
+        text.textContent = label;
+
+        item.appendChild(checkbox);
+        item.appendChild(text);
+        row.appendChild(item);
+    });
+
+    return row;
+}
+
+function updateDonationTypeSelection(type, checked) {
+    if (checked) {
+        if (!indexState.selectedDonationTypes.includes(type)) {
+            indexState.selectedDonationTypes.push(type);
+        }
+    } else {
+        indexState.selectedDonationTypes = indexState.selectedDonationTypes.filter(
+            selectedType => selectedType !== type
+        );
+    }
+
+    indexState.selectedDonationTypes.sort((a, b) => a - b);
+}
+
+function refreshDonateListFrameUrl() {
+    if (indexState.currentPage !== 'donate-list') {
+        return;
+    }
+
+    const frame = document.getElementById('contentFrame');
+    if (!frame) {
+        return;
+    }
+
+    frame.src = buildPageUrl('donate-list.html');
 }
 
 function copyToClipboard(text, inputEl, btn) {

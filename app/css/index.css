@@ -308,6 +308,27 @@ body {
     align-items: center;
 }
 
+.toolbar-checkbox-row {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.toolbar-checkbox-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #cfd8ea;
+    font-size: 13px;
+}
+
+.toolbar-checkbox-item input[type='checkbox'] {
+    width: 16px;
+    height: 16px;
+    accent-color: #4fc3f7;
+}
+
 .toolbar-link-input {
     flex: 1;
     padding: 10px 14px;
