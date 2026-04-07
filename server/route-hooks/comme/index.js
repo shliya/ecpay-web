@@ -1,4 +1,3 @@
 module.exports = {
-    beforeGetEcpayRequest: require('./get-ecpay-data').before,
-    beforeCreateEcpaySettingRequest: require('./create-ecpay-setting').before,
+    beforeCheckTestAccount: require('./before-check-test-account'),
 };

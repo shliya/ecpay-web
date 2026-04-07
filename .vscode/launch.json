@@ -11,6 +11,21 @@
             "internalConsoleOptions": "neverOpen"
         },
         {
+            "name": "Launch Server (Debug Mode)",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceFolder}/index.js",
+            "outFiles": ["${workspaceFolder}/dist/**/*.js"],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "env": {
+                "NODE_ENV": "development"
+            },
+            "skipFiles": ["<node_internals>/**"],
+            "stopOnEntry": false,
+            "restart": true
+        },
+        {
             "name": "Attach to Server",
             "type": "node",
             "request": "attach",
@@ -30,12 +45,44 @@
                 "webpack:///./*": "${workspaceFolder}/app/*"
             },
             "preLaunchTask": "npm: dev:client"
+        },
+        {
+            "name": "Debug API Tests",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceFolder}/server/debug/api-test.js",
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "env": {
+                "NODE_ENV": "development"
+            },
+            "skipFiles": ["<node_internals>/**"]
+        },
+        {
+            "name": "Debug Ichiban API",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceFolder}/server/debug/ichiban-api-test.js",
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "env": {
+                "NODE_ENV": "development"
+            },
+            "skipFiles": ["<node_internals>/**"]
         }
     ],
     "compounds": [
         {
             "name": "Full Stack Debug",
             "configurations": ["Launch Server", "Launch Chrome"]
+        },
+        {
+            "name": "API Testing Debug",
+            "configurations": ["Debug API Tests"]
+        },
+        {
+            "name": "Server Debug Mode",
+            "configurations": ["Launch Server (Debug Mode)"]
         }
     ]
 }
