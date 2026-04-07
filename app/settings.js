@@ -6,6 +6,20 @@ import { requireTotpVerification, getTotpToken } from './js/totp-guard.js';
     let merchantId = null;
     let currentConfig = null;
 
+    document.querySelectorAll('.password-toggle').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const wrap = btn.closest('.password-field');
+            const input = wrap.querySelector('input');
+            const showLabel = btn.dataset.showLabel || '顯示密碼';
+            const hideLabel = btn.dataset.hideLabel || '隱藏密碼';
+            const willReveal = input.type === 'password';
+            input.type = willReveal ? 'text' : 'password';
+            btn.setAttribute('aria-pressed', String(willReveal));
+            btn.setAttribute('aria-label', willReveal ? hideLabel : showLabel);
+            wrap.classList.toggle('password-visible', willReveal);
+        });
+    });
+
     function getQueryParam(name) {
         const url = new URL(window.location.href);
         return url.searchParams.get(name);

@@ -3,10 +3,7 @@ const router = new express.Router();
 const registrationRateLimiter = require('../../middleware/rate-limit-registration');
 const loginRateLimiter = require('../../middleware/rate-limit-login');
 const requireTotp = require('../../middleware/require-totp');
-const {
-    beforeGetEcpayRequest,
-    beforeCreateEcpaySettingRequest,
-} = require('../../route-hooks/comme');
+const { beforeCheckTestAccount } = require('../../route-hooks/comme');
 const {
     handleGetEcpayRequest,
     handleCreateEcpaySettingRequest,
@@ -24,17 +21,12 @@ const {
 } = require('../../route-handlers/comme');
 
 //綠界notify回調
-router.post(
-    '/ecpay/id=:merchantId',
-    beforeGetEcpayRequest,
-    handleGetEcpayRequest
-);
+router.post('/ecpay/id=:merchantId');
 
 //建立綠界商店設定
 router.post(
     '/ecpay/setting',
     registrationRateLimiter,
-    beforeCreateEcpaySettingRequest,
     handleCreateEcpaySettingRequest
 );
 
@@ -64,6 +56,7 @@ router.get(
 );
 router.patch(
     '/ecpay/config/id=:merchantId',
+    beforeCheckTestAccount,
     loginRateLimiter,
     requireTotp,
     handlePatchEcpayConfigRequest
