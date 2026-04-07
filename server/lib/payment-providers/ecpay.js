@@ -6,6 +6,7 @@ const qs = require('qs');
 const { getEcpayConfigByMerchantId } = require('../../store/ecpay-config');
 const { decryptDataAndUrlDecode } = require('../../service/decrypt');
 const { ENUM_DONATION_TYPE } = require('../enum');
+const { buildVideoTaskFromVideoIdAndCost } = require('../youtube-donation');
 
 require('dotenv').config({ path: path.resolve(__dirname, '../../../.env') });
 
@@ -158,7 +159,7 @@ function parseUrlDonationCallback(reqBody, config) {
         return null;
     }
 
-    return {
+    const row = {
         merchantId: String(MerchantID),
         name:
             (reqBody.CustomField1 && String(reqBody.CustomField1).trim()) || '',
@@ -167,6 +168,19 @@ function parseUrlDonationCallback(reqBody, config) {
             (reqBody.CustomField2 && String(reqBody.CustomField2).trim()) || '',
         type: ENUM_DONATION_TYPE.ECPAY,
     };
+
+    const cf3 =
+        reqBody.CustomField3 != null && String(reqBody.CustomField3).trim()
+            ? String(reqBody.CustomField3).trim()
+            : '';
+    if (cf3) {
+        const videoTask = buildVideoTaskFromVideoIdAndCost(cf3, cost);
+        if (videoTask) {
+            row.videoTask = videoTask;
+        }
+    }
+
+    return row;
 }
 
 async function getEcPayDonations(ecPayKey) {
@@ -199,6 +213,10 @@ async function createPayment(merchantId, orderData) {
         orderData.message != null && String(orderData.message).trim()
             ? String(orderData.message).trim().slice(0, 50)
             : '';
+    const custom3 =
+        orderData.videoId != null && String(orderData.videoId).trim()
+            ? String(orderData.videoId).trim().slice(0, 50)
+            : '';
 
     const data = {
         MerchantID: merchantId,
@@ -210,6 +228,7 @@ async function createPayment(merchantId, orderData) {
         ItemName: orderData.itemName || '卡片',
         ...(custom1 !== '' && { CustomField1: custom1 }),
         ...(custom2 !== '' && { CustomField2: custom2 }),
+        ...(custom3 !== '' && { CustomField3: custom3 }),
         ReturnURL: (() => {
             const base =
                 process.env.NODE_ENV === 'production'

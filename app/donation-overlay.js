@@ -1,13 +1,27 @@
 import './css/donation-overlay.css';
 import './css/donation-overlay-water.css';
+import './css/donation-overlay-youtube.css';
 import ActiveStatusKeeper from './js/active-keeper.js';
-import { showDonationOverlayAlert } from './js/donation-overlay-alert.js';
+import {
+    showDonationOverlayAlert,
+    DONATION_OVERLAY_ALERT_MS,
+} from './js/donation-overlay-alert.js';
 import {
     initDonationBellVolumeFromUrl,
     isDonationBellAudioUnlocked,
     playDonationBell,
     unlockDonationBellAudio,
 } from './js/play-donation-bell.js';
+import { createDonationYoutubeQueue } from './js/donation-overlay-youtube-queue.js';
+
+/** 與 donation-overlay-youtube-queue.js 的 safetyMs 一致，讓文字覆蓋層與影片切段對齊 */
+function videoTaskOverlayHoldMs(playSec) {
+    const sec = Number(playSec);
+    if (!Number.isFinite(sec) || sec <= 0) {
+        return DONATION_OVERLAY_ALERT_MS;
+    }
+    return Math.max(sec * 1000 + 5000, 8000);
+}
 
 function getQueryParam(name) {
     const url = new URL(window.location.href);
@@ -19,6 +33,16 @@ function showMissingMerchant(rootEl) {
     rootEl.className = 'donation-overlay-empty';
     rootEl.textContent =
         '請在網址加上 ?merchantId=你的特店代號（例如 donation-overlay.html?merchantId=xxx）';
+}
+
+function getOverlayElements(rootEl) {
+    const stage =
+        document.getElementById('donationOverlayStage') ||
+        document.getElementById('appRoot');
+    const ytMount =
+        document.getElementById('donationYoutubeMount') ||
+        document.getElementById('appRoot');
+    return { stage: stage || rootEl, ytMount: ytMount || rootEl };
 }
 
 function init() {
@@ -39,17 +63,32 @@ function init() {
 
     installDonationOverlayAudioUnlock();
 
+    const { stage: stageEl, ytMount: ytMountEl } = getOverlayElements(rootEl);
+    const ytQueue = createDonationYoutubeQueue(ytMountEl);
+
     const activeKeeper = new ActiveStatusKeeper(id, 3001, {
         onMessage(msg) {
             if (msg.type !== 'new-donation') {
                 return;
             }
             playDonationBell();
-            showDonationOverlayAlert(rootEl, {
+            const vt = msg.videoTask;
+            const visibleMs =
+                vt && vt.playSec
+                    ? Math.max(
+                          DONATION_OVERLAY_ALERT_MS,
+                          videoTaskOverlayHoldMs(vt.playSec)
+                      )
+                    : undefined;
+            showDonationOverlayAlert(stageEl, {
                 name: msg.name,
                 cost: msg.cost,
                 message: msg.message,
+                visibleMs,
             });
+            if (vt) {
+                ytQueue.enqueue(vt);
+            }
         },
     });
     activeKeeper.connect();
@@ -68,8 +107,6 @@ function installDonationOverlayAudioUnlock() {
     wrap.className = 'donation-overlay-audio-hint';
     wrap.setAttribute('role', 'button');
     wrap.setAttribute('tabindex', '0');
-    wrap.innerHTML =
-        '<div class="donation-overlay-audio-hint-inner">請點擊此處或畫面任意處以啟用提示音<br /><kbd>瀏覽器／OBS 需一次點擊才允許播放音效</kbd></div>';
     document.body.appendChild(wrap);
 
     let unlocking = false;

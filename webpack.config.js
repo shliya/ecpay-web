@@ -18,6 +18,10 @@ module.exports = {
         ichibanClient: path.resolve(__dirname, 'app/ichiban-client.js'),
         ichiban: path.resolve(__dirname, 'app/ichiban.js'),
         viewerDonate: path.resolve(__dirname, 'app/viewer-donate.js'),
+        viewerDonateYoutube: path.resolve(
+            __dirname,
+            'app/viewer-donate-youtube.js'
+        ),
         donateTheme: path.resolve(__dirname, 'app/donate-theme.js'),
         donationOverlay: path.resolve(__dirname, 'app/donation-overlay.js'),
         donationOverlaySettings: path.resolve(
@@ -188,6 +192,21 @@ module.exports = {
             ),
             filename: 'viewer-donate.html',
             chunks: ['viewerDonate'],
+            inject: true,
+            scriptLoading: 'defer',
+            minify: {
+                removeComments: true,
+                collapseWhitespace: true,
+            },
+            cache: false,
+        }),
+        new HtmlWebpackPlugin({
+            template: path.resolve(
+                __dirname,
+                'app/templates/viewer-donate-youtube.html'
+            ),
+            filename: 'viewer-donate-youtube.html',
+            chunks: ['viewerDonateYoutube'],
             inject: true,
             scriptLoading: 'defer',
             minify: {

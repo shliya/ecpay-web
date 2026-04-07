@@ -55,7 +55,11 @@ async function createDonation(row, { transaction, skipDedupCheck } = {}) {
     const shouldCommit = !transaction;
 
     try {
-        await DonationStore.createDonation(row, {
+        const rowForDb = { ...row };
+        delete rowForDb.videoTask;
+        delete rowForDb.merTradeNo;
+
+        await DonationStore.createDonation(rowForDb, {
             transaction: txn,
         });
 
@@ -76,7 +80,7 @@ async function createDonation(row, { transaction, skipDedupCheck } = {}) {
             if (ichibanWebSocketServer) {
                 const wsMerchantId = await resolveMerchantIdForWebSocket(row);
                 if (wsMerchantId) {
-                    ichibanWebSocketServer.broadcastToMerchant(wsMerchantId, {
+                    const wsPayload = {
                         type: 'new-donation',
                         name: row.name,
                         cost: row.cost,
@@ -86,7 +90,14 @@ async function createDonation(row, { transaction, skipDedupCheck } = {}) {
                                 ? row.type
                                 : ENUM_DONATION_TYPE.ECPAY,
                         timestamp: new Date().toISOString(),
-                    });
+                    };
+                    if (row.videoTask) {
+                        wsPayload.videoTask = row.videoTask;
+                    }
+                    ichibanWebSocketServer.broadcastToMerchant(
+                        wsMerchantId,
+                        wsPayload
+                    );
                 }
             }
         }
