@@ -86,6 +86,12 @@ const FundraisingEvents = sequelize.define(
             defaultValue: DataTypes.NOW,
             field: 'created_at',
         },
+        updated_at: {
+            type: DataTypes.DATE,
+            allowNull: false,
+            defaultValue: DataTypes.NOW,
+            field: 'updated_at',
+        },
     },
     {
         tableName: 'fundraising_events',
