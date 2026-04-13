@@ -93,6 +93,18 @@ const EcpayConfig = sequelize.define(
             field: 'blockedKeywords',
             defaultValue: [],
         },
+        youtubeDonationEnabled: {
+            type: DataTypes.BOOLEAN,
+            allowNull: true,
+            defaultValue: false,
+            field: 'youtubeDonationEnabled',
+        },
+        youtubeDonationAmount: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+            defaultValue: 30,
+            field: 'youtubeDonationAmount',
+        },
     },
     {
         tableName: 'ecpay_config',

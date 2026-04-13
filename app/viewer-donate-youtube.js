@@ -1,15 +1,6 @@
 import './css/viewer-donate.css';
 
 (function () {
-    function computePlaySecondsFromAmount(amount) {
-        const n = Math.floor(Number(amount));
-        if (!Number.isFinite(n) || n < 30) {
-            return 0;
-        }
-        const sec = Math.floor(n / 30) * 5;
-        return Math.min(30, Math.max(5, sec));
-    }
-
     function getQuery(name) {
         var params = new URLSearchParams(window.location.search);
         return (params.get(name) || '').trim();
@@ -110,7 +101,17 @@ import './css/viewer-donate.css';
         }
     }
 
-    function updateYtHint(amountInput, youtubeInput) {
+    function computeYoutubePlaySeconds(amount, pricing) {
+        var p = Math.max(1, pricing.pricePerSec || 30);
+        var maxS = Math.max(1, pricing.maxPlaySec || 30);
+        var n = Math.floor(Number(amount));
+        if (!Number.isFinite(n) || n < p) {
+            return 0;
+        }
+        return Math.min(maxS, Math.floor(n / p));
+    }
+
+    function updateYtHint(amountInput, youtubeInput, pricing) {
         var hint = document.getElementById('ytSecondsHint');
         if (!hint) return;
         var amt =
@@ -119,14 +120,21 @@ import './css/viewer-donate.css';
                 : 0;
         var yt =
             youtubeInput && youtubeInput.value ? youtubeInput.value.trim() : '';
+        var minPay = Math.max(1, pricing.pricePerSec || 30);
+        var maxS = Math.max(1, pricing.maxPlaySec || 30);
         if (!yt) {
             hint.textContent =
-                '貼上 YouTube 影片連結後，會依金額計算可播放秒數（每 30 元 5 秒，最多 30 秒）。';
+                '貼上 YouTube 影片連結後，會依「每秒 ' +
+                minPay +
+                ' 元」換算可播放秒數（單筆最多 ' +
+                maxS +
+                ' 秒）。';
             return;
         }
-        var sec = computePlaySecondsFromAmount(amt);
+        var sec = computeYoutubePlaySeconds(amt, pricing);
         if (sec <= 0) {
-            hint.textContent = '已填影片連結時，金額至少需 30 元。';
+            hint.textContent =
+                '已填影片連結時，金額至少需 ' + minPay + ' 元（每秒 ' + minPay + ' 元）。';
             return;
         }
         hint.textContent =
@@ -212,6 +220,8 @@ import './css/viewer-donate.css';
     }
 
     function runPage(merchantId) {
+        var pricing = { pricePerSec: 30, maxPlaySec: 30 };
+
         fetch(
             '/api/v1/comme/ecpay/config/public/id=' +
                 encodeURIComponent(merchantId)
@@ -225,17 +235,44 @@ import './css/viewer-donate.css';
             })
             .then(function (data) {
                 if (data.themeColors) applyTheme(data.themeColors);
+                if (data.youtubeDonationAmount != null) {
+                    var pp = parseInt(data.youtubeDonationAmount, 10);
+                    if (Number.isFinite(pp) && pp >= 1) {
+                        pricing.pricePerSec = Math.min(9999, pp);
+                    }
+                }
+                if (data.youtubeDonationMaxPlaySec != null) {
+                    var mx = parseInt(data.youtubeDonationMaxPlaySec, 10);
+                    if (Number.isFinite(mx) && mx >= 1) {
+                        pricing.maxPlaySec = mx;
+                    }
+                }
             })
-            .catch(function () {});
+            .catch(function () {})
+            .finally(function () {
+                mountYoutubeDonatePage(merchantId, pricing);
+            });
+    }
 
+    function mountYoutubeDonatePage(merchantId, pricing) {
         const amountInput = document.getElementById('amount');
         const youtubeInput = document.getElementById('youtubeUrl');
         const quickBtns = document.querySelectorAll('.quick button');
         const btnEcpay = document.getElementById('btnEcpay');
         const linkPayuni = document.getElementById('linkPayuni');
 
+        var minPay = Math.max(1, pricing.pricePerSec || 30);
+
         function wireHint() {
-            updateYtHint(amountInput, youtubeInput);
+            updateYtHint(amountInput, youtubeInput, pricing);
+        }
+
+        function minAmountRequired() {
+            var yt =
+                youtubeInput && youtubeInput.value
+                    ? youtubeInput.value.trim()
+                    : '';
+            return yt ? minPay : 30;
         }
 
         if (youtubeInput) {
@@ -260,8 +297,10 @@ import './css/viewer-donate.css';
                     wireHint();
                     return;
                 }
-                if (num < 30) {
-                    showError('金額至少需要 30 元');
+                if (num < minAmountRequired()) {
+                    showError(
+                        '金額至少需要 ' + minAmountRequired() + ' 元'
+                    );
                     setTimeout(function () {
                         showError('');
                     }, 2000);
@@ -292,13 +331,17 @@ import './css/viewer-donate.css';
                 var num = parseFloat(paste);
                 if (
                     !isNaN(num) &&
-                    num >= 30 &&
+                    num >= minAmountRequired() &&
                     num > 0 &&
                     Number.isInteger(num)
                 ) {
                     e.target.value = Math.floor(num);
                 } else {
-                    showError('請貼上有效的金額（至少 30 元）');
+                    showError(
+                        '請貼上有效的金額（至少 ' +
+                            minAmountRequired() +
+                            ' 元）'
+                    );
                     setTimeout(function () {
                         showError('');
                     }, 2000);
@@ -353,12 +396,18 @@ import './css/viewer-donate.css';
                     ? parseInt(amountInput.value, 10)
                     : 0;
             const youtubeUrl = getYoutubeUrlPayload();
-            if (!amount || isNaN(amount) || amount < 30) {
-                showError('請輸入有效金額（至少 30 元）');
+            const need = minAmountRequired();
+            if (!amount || isNaN(amount) || amount < need) {
+                showError('請輸入有效金額（至少 ' + need + ' 元）');
                 return false;
             }
-            if (youtubeUrl && computePlaySecondsFromAmount(amount) <= 0) {
-                showError('影片斗內金額至少 30 元');
+            if (
+                youtubeUrl &&
+                computeYoutubePlaySeconds(amount, pricing) <= 0
+            ) {
+                showError(
+                    '影片斗內金額須至少 ' + minPay + ' 元（每秒 ' + minPay + ' 元）'
+                );
                 return false;
             }
             if (youtubeUrl && !youtubeUrl.trim()) {

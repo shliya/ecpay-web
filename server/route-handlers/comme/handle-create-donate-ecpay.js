@@ -5,6 +5,7 @@ const {
     parseYoutubeDonationFromInput,
     encodeYoutubeVideoPayloadForPayment,
     computePlaySecondsFromAmount,
+    getYoutubePricePerSecFromConfig,
 } = require('../../lib/youtube-donation');
 
 module.exports = async (req, res) => {
@@ -31,6 +32,14 @@ module.exports = async (req, res) => {
             return;
         }
 
+        const config = await getEcpayConfigByMerchantId(merchantId.trim());
+        if (!config) {
+            res.status(404).json({ error: '找不到該商店設定' });
+            return;
+        }
+
+        const pricePerSec = getYoutubePricePerSecFromConfig(config);
+
         let videoId = null;
         if (youtubeUrl != null && String(youtubeUrl).trim()) {
             const yt = parseYoutubeDonationFromInput(String(youtubeUrl));
@@ -40,9 +49,9 @@ module.exports = async (req, res) => {
                 });
                 return;
             }
-            if (computePlaySecondsFromAmount(amountNum) <= 0) {
+            if (computePlaySecondsFromAmount(amountNum, pricePerSec) <= 0) {
                 res.status(400).json({
-                    error: '影片斗內金額至少 30 元',
+                    error: `影片斗內金額須至少 ${pricePerSec} 元（每秒 ${pricePerSec} 元）`,
                 });
                 return;
             }
@@ -50,12 +59,6 @@ module.exports = async (req, res) => {
                 yt.videoId,
                 yt.startSec
             );
-        }
-
-        const config = await getEcpayConfigByMerchantId(merchantId.trim());
-        if (!config) {
-            res.status(404).json({ error: '找不到該商店設定' });
-            return;
         }
 
         const orderData = {

@@ -21,6 +21,10 @@ module.exports = async (req, res) => {
             payuniMerchantId: config.payuniMerchantId || null,
             youtubeChannelHandle: config.youtubeChannelHandle || null,
             youtubeChannelId: config.youtubeChannelId || null,
+            youtubeDonationAmount:
+                config.youtubeDonationAmount != null
+                    ? Number(config.youtubeDonationAmount)
+                    : null,
             themeColors: config.themeColors || null,
             blockedKeywords: config.blockedKeywords || [],
         });

@@ -12,15 +12,14 @@
             <div class="label">NAME</div>
             <input class="input" id="nickname" placeholder="你的暱稱" />
             <div class="label">DONATION（金額）</div>
-            <input class="input" id="amount" type="number" min="100" step="1" />
+            <input class="input" id="amount" type="number" min="1" step="1" />
             <div class="quick">
                 <button type="button" data-value="100">100</button>
                 <button type="button" data-value="300">300</button>
                 <button type="button" data-value="500">500</button>
             </div>
             <p class="yt-hint" id="ytSecondsHint">
-                貼上 YouTube 影片連結後，會依金額計算可播放秒數（每 100 元 5
-                秒，最多 30 秒）。
+                貼上 YouTube 影片連結後，會依商店設定的每秒單價換算可播放秒數。
             </p>
             <div class="label">YOUTUBE 影片</div>
             <input

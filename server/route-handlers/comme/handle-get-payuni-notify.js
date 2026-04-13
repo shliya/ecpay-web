@@ -25,6 +25,7 @@ module.exports = async (req, res) => {
                 'payuniMerchantId',
                 'payuniHashKey',
                 'payuniHashIV',
+                'youtubeDonationAmount',
             ],
         });
 
@@ -36,6 +37,7 @@ module.exports = async (req, res) => {
             hashKey: config.payuniHashKey,
             hashIV: config.payuniHashIV,
             ecpayConfigId: config.id,
+            youtubeDonationAmount: config.youtubeDonationAmount,
         });
 
         if (!row) {

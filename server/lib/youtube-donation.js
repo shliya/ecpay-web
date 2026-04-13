@@ -1,8 +1,13 @@
 /**
  * YouTube 斗內影片：videoId 解析、網址內起始時間（t= / start=）、金額換算播放秒數、videoTask 結構。
- * 規則：每 30 元 +5 秒，最少 5 秒（金額須 ≥30），上限 30 秒。
+ * 計價：每秒單價（元／秒）由商店設定 `youtubeDonationAmount` 決定；可播放秒數 = floor(付款金額 / 單價)，上限見 YOUTUBE_DONATION_MAX_PLAY_SEC。
  * 付款回調欄位長度有限時，使用緊湊格式：videoId@startSec（例如 zqbDOwWFJwk@19）。
  */
+
+/** 未設定或非法時使用的每秒單價（與 DB default 對齊） */
+const DEFAULT_YOUTUBE_PRICE_PER_SEC = 30;
+/** 單筆斗內最多播放秒數（與商店設定擴充前之常數） */
+const YOUTUBE_DONATION_MAX_PLAY_SEC = 30;
 
 const YOUTUBE_VIDEO_ID_RE = /^[a-zA-Z0-9_-]{11}$/;
 /** 與付款 CustomField / Notify URL 相容的緊湊 payload */
@@ -167,12 +172,25 @@ function resolveVideoPayloadForTask(payload) {
  * @param {string|null} [sourceUrl]
  * @returns {{ videoId: string, playSec: number, startSec: number, sourceUrl: string|null }|null}
  */
-function buildVideoTaskFromVideoIdAndCost(payload, cost, sourceUrl = null) {
+/**
+ * @param {object} [options]
+ * @param {number} [options.pricePerSec] 每秒單價（元），預設 DEFAULT_YOUTUBE_PRICE_PER_SEC
+ */
+function buildVideoTaskFromVideoIdAndCost(
+    payload,
+    cost,
+    sourceUrl = null,
+    options = {}
+) {
     const { videoId, startSec } = resolveVideoPayloadForTask(payload);
     if (!videoId || !YOUTUBE_VIDEO_ID_RE.test(videoId)) {
         return null;
     }
-    const playSec = computePlaySecondsFromAmount(cost);
+    const pricePerSec =
+        options && options.pricePerSec != null
+            ? options.pricePerSec
+            : DEFAULT_YOUTUBE_PRICE_PER_SEC;
+    const playSec = computePlaySecondsFromAmount(cost, pricePerSec);
     if (playSec <= 0) {
         return null;
     }
@@ -187,23 +205,51 @@ function buildVideoTaskFromVideoIdAndCost(payload, cost, sourceUrl = null) {
     };
 }
 
+function normalizeYoutubePricePerSec(value) {
+    const n = Math.floor(Number(value));
+    if (!Number.isFinite(n) || n < 1) {
+        return DEFAULT_YOUTUBE_PRICE_PER_SEC;
+    }
+    return Math.min(9999, n);
+}
+
 /**
- * @param {number|string} amount
- * @returns {number} 可播放秒數；金額不足 30 或非法時為 0
+ * 從 ecpay_config 列讀取每秒單價（元／秒）
+ * @param {object|null|undefined} config
+ * @returns {number}
  */
-function computePlaySecondsFromAmount(amount) {
+function getYoutubePricePerSecFromConfig(config) {
+    if (!config || config.youtubeDonationAmount == null) {
+        return DEFAULT_YOUTUBE_PRICE_PER_SEC;
+    }
+    return normalizeYoutubePricePerSec(config.youtubeDonationAmount);
+}
+
+/**
+ * @param {number|string} amount 付款金額
+ * @param {number} [pricePerSec] 每秒單價（元）
+ * @returns {number} 可播放秒數；不足以播滿 1 秒或非法時為 0
+ */
+function computePlaySecondsFromAmount(
+    amount,
+    pricePerSec = DEFAULT_YOUTUBE_PRICE_PER_SEC
+) {
+    const p = normalizeYoutubePricePerSec(pricePerSec);
     const n = Math.floor(Number(amount));
-    if (!Number.isFinite(n) || n < 30) {
+    if (!Number.isFinite(n) || n < p) {
         return 0;
     }
-    const sec = Math.floor(n / 30) * 5;
-    return Math.min(30, Math.max(5, sec));
+    return Math.min(YOUTUBE_DONATION_MAX_PLAY_SEC, Math.floor(n / p));
 }
 
 module.exports = {
     YOUTUBE_VIDEO_ID_RE,
     STORED_VIDEO_PAYLOAD_RE,
     MAX_YOUTUBE_START_SEC,
+    DEFAULT_YOUTUBE_PRICE_PER_SEC,
+    YOUTUBE_DONATION_MAX_PLAY_SEC,
+    normalizeYoutubePricePerSec,
+    getYoutubePricePerSecFromConfig,
     computePlaySecondsFromAmount,
     parseYoutubeVideoIdFromInput,
     parseYoutubeStartSecondsFromInput,

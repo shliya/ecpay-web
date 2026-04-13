@@ -34,6 +34,14 @@
                     <button class="tab-button" data-tab="payuni" id="tabPayuni">
                         PAYUNi
                     </button>
+                    <button
+                        class="tab-button"
+                        data-tab="youtubeDonation"
+                        id="tabYoutubeDonation"
+                        type="button"
+                    >
+                        影音斗內
+                    </button>
                 </div>
 
                 <div class="settings-content">
@@ -258,6 +266,111 @@
                             <button type="submit" class="btn btn-save">
                                 儲存
                             </button>
+                        </form>
+                    </div>
+
+                    <!-- 影音斗內定價 -->
+                    <div class="tab-panel" id="panelYoutubeDonation">
+                        <h2>影音斗內定價</h2>
+                        <p class="yt-pricing-lead">
+                            <svg
+                                class="yt-pricing-icon"
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="20"
+                                height="20"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                aria-hidden="true"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                                />
+                            </svg>
+                            自訂「每秒單價」，觀眾付款金額會換算成可播放秒數（單筆上限
+                            <span id="ytMaxSecLabel">30</span> 秒）。
+                        </p>
+                        <form id="youtubeDonationForm" class="settings-form">
+                            <div class="form-group">
+                                <label for="youtubeDonationAmount"
+                                    >每 1 秒多少錢（新台幣）</label
+                                >
+                                <input
+                                    type="number"
+                                    id="youtubeDonationAmount"
+                                    name="youtubeDonationAmount"
+                                    min="1"
+                                    max="9999"
+                                    step="1"
+                                    inputmode="numeric"
+                                    required
+                                    autocomplete="off"
+                                />
+                                <small class="form-hint"
+                                    >例：6 表示每播放 1 秒需 6
+                                    元；觀眾付 100 元約可播 16 秒（仍受單筆上限限制）。</small
+                                >
+                            </div>
+                            <div
+                                class="yt-pricing-preview"
+                                aria-labelledby="ytPreviewHeading"
+                            >
+                                <h3 id="ytPreviewHeading" class="yt-preview-title">
+                                    試算預覽
+                                </h3>
+                                <div class="form-group">
+                                    <label for="ytPreviewAmount"
+                                        >假設觀眾付款金額（元）</label
+                                    >
+                                    <input
+                                        type="range"
+                                        id="ytPreviewAmount"
+                                        min="30"
+                                        max="2000"
+                                        step="10"
+                                        value="300"
+                                    />
+                                    <div class="yt-preview-row">
+                                        <input
+                                            type="number"
+                                            id="ytPreviewAmountNum"
+                                            min="1"
+                                            max="100000"
+                                            step="1"
+                                            value="300"
+                                            class="yt-preview-amount-input"
+                                            aria-describedby="ytPreviewResult"
+                                        />
+                                        <span class="yt-preview-unit">元</span>
+                                    </div>
+                                </div>
+                                <div
+                                    id="ytPreviewResult"
+                                    class="yt-preview-result"
+                                    aria-live="polite"
+                                >
+                                    約可播放 <strong id="ytPreviewSec">—</strong> 秒
+                                </div>
+                                <ul
+                                    class="yt-preview-examples"
+                                    id="ytPreviewExamples"
+                                ></ul>
+                            </div>
+                            <div class="form-actions-row">
+                                <button
+                                    type="button"
+                                    class="btn btn-secondary"
+                                    id="btnYoutubeDonationReset"
+                                >
+                                    還原預設
+                                </button>
+                                <button type="submit" class="btn btn-save">
+                                    儲存
+                                </button>
+                            </div>
                         </form>
                     </div>
 

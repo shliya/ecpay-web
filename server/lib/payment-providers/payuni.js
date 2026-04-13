@@ -2,7 +2,10 @@ const crypto = require('crypto');
 const path = require('path');
 const querystring = require('querystring');
 const { ENUM_DONATION_TYPE } = require('../enum'); // 記得在 enum 加上 PAYUNI
-const { buildVideoTaskFromVideoIdAndCost } = require('../youtube-donation');
+const {
+    buildVideoTaskFromVideoIdAndCost,
+    getYoutubePricePerSecFromConfig,
+} = require('../youtube-donation');
 
 require('dotenv').config({ path: path.resolve(__dirname, '../../../.env') });
 
@@ -146,7 +149,11 @@ function parseDonationCallback(reqBody, reqQuery, config) {
         if (vid != null && String(vid).trim()) {
             const videoTask = buildVideoTaskFromVideoIdAndCost(
                 String(vid).trim(),
-                costNum
+                costNum,
+                null,
+                {
+                    pricePerSec: getYoutubePricePerSecFromConfig(config),
+                }
             );
             if (videoTask) {
                 row.videoTask = videoTask;

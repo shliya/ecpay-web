@@ -8,6 +8,7 @@ const {
     parseYoutubeDonationFromInput,
     encodeYoutubeVideoPayloadForPayment,
     computePlaySecondsFromAmount,
+    getYoutubePricePerSecFromConfig,
 } = require('../../lib/youtube-donation');
 
 module.exports = async (req, res) => {
@@ -34,27 +35,6 @@ module.exports = async (req, res) => {
             return;
         }
 
-        let videoId = null;
-        if (youtubeUrl != null && String(youtubeUrl).trim()) {
-            const yt = parseYoutubeDonationFromInput(String(youtubeUrl));
-            if (!yt.videoId) {
-                res.status(400).json({
-                    error: 'YouTube 網址或影片 ID 格式不正確',
-                });
-                return;
-            }
-            if (computePlaySecondsFromAmount(amountNum) <= 0) {
-                res.status(400).json({
-                    error: '影片斗內金額至少 30 元',
-                });
-                return;
-            }
-            videoId = encodeYoutubeVideoPayloadForPayment(
-                yt.videoId,
-                yt.startSec
-            );
-        }
-
         const ecpayConfig = await getPayuniMerchantIdByMerchantId(
             merchantId.trim()
         );
@@ -70,12 +50,36 @@ module.exports = async (req, res) => {
                     'payuniMerchantId',
                     'payuniHashKey',
                     'payuniHashIV',
+                    'youtubeDonationAmount',
                 ],
             }
         );
         if (!config) {
             res.status(404).json({ error: '找不到該商店設定' });
             return;
+        }
+
+        const pricePerSec = getYoutubePricePerSecFromConfig(config);
+
+        let videoId = null;
+        if (youtubeUrl != null && String(youtubeUrl).trim()) {
+            const yt = parseYoutubeDonationFromInput(String(youtubeUrl));
+            if (!yt.videoId) {
+                res.status(400).json({
+                    error: 'YouTube 網址或影片 ID 格式不正確',
+                });
+                return;
+            }
+            if (computePlaySecondsFromAmount(amountNum, pricePerSec) <= 0) {
+                res.status(400).json({
+                    error: `影片斗內金額須至少 ${pricePerSec} 元（每秒 ${pricePerSec} 元）`,
+                });
+                return;
+            }
+            videoId = encodeYoutubeVideoPayloadForPayment(
+                yt.videoId,
+                yt.startSec
+            );
         }
 
         const orderData = {

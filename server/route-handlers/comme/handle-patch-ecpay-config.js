@@ -70,6 +70,10 @@ module.exports = async (req, res) => {
             payuniMerchantId: updated.payuniMerchantId || null,
             youtubeChannelHandle: updated.youtubeChannelHandle || null,
             youtubeChannelId: updated.youtubeChannelId || null,
+            youtubeDonationAmount:
+                updated.youtubeDonationAmount != null
+                    ? Number(updated.youtubeDonationAmount)
+                    : null,
             themeColors: updated.themeColors || null,
             blockedKeywords,
             hasSensitiveEcpayUpdate: hasSensitiveEcpay,

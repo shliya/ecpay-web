@@ -6,7 +6,10 @@ const qs = require('qs');
 const { getEcpayConfigByMerchantId } = require('../../store/ecpay-config');
 const { decryptDataAndUrlDecode } = require('../../service/decrypt');
 const { ENUM_DONATION_TYPE } = require('../enum');
-const { buildVideoTaskFromVideoIdAndCost } = require('../youtube-donation');
+const {
+    buildVideoTaskFromVideoIdAndCost,
+    getYoutubePricePerSecFromConfig,
+} = require('../youtube-donation');
 
 require('dotenv').config({ path: path.resolve(__dirname, '../../../.env') });
 
@@ -174,7 +177,9 @@ function parseUrlDonationCallback(reqBody, config) {
             ? String(reqBody.CustomField3).trim()
             : '';
     if (cf3) {
-        const videoTask = buildVideoTaskFromVideoIdAndCost(cf3, cost);
+        const videoTask = buildVideoTaskFromVideoIdAndCost(cf3, cost, null, {
+            pricePerSec: getYoutubePricePerSecFromConfig(config),
+        });
         if (videoTask) {
             row.videoTask = videoTask;
         }
