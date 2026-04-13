@@ -117,6 +117,12 @@ const EcpayConfig = sequelize.define(
             defaultValue: 30,
             field: 'youtubeDonationAmount',
         },
+        youtubeDonationMaxPlaySec: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+            defaultValue: 30,
+            field: 'youtubeDonationMaxPlaySec',
+        },
     },
     {
         tableName: 'ecpay_config',

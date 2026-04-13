@@ -101,6 +101,7 @@ async function init() {
 
     const enabledEl = document.getElementById('ytDonationEnabled');
     const amtEl = document.getElementById('ytDonationAmount');
+    const maxSecEl = document.getElementById('ytDonationMaxPlaySec');
     const saveBtn = document.getElementById('btnSaveYtDonation');
     const msgEl = document.getElementById('ytDonationMsg');
     const volumeRange = document.getElementById('donationYoutubeVolume');
@@ -232,6 +233,17 @@ async function init() {
                 amtEl.value = String(Math.min(9999, Math.floor(n)));
             }
         }
+        if (maxSecEl) {
+            const m =
+                data.youtubeDonationMaxPlaySec != null
+                    ? Number(data.youtubeDonationMaxPlaySec)
+                    : 30;
+            if (Number.isFinite(m) && m >= 1) {
+                maxSecEl.value = String(Math.min(9999, Math.floor(m)));
+            } else {
+                maxSecEl.value = '30';
+            }
+        }
     } catch (err) {
         setYtDonationMsg(msgEl, err.message || '載入失敗', 'err');
     }
@@ -286,6 +298,16 @@ async function init() {
                 );
                 return;
             }
+            const rawMax = maxSecEl ? maxSecEl.value.trim() : '';
+            const maxSec = parseInt(rawMax, 10);
+            if (!Number.isFinite(maxSec) || maxSec < 1 || maxSec > 9999) {
+                setYtDonationMsg(
+                    msgEl,
+                    '請輸入有效的單筆可播放秒數上限（1～9999）',
+                    'err'
+                );
+                return;
+            }
 
             async function patchOnce() {
                 return fetch(
@@ -298,6 +320,7 @@ async function init() {
                         body: JSON.stringify({
                             youtubeDonationEnabled: enabled,
                             youtubeDonationAmount: n,
+                            youtubeDonationMaxPlaySec: maxSec,
                         }),
                     }
                 );
@@ -339,6 +362,12 @@ async function init() {
                     const nn = Number(result.youtubeDonationAmount);
                     if (Number.isFinite(nn) && nn >= 1) {
                         amtEl.value = String(Math.min(9999, Math.floor(nn)));
+                    }
+                }
+                if (maxSecEl && result.youtubeDonationMaxPlaySec != null) {
+                    const mm = Number(result.youtubeDonationMaxPlaySec);
+                    if (Number.isFinite(mm) && mm >= 1) {
+                        maxSecEl.value = String(Math.min(9999, Math.floor(mm)));
                     }
                 }
                 setYtDonationMsg(msgEl, '已儲存', 'ok');

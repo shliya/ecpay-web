@@ -70,6 +70,13 @@ function normalizeUpdateField(field, value) {
         }
         return Math.min(9999, n);
     }
+    if (field === 'youtubeDonationMaxPlaySec') {
+        const n = Math.floor(Number(value));
+        if (!Number.isFinite(n) || n < 1) {
+            return null;
+        }
+        return Math.min(9999, n);
+    }
     return value;
 }
 
@@ -84,6 +91,7 @@ async function updateEcpayConfig(merchantId, updates) {
         'youtubeChannelHandle',
         'youtubeChannelId',
         'youtubeDonationAmount',
+        'youtubeDonationMaxPlaySec',
         'themeColors',
         'blockedKeywords',
         'ecpayEnabled',
@@ -95,7 +103,11 @@ async function updateEcpayConfig(merchantId, updates) {
     for (const field of allowedFields) {
         if (Object.hasOwn(updates, field)) {
             const normalized = normalizeUpdateField(field, updates[field]);
-            if (field === 'youtubeDonationAmount' && normalized === null) {
+            if (
+                (field === 'youtubeDonationAmount' ||
+                    field === 'youtubeDonationMaxPlaySec') &&
+                normalized === null
+            ) {
                 continue;
             }
             if (

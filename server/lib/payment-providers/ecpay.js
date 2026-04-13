@@ -9,6 +9,7 @@ const { ENUM_DONATION_TYPE } = require('../enum');
 const {
     buildVideoTaskFromVideoIdAndCost,
     getYoutubePricePerSecFromConfig,
+    getYoutubeMaxPlaySecFromConfig,
 } = require('../youtube-donation');
 
 require('dotenv').config({ path: path.resolve(__dirname, '../../../.env') });
@@ -179,6 +180,7 @@ function parseUrlDonationCallback(reqBody, config) {
     if (cf3) {
         const videoTask = buildVideoTaskFromVideoIdAndCost(cf3, cost, null, {
             pricePerSec: getYoutubePricePerSecFromConfig(config),
+            maxPlaySec: getYoutubeMaxPlaySecFromConfig(config),
         });
         if (videoTask) {
             row.videoTask = videoTask;

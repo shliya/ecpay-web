@@ -1,5 +1,5 @@
 /**
- * 新增 ecpay_config youtubeDonationEnabled 和 youtubeDonationAmount 啟用欄位。
+ * 新增 ecpay_config：youtubeDonationEnabled、youtubeDonationAmount、youtubeDonationMaxPlaySec（單筆可播放秒數上限）。
  * 執行：node server/migration/addYoutubeDonationAmountColumnsToEcpayConfig.js
  */
 const sequelize = require('../config/database');
@@ -12,6 +12,10 @@ const COLUMNS = [
     {
         name: 'youtubeDonationAmount',
         sql: 'ADD COLUMN "youtubeDonationAmount" INTEGER NULL DEFAULT 50',
+    },
+    {
+        name: 'youtubeDonationMaxPlaySec',
+        sql: 'ADD COLUMN "youtubeDonationMaxPlaySec" INTEGER NULL DEFAULT 30',
     },
 ];
 

@@ -3,7 +3,7 @@ import './css/settings.css';
 import { requireTotpVerification, getTotpToken } from './js/totp-guard.js';
 
 (function () {
-    const YT_MAX_PLAY_SEC = 30;
+    const DEFAULT_YT_MAX_PLAY_SEC = 30;
     const DEFAULT_YT_PRICE_PER_SEC = 30;
 
     let merchantId = null;
@@ -166,6 +166,21 @@ import { requireTotpVerification, getTotpToken } from './js/totp-guard.js';
             ytDonAmt.value =
                 Number.isFinite(v) && v >= 1 ? v : DEFAULT_YT_PRICE_PER_SEC;
         }
+        const ytMaxSec = document.getElementById('youtubeDonationMaxPlaySec');
+        if (ytMaxSec) {
+            const m =
+                config.youtubeDonationMaxPlaySec != null &&
+                config.youtubeDonationMaxPlaySec !== ''
+                    ? Number(config.youtubeDonationMaxPlaySec)
+                    : DEFAULT_YT_MAX_PLAY_SEC;
+            ytMaxSec.value =
+                Number.isFinite(m) && m >= 1 ? m : DEFAULT_YT_MAX_PLAY_SEC;
+        }
+        const ytMaxSecLabel = document.getElementById('ytMaxSecLabel');
+        if (ytMaxSecLabel) {
+            const m = getYoutubeMaxPlaySecInput();
+            ytMaxSecLabel.textContent = String(m);
+        }
         updateYoutubeDonationPreview();
         setPaymentToggleFromConfig(config);
     }
@@ -180,13 +195,24 @@ import { requireTotpVerification, getTotpToken } from './js/totp-guard.js';
         return Math.min(9999, n);
     }
 
+    function getYoutubeMaxPlaySecInput() {
+        const el = document.getElementById('youtubeDonationMaxPlaySec');
+        if (!el) return DEFAULT_YT_MAX_PLAY_SEC;
+        const n = parseInt(String(el.value).trim(), 10);
+        if (!Number.isFinite(n) || n < 1) {
+            return DEFAULT_YT_MAX_PLAY_SEC;
+        }
+        return Math.min(9999, n);
+    }
+
     function computeYoutubePreviewSeconds(paymentAmount, pricePerSec) {
+        const cap = getYoutubeMaxPlaySecInput();
         const p = Math.max(1, Math.floor(Number(pricePerSec)) || 1);
         const n = Math.floor(Number(paymentAmount));
         if (!Number.isFinite(n) || n < p) {
             return 0;
         }
-        return Math.min(YT_MAX_PLAY_SEC, Math.floor(n / p));
+        return Math.min(cap, Math.floor(n / p));
     }
 
     function updateYoutubeDonationPreview() {
@@ -373,6 +399,14 @@ import { requireTotpVerification, getTotpToken } from './js/totp-guard.js';
             showMessage('每秒單價須為 1～9999 的正整數', 'error');
             return;
         }
+        const rawMax = document.getElementById('youtubeDonationMaxPlaySec');
+        const maxSec = rawMax
+            ? parseInt(String(rawMax.value).trim(), 10)
+            : DEFAULT_YT_MAX_PLAY_SEC;
+        if (!Number.isFinite(maxSec) || maxSec < 1 || maxSec > 9999) {
+            showMessage('單筆可播放秒數上限須為 1～9999 的正整數', 'error');
+            return;
+        }
 
         try {
             const response = await fetch(
@@ -387,6 +421,7 @@ import { requireTotpVerification, getTotpToken } from './js/totp-guard.js';
                             document.getElementById('youtubeDonationEnabled')
                                 ?.checked ?? false,
                         youtubeDonationAmount: n,
+                        youtubeDonationMaxPlaySec: maxSec,
                     }),
                 }
             );
@@ -404,6 +439,14 @@ import { requireTotpVerification, getTotpToken } from './js/totp-guard.js';
             if (ytEl && result.youtubeDonationAmount != null) {
                 ytEl.value = Number(result.youtubeDonationAmount);
             }
+            const ytMaxEl = document.getElementById('youtubeDonationMaxPlaySec');
+            if (ytMaxEl && result.youtubeDonationMaxPlaySec != null) {
+                ytMaxEl.value = Number(result.youtubeDonationMaxPlaySec);
+            }
+            const ytMaxSecLabel = document.getElementById('ytMaxSecLabel');
+            if (ytMaxSecLabel) {
+                ytMaxSecLabel.textContent = String(getYoutubeMaxPlaySecInput());
+            }
             updateYoutubeDonationPreview();
         } catch (error) {
             console.error('儲存影音斗內定價錯誤:', error);
@@ -420,6 +463,23 @@ import { requireTotpVerification, getTotpToken } from './js/totp-guard.js';
         if (amtInput) {
             amtInput.addEventListener('input', updateYoutubeDonationPreview);
             amtInput.addEventListener('change', updateYoutubeDonationPreview);
+        }
+        const maxSecInput = document.getElementById('youtubeDonationMaxPlaySec');
+        if (maxSecInput) {
+            maxSecInput.addEventListener('input', () => {
+                const el = document.getElementById('ytMaxSecLabel');
+                if (el) {
+                    el.textContent = String(getYoutubeMaxPlaySecInput());
+                }
+                updateYoutubeDonationPreview();
+            });
+            maxSecInput.addEventListener('change', () => {
+                const el = document.getElementById('ytMaxSecLabel');
+                if (el) {
+                    el.textContent = String(getYoutubeMaxPlaySecInput());
+                }
+                updateYoutubeDonationPreview();
+            });
         }
         if (rangeEl) {
             rangeEl.addEventListener('input', () => {

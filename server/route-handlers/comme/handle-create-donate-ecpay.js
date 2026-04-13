@@ -6,6 +6,7 @@ const {
     encodeYoutubeVideoPayloadForPayment,
     computePlaySecondsFromAmount,
     getYoutubePricePerSecFromConfig,
+    getYoutubeMaxPlaySecFromConfig,
 } = require('../../lib/youtube-donation');
 
 module.exports = async (req, res) => {
@@ -50,6 +51,7 @@ module.exports = async (req, res) => {
         }
 
         const pricePerSec = getYoutubePricePerSecFromConfig(config);
+        const maxPlaySec = getYoutubeMaxPlaySecFromConfig(config);
 
         let videoId = null;
         if (youtubeUrl != null && String(youtubeUrl).trim()) {
@@ -60,7 +62,13 @@ module.exports = async (req, res) => {
                 });
                 return;
             }
-            if (computePlaySecondsFromAmount(amountNum, pricePerSec) <= 0) {
+            if (
+                computePlaySecondsFromAmount(
+                    amountNum,
+                    pricePerSec,
+                    maxPlaySec
+                ) <= 0
+            ) {
                 res.status(400).json({
                     error: `影片斗內金額須至少 ${pricePerSec} 元（每秒 ${pricePerSec} 元）`,
                 });

@@ -5,6 +5,7 @@ const { ENUM_DONATION_TYPE } = require('../enum'); // 記得在 enum 加上 PAYU
 const {
     buildVideoTaskFromVideoIdAndCost,
     getYoutubePricePerSecFromConfig,
+    getYoutubeMaxPlaySecFromConfig,
 } = require('../youtube-donation');
 
 require('dotenv').config({ path: path.resolve(__dirname, '../../../.env') });
@@ -153,6 +154,7 @@ function parseDonationCallback(reqBody, reqQuery, config) {
                 null,
                 {
                     pricePerSec: getYoutubePricePerSecFromConfig(config),
+                    maxPlaySec: getYoutubeMaxPlaySecFromConfig(config),
                 }
             );
             if (videoTask) {

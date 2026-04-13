@@ -352,6 +352,25 @@
                                     元；觀眾付 100 元約可播 16 秒（仍受單筆上限限制）。</small
                                 >
                             </div>
+                            <div class="form-group">
+                                <label for="youtubeDonationMaxPlaySec"
+                                    >單筆可播放秒數上限</label
+                                >
+                                <input
+                                    type="number"
+                                    id="youtubeDonationMaxPlaySec"
+                                    name="youtubeDonationMaxPlaySec"
+                                    min="1"
+                                    max="9999"
+                                    step="1"
+                                    inputmode="numeric"
+                                    required
+                                    autocomplete="off"
+                                />
+                                <small class="form-hint"
+                                    >單筆付款換算後，影片最多可播放的秒數（1～9999）。</small
+                                >
+                            </div>
                             <div
                                 class="yt-pricing-preview"
                                 aria-labelledby="ytPreviewHeading"

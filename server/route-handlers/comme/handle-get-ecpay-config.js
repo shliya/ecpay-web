@@ -25,6 +25,10 @@ module.exports = async (req, res) => {
                 config.youtubeDonationAmount != null
                     ? Number(config.youtubeDonationAmount)
                     : null,
+            youtubeDonationMaxPlaySec:
+                config.youtubeDonationMaxPlaySec != null
+                    ? Number(config.youtubeDonationMaxPlaySec)
+                    : null,
             themeColors: config.themeColors || null,
             blockedKeywords: config.blockedKeywords || [],
             ecpayEnabled: config.ecpayEnabled !== false,

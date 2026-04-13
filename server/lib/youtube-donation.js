@@ -1,6 +1,6 @@
 /**
  * YouTube 斗內影片：videoId 解析、網址內起始時間（t= / start=）、金額換算播放秒數、videoTask 結構。
- * 計價：每秒單價（元／秒）由商店設定 `youtubeDonationAmount` 決定；可播放秒數 = floor(付款金額 / 單價)，上限見 YOUTUBE_DONATION_MAX_PLAY_SEC。
+ * 計價：每秒單價（元／秒）由 `youtubeDonationAmount` 決定；可播放秒數 = floor(付款金額 / 單價)，單筆上限由 `youtubeDonationMaxPlaySec`（未設定時用常數 YOUTUBE_DONATION_MAX_PLAY_SEC）。
  * 付款回調欄位長度有限時，使用緊湊格式：videoId@startSec（例如 zqbDOwWFJwk@19）。
  */
 
@@ -190,7 +190,11 @@ function buildVideoTaskFromVideoIdAndCost(
         options && options.pricePerSec != null
             ? options.pricePerSec
             : DEFAULT_YOUTUBE_PRICE_PER_SEC;
-    const playSec = computePlaySecondsFromAmount(cost, pricePerSec);
+    const maxPlaySec =
+        options && options.maxPlaySec != null
+            ? options.maxPlaySec
+            : YOUTUBE_DONATION_MAX_PLAY_SEC;
+    const playSec = computePlaySecondsFromAmount(cost, pricePerSec, maxPlaySec);
     if (playSec <= 0) {
         return null;
     }
@@ -213,6 +217,14 @@ function normalizeYoutubePricePerSec(value) {
     return Math.min(9999, n);
 }
 
+function normalizeYoutubeMaxPlaySec(value) {
+    const n = Math.floor(Number(value));
+    if (!Number.isFinite(n) || n < 1) {
+        return YOUTUBE_DONATION_MAX_PLAY_SEC;
+    }
+    return Math.min(9999, n);
+}
+
 /**
  * 從 ecpay_config 列讀取每秒單價（元／秒）
  * @param {object|null|undefined} config
@@ -226,20 +238,35 @@ function getYoutubePricePerSecFromConfig(config) {
 }
 
 /**
+ * 從 ecpay_config 讀取單筆可播放秒數上限
+ * @param {object|null|undefined} config
+ * @returns {number}
+ */
+function getYoutubeMaxPlaySecFromConfig(config) {
+    if (!config || config.youtubeDonationMaxPlaySec == null) {
+        return YOUTUBE_DONATION_MAX_PLAY_SEC;
+    }
+    return normalizeYoutubeMaxPlaySec(config.youtubeDonationMaxPlaySec);
+}
+
+/**
  * @param {number|string} amount 付款金額
  * @param {number} [pricePerSec] 每秒單價（元）
+ * @param {number} [maxPlaySec] 單筆可播放秒數上限
  * @returns {number} 可播放秒數；不足以播滿 1 秒或非法時為 0
  */
 function computePlaySecondsFromAmount(
     amount,
-    pricePerSec = DEFAULT_YOUTUBE_PRICE_PER_SEC
+    pricePerSec = DEFAULT_YOUTUBE_PRICE_PER_SEC,
+    maxPlaySec = YOUTUBE_DONATION_MAX_PLAY_SEC
 ) {
     const p = normalizeYoutubePricePerSec(pricePerSec);
+    const cap = normalizeYoutubeMaxPlaySec(maxPlaySec);
     const n = Math.floor(Number(amount));
     if (!Number.isFinite(n) || n < p) {
         return 0;
     }
-    return Math.min(YOUTUBE_DONATION_MAX_PLAY_SEC, Math.floor(n / p));
+    return Math.min(cap, Math.floor(n / p));
 }
 
 module.exports = {
@@ -249,7 +276,9 @@ module.exports = {
     DEFAULT_YOUTUBE_PRICE_PER_SEC,
     YOUTUBE_DONATION_MAX_PLAY_SEC,
     normalizeYoutubePricePerSec,
+    normalizeYoutubeMaxPlaySec,
     getYoutubePricePerSecFromConfig,
+    getYoutubeMaxPlaySecFromConfig,
     computePlaySecondsFromAmount,
     parseYoutubeVideoIdFromInput,
     parseYoutubeStartSecondsFromInput,
