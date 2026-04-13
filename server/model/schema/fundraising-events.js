@@ -86,10 +86,24 @@ const FundraisingEvents = sequelize.define(
             defaultValue: DataTypes.NOW,
             field: 'created_at',
         },
+        updated_at: {
+            type: DataTypes.DATE,
+            allowNull: false,
+            defaultValue: DataTypes.NOW,
+            field: 'updated_at',
+        },
     },
     {
         tableName: 'fundraising_events',
         timestamps: false,
+        hooks: {
+            beforeBulkUpdate(options) {
+                if (!options.attributes) {
+                    options.attributes = {};
+                }
+                options.attributes.updated_at = new Date();
+            },
+        },
         indexes: [
             {
                 name: 'idx_fundraising_events_ecpayConfigId',
