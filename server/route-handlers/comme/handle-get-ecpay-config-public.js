@@ -18,6 +18,8 @@ function toPublicConfig(config) {
         youtubeChannelHandle: config.youtubeChannelHandle || null,
         youtubeChannelId: config.youtubeChannelId || null,
         themeColors: config.themeColors || null,
+        ecpayEnabled: config.ecpayEnabled !== false,
+        payuniEnabled: config.payuniEnabled !== false,
         youtubeDonationAmount,
         youtubeDonationMaxPlaySec: YOUTUBE_DONATION_MAX_PLAY_SEC,
     };

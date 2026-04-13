@@ -26,15 +26,15 @@ async function resolveMerchantIdForWebSocket(row) {
     if (!key) {
         return null;
     }
-    const cfg = await getEcpayConfigByMerchantId(key);
-    if (!cfg) {
+    const config = await getEcpayConfigByMerchantId(key);
+    if (!config) {
         return key;
     }
-    if (cfg.merchantId && String(cfg.merchantId).trim()) {
-        return String(cfg.merchantId).trim();
+    if (config.merchantId && String(config.merchantId).trim()) {
+        return String(config.merchantId).trim();
     }
-    if (cfg.payuniMerchantId && String(cfg.payuniMerchantId).trim()) {
-        return String(cfg.payuniMerchantId).trim();
+    if (config.payuniMerchantId && String(config.payuniMerchantId).trim()) {
+        return String(config.payuniMerchantId).trim();
     }
     return key;
 }

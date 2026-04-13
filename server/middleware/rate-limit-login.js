@@ -1,7 +1,7 @@
 const rateLimit = require('express-rate-limit');
 
 const LOGIN_WINDOW_MS = 60 * 60 * 1000;
-const LOGIN_MAX_REQUESTS = 30;
+const LOGIN_MAX_REQUESTS = 100;
 
 const loginRateLimiter = rateLimit({
     windowMs: LOGIN_WINDOW_MS,

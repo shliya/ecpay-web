@@ -74,6 +74,7 @@ async function updateEcpayConfig(merchantId, updateData) {
     }
 
     await row.update(updateData);
+    await row.reload();
     return row;
 }
 

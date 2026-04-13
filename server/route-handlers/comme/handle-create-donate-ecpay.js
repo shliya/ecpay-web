@@ -37,6 +37,10 @@ module.exports = async (req, res) => {
             res.status(404).json({ error: '找不到該商店設定' });
             return;
         }
+        if (config.ecpayEnabled === false) {
+            res.status(403).json({ error: '此付款已關閉' });
+            return;
+        }
 
         const pricePerSec = getYoutubePricePerSecFromConfig(config);
 

@@ -1,7 +1,7 @@
 const {
     getPayuniConfigByPayuniMerchantId,
-    getPayuniMerchantIdByMerchantId,
 } = require('../../service/ecpay-config');
+const { getEcpayConfigByMerchantId } = require('../../store/ecpay-config');
 const { createPayment } = require('../../lib/payment-providers/payuni');
 const { getSafeApiErrorMessage } = require('../../lib/safe-error-message');
 const {
@@ -34,17 +34,22 @@ module.exports = async (req, res) => {
             res.status(400).json({ error: 'amount 不可超過 100000' });
             return;
         }
-
-        const ecpayConfig = await getPayuniMerchantIdByMerchantId(
-            merchantId.trim()
-        );
-        if (!ecpayConfig) {
+        const row = await getEcpayConfigByMerchantId(merchantId.trim());
+        if (!row) {
+            res.status(404).json({ error: '找不到該商店設定' });
+            return;
+        }
+        if (row.payuniEnabled === false) {
+            res.status(403).json({ error: '此付款已關閉' });
+            return;
+        }
+        if (!row.payuniMerchantId) {
             res.status(404).json({ error: '找不到該商店設定' });
             return;
         }
 
         const config = await getPayuniConfigByPayuniMerchantId(
-            ecpayConfig.payuniMerchantId,
+            row.payuniMerchantId,
             {
                 properties: [
                     'payuniMerchantId',
