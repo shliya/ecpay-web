@@ -4,9 +4,7 @@ const {
     getPaymentOrder,
     deletePaymentOrder,
 } = require('../../store/payment-order');
-const {
-    getEcpayConfigByMerchantId,
-} = require('../../store/ecpay-config');
+const { getEcpayConfigByMerchantId } = require('../../store/ecpay-config');
 const {
     verifyEcpayReturnCheckMac,
 } = require('../../lib/payment-providers/ecpay');

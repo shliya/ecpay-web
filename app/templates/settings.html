@@ -87,6 +87,24 @@
                     <div class="tab-panel" id="panelEcpay">
                         <h2>綠界設定</h2>
                         <form id="ecpayForm" class="settings-form">
+                            <div class="form-group settings-switch-row">
+                                <div class="settings-switch-text">
+                                    <span class="settings-switch-title"
+                                        >開放觀眾使用綠界斗內</span
+                                    >
+                                    <small class="form-hint"
+                                        >關閉後觀眾斗內頁將隱藏綠界按鈕，且無法建立綠界訂單</small
+                                    >
+                                </div>
+                                <label class="settings-switch">
+                                    <input
+                                        type="checkbox"
+                                        id="ecpayEnabled"
+                                        name="ecpayEnabled"
+                                    />
+                                    <span class="settings-switch-slider"></span>
+                                </label>
+                            </div>
                             <div class="form-group">
                                 <label for="merchantId">商店代號</label>
                                 <input
@@ -265,6 +283,25 @@
                     <div class="tab-panel" id="panelPayuni">
                         <h2>PAYUNi 設定</h2>
                         <form id="payuniForm" class="settings-form">
+                            <div class="form-group settings-switch-row">
+                                <div class="settings-switch-text">
+                                    <span class="settings-switch-title"
+                                        >開放觀眾使用 PAYUNi 斗內</span
+                                    >
+                                    <small class="form-hint"
+                                        >關閉後觀眾斗內頁將隱藏 PAYUNi
+                                        連結，且無法建立 PAYUNi 訂單</small
+                                    >
+                                </div>
+                                <label class="settings-switch">
+                                    <input
+                                        type="checkbox"
+                                        id="payuniEnabled"
+                                        name="payuniEnabled"
+                                    />
+                                    <span class="settings-switch-slider"></span>
+                                </label>
+                            </div>
                             <div class="form-group">
                                 <label for="payuniMerchantId"
                                     >PAYUNi 商店代號</label

@@ -111,7 +111,7 @@ import './css/viewer-donate.css';
                 .then(function (config) {
                     showError('');
                     if (config.displayName) {
-                        runPage(merchantId);
+                        return runPage(merchantId, config);
                     } else {
                         showError(
                             '此實況主尚未設定顯示名稱，請先至設定頁面設定後再使用'
@@ -129,7 +129,7 @@ import './css/viewer-donate.css';
                 .then(function (resolvedId) {
                     showError('');
                     if (resolvedId) {
-                        runPage(resolvedId);
+                        return runPage(resolvedId);
                     } else {
                         showError(
                             '找不到對應的實況主（請確認網址的 name 是否正確）'
@@ -173,22 +173,33 @@ import './css/viewer-donate.css';
         });
     }
 
-    function runPage(merchantId) {
-        fetch(
-            '/api/v1/comme/ecpay/config/public/id=' +
-                encodeURIComponent(merchantId)
-        )
-            .then(async function (r) {
-                try {
-                    return await r.json();
-                } catch {
-                    return {};
-                }
-            })
-            .then(function (data) {
-                if (data.themeColors) applyTheme(data.themeColors);
-            })
-            .catch(function () {});
+    function applyPaymentVisibility(cfg) {
+        cfg = cfg || {};
+        var ecpayOk = cfg.ecpayEnabled !== false;
+        var payuniOk = cfg.payuniEnabled !== false;
+        var btnEcpay = document.getElementById('btnEcpay');
+        var altLinks = document.querySelector('.alt-links');
+        if (btnEcpay) {
+            btnEcpay.style.display = ecpayOk ? '' : 'none';
+        }
+        if (altLinks) {
+            altLinks.style.display = payuniOk ? '' : 'none';
+        }
+    }
+
+    async function runPage(merchantId, prefetchedConfig) {
+        var data = {};
+        try {
+            var r = await fetch(
+                '/api/v1/comme/ecpay/config/public/id=' +
+                    encodeURIComponent(merchantId)
+            );
+            data = await r.json();
+        } catch {
+            data = prefetchedConfig || {};
+        }
+        if (data.themeColors) applyTheme(data.themeColors);
+        applyPaymentVisibility(data);
 
         const amountInput = document.getElementById('amount');
         const quickBtns = document.querySelectorAll('.quick button');

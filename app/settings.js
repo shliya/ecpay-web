@@ -92,6 +92,17 @@ import { requireTotpVerification, getTotpToken } from './js/totp-guard.js';
         });
     }
 
+    function setPaymentToggleFromConfig(config) {
+        const ecpayEnabledEl = document.getElementById('ecpayEnabled');
+        if (ecpayEnabledEl) {
+            ecpayEnabledEl.checked = config.ecpayEnabled !== false;
+        }
+        const payuniEnabledEl = document.getElementById('payuniEnabled');
+        if (payuniEnabledEl) {
+            payuniEnabledEl.checked = config.payuniEnabled !== false;
+        }
+    }
+
     function populateForms(config) {
         const displayNameEl = document.getElementById('displayName');
         if (displayNameEl) {
@@ -135,6 +146,8 @@ import { requireTotpVerification, getTotpToken } from './js/totp-guard.js';
 
         const payuniHashIVEl = document.getElementById('payuniHashIV');
         if (payuniHashIVEl) payuniHashIVEl.value = config.payuniHashIV || '';
+
+        setPaymentToggleFromConfig(config);
     }
 
     function setupTabs() {
@@ -208,11 +221,6 @@ import { requireTotpVerification, getTotpToken } from './js/totp-guard.js';
         const hashKey = document.getElementById('hashKey').value.trim();
         const hashIV = document.getElementById('hashIV').value.trim();
 
-        if (!hashKey || !hashIV) {
-            showMessage('請填寫所有必填欄位', 'error');
-            return;
-        }
-
         try {
             const response = await fetch(
                 `/api/v1/comme/ecpay/config/id=${encodeURIComponent(merchantId)}`,
@@ -224,6 +232,9 @@ import { requireTotpVerification, getTotpToken } from './js/totp-guard.js';
                     body: JSON.stringify({
                         hashKey,
                         hashIV,
+                        ecpayEnabled:
+                            document.getElementById('ecpayEnabled')?.checked ??
+                            true,
                     }),
                 }
             );
@@ -236,6 +247,7 @@ import { requireTotpVerification, getTotpToken } from './js/totp-guard.js';
 
             showMessage('綠界設定已儲存', 'success');
             currentConfig = result;
+            setPaymentToggleFromConfig(result);
         } catch (error) {
             console.error('儲存綠界設定錯誤:', error);
             showMessage('儲存失敗: ' + error.message, 'error');
@@ -288,11 +300,6 @@ import { requireTotpVerification, getTotpToken } from './js/totp-guard.js';
         const payuniHashKey = document.getElementById('payuniHashKey').value;
         const payuniHashIV = document.getElementById('payuniHashIV').value;
 
-        if (!payuniMerchantId || !payuniHashKey || !payuniHashIV) {
-            showMessage('請填寫所有必填欄位', 'error');
-            return;
-        }
-
         try {
             const response = await fetch(
                 `/api/v1/comme/ecpay/config/id=${encodeURIComponent(merchantId)}`,
@@ -305,6 +312,9 @@ import { requireTotpVerification, getTotpToken } from './js/totp-guard.js';
                         payuniMerchantId,
                         payuniHashKey,
                         payuniHashIV,
+                        payuniEnabled:
+                            document.getElementById('payuniEnabled')?.checked ??
+                            true,
                     }),
                 }
             );
@@ -317,6 +327,7 @@ import { requireTotpVerification, getTotpToken } from './js/totp-guard.js';
 
             showMessage('PAYUNi 設定已儲存', 'success');
             currentConfig = result;
+            setPaymentToggleFromConfig(result);
         } catch (error) {
             console.error('儲存 PAYUNi 設定錯誤:', error);
             showMessage('儲存失敗: ' + error.message, 'error');
