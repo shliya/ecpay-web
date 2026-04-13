@@ -29,7 +29,7 @@ function sanitizeUpdates(rawUpdates) {
     }
 
     for (const key of ECPAY_HASH_KEYS) {
-        if (Object.hasOwn(result, key) && result[key] === null) {
+        if (Object.hasOwn(result, key) && !result[key]) {
             delete result[key];
         }
     }
