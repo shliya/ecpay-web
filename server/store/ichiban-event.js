@@ -63,7 +63,12 @@ async function updateIchibanEventByIdAndMerchantId(
     { eventName, description, totalCards }
 ) {
     return ichibanEventModel.update(
-        { eventName, description, totalCards },
+        {
+            eventName,
+            description,
+            totalCards,
+            updatedAt: new Date(),
+        },
         {
             where: { id, merchantId },
         }
@@ -82,6 +87,7 @@ async function updateIchibanEventOpenedCards(eventId, { transaction } = {}) {
     return ichibanEventModel.update(
         {
             openedCards: sequelize.literal('opened_cards + 1'),
+            updatedAt: new Date(),
         },
         {
             where: { id: eventId },
@@ -92,7 +98,7 @@ async function updateIchibanEventOpenedCards(eventId, { transaction } = {}) {
 
 async function updateIchibanEventStatus(eventId, status, { transaction } = {}) {
     return ichibanEventModel.update(
-        { status },
+        { status, updatedAt: new Date() },
         {
             where: { id: eventId },
             transaction,
@@ -106,6 +112,7 @@ async function expireOutdatedEvents() {
     const [updatedRowsCount] = await ichibanEventModel.update(
         {
             status: ENUM_ICHIBAN_EVENT_STATUS.ENDED,
+            updatedAt: new Date(),
         },
         {
             where: {
