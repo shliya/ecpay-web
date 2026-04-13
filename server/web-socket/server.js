@@ -2,7 +2,9 @@ const WebSocket = require('ws');
 const http = require('http');
 const IchibanEventStore = require('../store/ichiban-event');
 const IchibanCardStore = require('../store/ichiban-card');
-const { ENUM_ICHIBAN_CARD_STATUS } = require('../lib/enum');
+const {
+    ENUM_ICHIBAN_CARD_STATUS,
+} = require('../lib/enum');
 const {
     createPayment: createEcpayPayment,
 } = require('../lib/payment-providers/ecpay');
@@ -15,7 +17,6 @@ const {
     getPaymentOrderByEventAndCard,
     deletePaymentOrder,
 } = require('../store/payment-order');
-const { ENUM_ICHIBAN_EVENT_STATUS } = require('../lib/enum');
 
 const {
     updateMerchantActiveTime,
@@ -138,14 +139,6 @@ class IchibanWebSocketServer {
                 case 'leave-event':
                     this.handleLeaveEvent(clientId, message.eventId);
                     break;
-                case 'open-card':
-                    console.log('open-card:', message);
-                    await this.handleOpenCard(
-                        clientId,
-                        message.eventId,
-                        message.cardIndex
-                    );
-                    break;
                 case 'lock-card':
                     console.log('lock-card:', message);
                     await this.handleLockCard(
@@ -213,87 +206,6 @@ class IchibanWebSocketServer {
         console.log(
             `Client ${clientId} joined event ${eventId} (merchant: ${client.merchantId})`
         );
-    }
-
-    async handleOpenCard(clientId, eventId, cardIndex) {
-        const client = this.clients.get(clientId);
-        if (!client) return;
-
-        try {
-            const card =
-                await IchibanCardStore.getIchibanCardByEventIdAndCardIndexAndStatus(
-                    eventId,
-                    cardIndex,
-                    ENUM_ICHIBAN_CARD_STATUS.LOCKED
-                );
-
-            if (!card) {
-                this.sendError(clientId, 'Card not found or not locked');
-                return;
-            }
-
-            await IchibanCardStore.updateIchibanCardByIdAndStatus(card.id, {
-                status: ENUM_ICHIBAN_CARD_STATUS.OPENED,
-                openedAt: new Date(),
-                openedBy: clientId,
-            });
-
-            this.clearPaymentTimeout(clientId, eventId, cardIndex);
-
-            const eventUpdated =
-                await IchibanEventStore.incrementOpenedCards(eventId);
-
-            const prizeName = card.prize?.prizeName || '未知獎品';
-
-            this.broadcastToRoom(`event-${eventId}`, {
-                type: 'card-opened',
-                eventId: eventId,
-                cardIndex: cardIndex,
-                prizeName: prizeName,
-                openedBy: clientId,
-                openedByClientId: clientId,
-                timestamp: new Date().toISOString(),
-            });
-
-            this.broadcastToRoom(`merchant-${client.merchantId}`, {
-                type: 'card-opened-notification',
-                eventId: eventId,
-                cardIndex: cardIndex,
-                prizeName: prizeName,
-                openedBy: clientId,
-                openedByClientId: clientId,
-                timestamp: new Date().toISOString(),
-            });
-
-            // 檢查活動是否已結束
-            const event =
-                await IchibanEventStore.getIchibanEventByIdAndMerchantId(
-                    eventId,
-                    client.merchantId
-                );
-            if (event && event.status === ENUM_ICHIBAN_EVENT_STATUS.ENDED) {
-                this.broadcastToRoom(`event-${eventId}`, {
-                    type: 'event-ended',
-                    eventId: eventId,
-                    message: '活動已結束 - 所有卡片都已開啟',
-                    timestamp: new Date().toISOString(),
-                });
-
-                this.broadcastToRoom(`merchant-${client.merchantId}`, {
-                    type: 'event-ended-notification',
-                    eventId: eventId,
-                    message: '活動已結束 - 所有卡片都已開啟',
-                    timestamp: new Date().toISOString(),
-                });
-            }
-
-            console.log(
-                `Card ${cardIndex} opened in event ${eventId} by ${clientId} (merchant: ${client.merchantId}) - Prize: ${prizeName}`
-            );
-        } catch (error) {
-            console.error('Error opening card:', error);
-            this.sendError(clientId, 'Failed to open card');
-        }
     }
 
     async handleLockCard(clientId, eventId, cardIndex, nickname) {
