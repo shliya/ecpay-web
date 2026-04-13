@@ -80,6 +80,14 @@ const IchibanEvent = sequelize.define(
     {
         tableName: 'ichiban_events',
         timestamps: false,
+        hooks: {
+            beforeBulkUpdate(options) {
+                if (!options.attributes) {
+                    options.attributes = {};
+                }
+                options.attributes.updatedAt = new Date();
+            },
+        },
         indexes: [
             {
                 name: 'idx_merchant_id',

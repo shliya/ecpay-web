@@ -110,7 +110,7 @@ async function expireOutdatedEvents() {
         {
             where: {
                 status: ENUM_ICHIBAN_EVENT_STATUS.ACTIVE,
-                endMonth: {
+                endTime: {
                     [Op.lt]: currentDate,
                 },
             },
