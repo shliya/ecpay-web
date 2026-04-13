@@ -23,6 +23,8 @@ module.exports = async (req, res) => {
             youtubeChannelId: config.youtubeChannelId || null,
             themeColors: config.themeColors || null,
             blockedKeywords: config.blockedKeywords || [],
+            ecpayEnabled: config.ecpayEnabled !== false,
+            payuniEnabled: config.payuniEnabled !== false,
         });
     } catch (error) {
         console.error('[get-ecpay-config]', error);

@@ -39,6 +39,10 @@ const ALLOWED_THEME_COLOR_KEYS = new Set([
 ]);
 
 function normalizeUpdateField(field, value) {
+    if (field === 'ecpayEnabled' || field === 'payuniEnabled') {
+        if (value === true || value === false) return value;
+        return null;
+    }
     if (field === 'themeColors') {
         if (
             value == null ||
@@ -70,12 +74,21 @@ async function updateEcpayConfig(merchantId, updates) {
         'youtubeChannelId',
         'themeColors',
         'blockedKeywords',
+        'ecpayEnabled',
+        'payuniEnabled',
     ];
     const updateData = {};
 
     for (const field of allowedFields) {
         if (Object.hasOwn(updates, field)) {
-            updateData[field] = normalizeUpdateField(field, updates[field]);
+            const normalized = normalizeUpdateField(field, updates[field]);
+            if (
+                (field === 'ecpayEnabled' || field === 'payuniEnabled') &&
+                normalized === null
+            ) {
+                continue;
+            }
+            updateData[field] = normalized;
         }
     }
 

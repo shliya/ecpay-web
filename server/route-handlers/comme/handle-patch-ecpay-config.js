@@ -15,6 +15,8 @@ function normalizeBlockedKeywords(value) {
         .map(keyword => keyword.replace(/[<>"'`]/g, ''));
 }
 
+const ECPAY_HASH_KEYS = ['hashKey', 'hashIV'];
+
 function sanitizeUpdates(rawUpdates) {
     const updates =
         rawUpdates && typeof rawUpdates === 'object' ? rawUpdates : {};
@@ -24,6 +26,12 @@ function sanitizeUpdates(rawUpdates) {
         result.blockedKeywords = normalizeBlockedKeywords(
             updates.blockedKeywords
         );
+    }
+
+    for (const key of ECPAY_HASH_KEYS) {
+        if (Object.hasOwn(result, key) && result[key] === null) {
+            delete result[key];
+        }
     }
 
     return result;
@@ -72,6 +80,8 @@ module.exports = async (req, res) => {
             youtubeChannelId: updated.youtubeChannelId || null,
             themeColors: updated.themeColors || null,
             blockedKeywords,
+            ecpayEnabled: updated.ecpayEnabled !== false,
+            payuniEnabled: updated.payuniEnabled !== false,
             hasSensitiveEcpayUpdate: hasSensitiveEcpay,
             hasSensitivePayuniUpdate: hasSensitivePayuni,
         };
