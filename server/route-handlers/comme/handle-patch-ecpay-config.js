@@ -78,10 +78,19 @@ module.exports = async (req, res) => {
             payuniMerchantId: updated.payuniMerchantId || null,
             youtubeChannelHandle: updated.youtubeChannelHandle || null,
             youtubeChannelId: updated.youtubeChannelId || null,
+            youtubeDonationAmount:
+                updated.youtubeDonationAmount != null
+                    ? Number(updated.youtubeDonationAmount)
+                    : null,
+            youtubeDonationMaxPlaySec:
+                updated.youtubeDonationMaxPlaySec != null
+                    ? Number(updated.youtubeDonationMaxPlaySec)
+                    : null,
             themeColors: updated.themeColors || null,
             blockedKeywords,
             ecpayEnabled: updated.ecpayEnabled !== false,
             payuniEnabled: updated.payuniEnabled !== false,
+            youtubeDonationEnabled: updated.youtubeDonationEnabled === true,
             hasSensitiveEcpayUpdate: hasSensitiveEcpay,
             hasSensitivePayuniUpdate: hasSensitivePayuni,
         };

@@ -158,6 +158,28 @@ body {
     display: none;
 }
 
+.yt-hint {
+    font-size: 11px;
+    line-height: 1.45;
+    margin: 8px 0 0;
+    color: var(--donate-link-muted);
+}
+
+.alt-links .link-muted {
+    display: inline-block;
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--donate-link-muted);
+    text-decoration: underline;
+}
+
+.alt-sep {
+    display: inline-block;
+    margin: 0 6px;
+    color: var(--donate-link-muted);
+    opacity: 0.6;
+}
+
 .donation-animation-box {
     position: absolute;
     bottom: 40px;

@@ -1,5 +1,13 @@
 const ALERT_MS = 12000;
 
+function restoreDonationYoutubeMountToStack() {
+    const mount = document.getElementById('donationYoutubeMount');
+    const strip = document.querySelector('.donation-overlay-youtube-strip');
+    if (mount && strip && mount.parentElement !== strip) {
+        strip.appendChild(mount);
+    }
+}
+
 function formatAmountTwd(cost) {
     const n = parseInt(cost, 10) || 0;
     return new Intl.NumberFormat('zh-TW', {
@@ -24,12 +32,18 @@ function buildUserLines(name, message) {
 /**
  * 在 rootEl 內顯示斗內通知（drank-water 風格：透明底 + 圖片區 + 兩段文字）。
  * @param {HTMLElement} rootEl
- * @param {{ name?: string, cost?: number, message?: string, imageUrl?: string }} payload
+ * @param {{ name?: string, cost?: number, message?: string, imageUrl?: string, visibleMs?: number }} payload
  */
 export function showDonationOverlayAlert(
     rootEl,
-    { name, cost, message, imageUrl }
+    { name, cost, message, imageUrl, visibleMs }
 ) {
+    const holdMs =
+        visibleMs != null &&
+        Number.isFinite(Number(visibleMs)) &&
+        Number(visibleMs) > 0
+            ? Math.floor(Number(visibleMs))
+            : ALERT_MS;
     rootEl.innerHTML = '';
     rootEl.classList.add(
         'donation-overlay-root',
@@ -56,6 +70,13 @@ export function showDonationOverlayAlert(
 
     rowImg.appendChild(divImage);
 
+    const rowYoutube = document.createElement('div');
+    rowYoutube.className = 'donation-water-row-youtube';
+    const ytMount = document.getElementById('donationYoutubeMount');
+    if (ytMount) {
+        rowYoutube.appendChild(ytMount);
+    }
+
     const rowText = document.createElement('div');
     rowText.className = 'donation-water-row-text';
 
@@ -73,6 +94,7 @@ export function showDonationOverlayAlert(
     rowText.appendChild(divUserMsg);
 
     wrap.appendChild(rowImg);
+    wrap.appendChild(rowYoutube);
     wrap.appendChild(rowText);
 
     stage.appendChild(wrap);
@@ -94,13 +116,14 @@ export function showDonationOverlayAlert(
     window.setTimeout(() => {
         stage.classList.remove('is-visible');
         window.setTimeout(() => {
+            restoreDonationYoutubeMountToStack();
             rootEl.innerHTML = '';
             rootEl.classList.remove(
                 'donation-overlay-root',
                 'donation-overlay-root--water'
             );
         }, 400);
-    }, ALERT_MS);
+    }, holdMs);
 }
 
 export const DONATION_OVERLAY_ALERT_MS = ALERT_MS;

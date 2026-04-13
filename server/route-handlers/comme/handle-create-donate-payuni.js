@@ -4,10 +4,18 @@ const {
 const { getEcpayConfigByMerchantId } = require('../../store/ecpay-config');
 const { createPayment } = require('../../lib/payment-providers/payuni');
 const { getSafeApiErrorMessage } = require('../../lib/safe-error-message');
+const {
+    parseYoutubeDonationFromInput,
+    encodeYoutubeVideoPayloadForPayment,
+    computePlaySecondsFromAmount,
+    getYoutubePricePerSecFromConfig,
+    getYoutubeMaxPlaySecFromConfig,
+} = require('../../lib/youtube-donation');
 
 module.exports = async (req, res) => {
     try {
-        const { merchantId, amount, name, message } = req.body || {};
+        const { merchantId, amount, name, message, youtubeUrl } =
+            req.body || {};
 
         if (
             !merchantId ||
@@ -41,6 +49,13 @@ module.exports = async (req, res) => {
             return;
         }
 
+        const hasYoutubeUrl =
+            youtubeUrl != null && String(youtubeUrl).trim();
+        if (hasYoutubeUrl && row.youtubeDonationEnabled !== true) {
+            res.status(403).json({ error: '影音斗內已關閉' });
+            return;
+        }
+
         const config = await getPayuniConfigByPayuniMerchantId(
             row.payuniMerchantId,
             {
@@ -48,12 +63,44 @@ module.exports = async (req, res) => {
                     'payuniMerchantId',
                     'payuniHashKey',
                     'payuniHashIV',
+                    'youtubeDonationAmount',
+                    'youtubeDonationMaxPlaySec',
                 ],
             }
         );
         if (!config) {
             res.status(404).json({ error: '找不到該商店設定' });
             return;
+        }
+
+        const pricePerSec = getYoutubePricePerSecFromConfig(config);
+        const maxPlaySec = getYoutubeMaxPlaySecFromConfig(config);
+
+        let videoId = null;
+        if (youtubeUrl != null && String(youtubeUrl).trim()) {
+            const yt = parseYoutubeDonationFromInput(String(youtubeUrl));
+            if (!yt.videoId) {
+                res.status(400).json({
+                    error: 'YouTube 網址或影片 ID 格式不正確',
+                });
+                return;
+            }
+            if (
+                computePlaySecondsFromAmount(
+                    amountNum,
+                    pricePerSec,
+                    maxPlaySec
+                ) <= 0
+            ) {
+                res.status(400).json({
+                    error: `影片斗內金額須至少 ${pricePerSec} 元（每秒 ${pricePerSec} 元）`,
+                });
+                return;
+            }
+            videoId = encodeYoutubeVideoPayloadForPayment(
+                yt.videoId,
+                yt.startSec
+            );
         }
 
         const orderData = {
@@ -69,6 +116,10 @@ module.exports = async (req, res) => {
             name: name != null ? String(name).trim() : '',
             message: message != null ? String(message).trim() : '',
         };
+
+        if (videoId) {
+            orderData.videoId = videoId;
+        }
 
         const result = await createPayment(config.payuniMerchantId, orderData, {
             hashKey: config.payuniHashKey,

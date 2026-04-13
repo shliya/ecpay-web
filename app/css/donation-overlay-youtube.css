@@ -1,0 +1,60 @@
+.donation-overlay-app {
+    position: relative;
+    min-height: 100vh;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    /* 避免 100vh 內容 + YouTube 高度溢出後捲動，OBS 只看得見底部而誤以為影片在右下角 */
+    overflow: hidden;
+}
+
+.donation-overlay-stack {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    min-height: 0;
+}
+
+/* margin-top: auto 把「YouTube + 斗內區」整塊貼在視窗下緣，上方留白 */
+.donation-overlay-youtube-strip {
+    flex-shrink: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+    padding: 0 12px;
+    margin-top: auto;
+    margin-bottom: 10px;
+}
+
+.donation-youtube-mount {
+    position: relative;
+    z-index: 9000;
+    flex: 0 0 auto;
+    width: min(480px, 100%);
+    max-width: min(480px, 92vw);
+    aspect-ratio: 16 / 9;
+    max-height: min(45vh, 360px);
+    margin: 0;
+    /* 舊版 bundle 曾用 fixed+right+bottom；強制走文件流置中，避免快取 CSS 搶版面 */
+    inset: auto;
+    float: none;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.35s ease;
+}
+
+.donation-youtube-mount--active {
+    opacity: 1;
+}
+
+.donation-yt-player-host {
+    width: 100%;
+    height: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.55);
+}

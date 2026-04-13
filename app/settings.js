@@ -3,6 +3,9 @@ import './css/settings.css';
 import { requireTotpVerification, getTotpToken } from './js/totp-guard.js';
 
 (function () {
+    const DEFAULT_YT_MAX_PLAY_SEC = 30;
+    const DEFAULT_YT_PRICE_PER_SEC = 30;
+
     let merchantId = null;
     let currentConfig = null;
 
@@ -101,6 +104,13 @@ import { requireTotpVerification, getTotpToken } from './js/totp-guard.js';
         if (payuniEnabledEl) {
             payuniEnabledEl.checked = config.payuniEnabled !== false;
         }
+        const youtubeDonationEnabledEl = document.getElementById(
+            'youtubeDonationEnabled'
+        );
+        if (youtubeDonationEnabledEl) {
+            youtubeDonationEnabledEl.checked =
+                config.youtubeDonationEnabled === true;
+        }
     }
 
     function populateForms(config) {
@@ -146,8 +156,96 @@ import { requireTotpVerification, getTotpToken } from './js/totp-guard.js';
 
         const payuniHashIVEl = document.getElementById('payuniHashIV');
         if (payuniHashIVEl) payuniHashIVEl.value = config.payuniHashIV || '';
-
+        const ytDonAmt = document.getElementById('youtubeDonationAmount');
+        if (ytDonAmt) {
+            const v =
+                config.youtubeDonationAmount != null &&
+                config.youtubeDonationAmount !== ''
+                    ? Number(config.youtubeDonationAmount)
+                    : DEFAULT_YT_PRICE_PER_SEC;
+            ytDonAmt.value =
+                Number.isFinite(v) && v >= 1 ? v : DEFAULT_YT_PRICE_PER_SEC;
+        }
+        const ytMaxSec = document.getElementById('youtubeDonationMaxPlaySec');
+        if (ytMaxSec) {
+            const m =
+                config.youtubeDonationMaxPlaySec != null &&
+                config.youtubeDonationMaxPlaySec !== ''
+                    ? Number(config.youtubeDonationMaxPlaySec)
+                    : DEFAULT_YT_MAX_PLAY_SEC;
+            ytMaxSec.value =
+                Number.isFinite(m) && m >= 1 ? m : DEFAULT_YT_MAX_PLAY_SEC;
+        }
+        const ytMaxSecLabel = document.getElementById('ytMaxSecLabel');
+        if (ytMaxSecLabel) {
+            const m = getYoutubeMaxPlaySecInput();
+            ytMaxSecLabel.textContent = String(m);
+        }
+        updateYoutubeDonationPreview();
         setPaymentToggleFromConfig(config);
+    }
+
+    function getYoutubeDonationPriceInput() {
+        const el = document.getElementById('youtubeDonationAmount');
+        if (!el) return DEFAULT_YT_PRICE_PER_SEC;
+        const n = parseInt(String(el.value).trim(), 10);
+        if (!Number.isFinite(n) || n < 1) {
+            return DEFAULT_YT_PRICE_PER_SEC;
+        }
+        return Math.min(9999, n);
+    }
+
+    function getYoutubeMaxPlaySecInput() {
+        const el = document.getElementById('youtubeDonationMaxPlaySec');
+        if (!el) return DEFAULT_YT_MAX_PLAY_SEC;
+        const n = parseInt(String(el.value).trim(), 10);
+        if (!Number.isFinite(n) || n < 1) {
+            return DEFAULT_YT_MAX_PLAY_SEC;
+        }
+        return Math.min(9999, n);
+    }
+
+    function computeYoutubePreviewSeconds(paymentAmount, pricePerSec) {
+        const cap = getYoutubeMaxPlaySecInput();
+        const p = Math.max(1, Math.floor(Number(pricePerSec)) || 1);
+        const n = Math.floor(Number(paymentAmount));
+        if (!Number.isFinite(n) || n < p) {
+            return 0;
+        }
+        return Math.min(cap, Math.floor(n / p));
+    }
+
+    function updateYoutubeDonationPreview() {
+        const secEl = document.getElementById('ytPreviewSec');
+        const examplesEl = document.getElementById('ytPreviewExamples');
+        const rangeEl = document.getElementById('ytPreviewAmount');
+        const numEl = document.getElementById('ytPreviewAmountNum');
+        if (!secEl || !rangeEl || !numEl) {
+            return;
+        }
+
+        const pricePerSec = getYoutubeDonationPriceInput();
+        let pay = parseInt(String(numEl.value).trim(), 10);
+        if (!Number.isFinite(pay) || pay < 1) {
+            pay = parseInt(rangeEl.value, 10) || 300;
+        }
+        if (rangeEl && String(rangeEl.value) !== String(pay)) {
+            rangeEl.value = String(Math.min(2000, Math.max(30, pay)));
+        }
+
+        const sec = computeYoutubePreviewSeconds(pay, pricePerSec);
+        secEl.textContent = sec <= 0 ? '0' : String(sec);
+
+        if (examplesEl) {
+            const samples = [100, 300, 500];
+            examplesEl.innerHTML = '';
+            samples.forEach(amt => {
+                const s = computeYoutubePreviewSeconds(amt, pricePerSec);
+                const li = document.createElement('li');
+                li.textContent = `付 ${amt} 元 → 約 ${s} 秒`;
+                examplesEl.appendChild(li);
+            });
+        }
     }
 
     function setupTabs() {
@@ -292,6 +390,127 @@ import { requireTotpVerification, getTotpToken } from './js/totp-guard.js';
         }
     }
 
+    async function saveYoutubeDonationSettings(e) {
+        e.preventDefault();
+        const raw = document.getElementById('youtubeDonationAmount');
+        if (!raw) return;
+        const n = parseInt(String(raw.value).trim(), 10);
+        if (!Number.isFinite(n) || n < 1 || n > 9999) {
+            showMessage('每秒單價須為 1～9999 的正整數', 'error');
+            return;
+        }
+        const rawMax = document.getElementById('youtubeDonationMaxPlaySec');
+        const maxSec = rawMax
+            ? parseInt(String(rawMax.value).trim(), 10)
+            : DEFAULT_YT_MAX_PLAY_SEC;
+        if (!Number.isFinite(maxSec) || maxSec < 1 || maxSec > 9999) {
+            showMessage('單筆可播放秒數上限須為 1～9999 的正整數', 'error');
+            return;
+        }
+
+        try {
+            const response = await fetch(
+                `/api/v1/comme/ecpay/config/id=${encodeURIComponent(merchantId)}`,
+                {
+                    method: 'PATCH',
+                    headers: buildAuthHeaders({
+                        'Content-Type': 'application/json',
+                    }),
+                    body: JSON.stringify({
+                        youtubeDonationEnabled:
+                            document.getElementById('youtubeDonationEnabled')
+                                ?.checked ?? false,
+                        youtubeDonationAmount: n,
+                        youtubeDonationMaxPlaySec: maxSec,
+                    }),
+                }
+            );
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.error || '儲存失敗');
+            }
+
+            showMessage('影音斗內定價已儲存', 'success');
+            currentConfig = { ...currentConfig, ...result };
+            setPaymentToggleFromConfig(result);
+            const ytEl = document.getElementById('youtubeDonationAmount');
+            if (ytEl && result.youtubeDonationAmount != null) {
+                ytEl.value = Number(result.youtubeDonationAmount);
+            }
+            const ytMaxEl = document.getElementById('youtubeDonationMaxPlaySec');
+            if (ytMaxEl && result.youtubeDonationMaxPlaySec != null) {
+                ytMaxEl.value = Number(result.youtubeDonationMaxPlaySec);
+            }
+            const ytMaxSecLabel = document.getElementById('ytMaxSecLabel');
+            if (ytMaxSecLabel) {
+                ytMaxSecLabel.textContent = String(getYoutubeMaxPlaySecInput());
+            }
+            updateYoutubeDonationPreview();
+        } catch (error) {
+            console.error('儲存影音斗內定價錯誤:', error);
+            showMessage('儲存失敗: ' + error.message, 'error');
+        }
+    }
+
+    function wireYoutubeDonationPreview() {
+        const amtInput = document.getElementById('youtubeDonationAmount');
+        const rangeEl = document.getElementById('ytPreviewAmount');
+        const numEl = document.getElementById('ytPreviewAmountNum');
+        const resetBtn = document.getElementById('btnYoutubeDonationReset');
+
+        if (amtInput) {
+            amtInput.addEventListener('input', updateYoutubeDonationPreview);
+            amtInput.addEventListener('change', updateYoutubeDonationPreview);
+        }
+        const maxSecInput = document.getElementById('youtubeDonationMaxPlaySec');
+        if (maxSecInput) {
+            maxSecInput.addEventListener('input', () => {
+                const el = document.getElementById('ytMaxSecLabel');
+                if (el) {
+                    el.textContent = String(getYoutubeMaxPlaySecInput());
+                }
+                updateYoutubeDonationPreview();
+            });
+            maxSecInput.addEventListener('change', () => {
+                const el = document.getElementById('ytMaxSecLabel');
+                if (el) {
+                    el.textContent = String(getYoutubeMaxPlaySecInput());
+                }
+                updateYoutubeDonationPreview();
+            });
+        }
+        if (rangeEl) {
+            rangeEl.addEventListener('input', () => {
+                if (numEl) {
+                    numEl.value = rangeEl.value;
+                }
+                updateYoutubeDonationPreview();
+            });
+        }
+        if (numEl) {
+            numEl.addEventListener('input', () => {
+                if (rangeEl) {
+                    const v = parseInt(numEl.value, 10);
+                    if (Number.isFinite(v) && v >= 30 && v <= 2000) {
+                        rangeEl.value = String(v);
+                    }
+                }
+                updateYoutubeDonationPreview();
+            });
+        }
+        if (resetBtn) {
+            resetBtn.addEventListener('click', () => {
+                const el = document.getElementById('youtubeDonationAmount');
+                if (el) {
+                    el.value = String(DEFAULT_YT_PRICE_PER_SEC);
+                }
+                updateYoutubeDonationPreview();
+            });
+        }
+    }
+
     async function savePayuniSettings(e) {
         e.preventDefault();
         const payuniMerchantId = document
@@ -351,6 +570,7 @@ import { requireTotpVerification, getTotpToken } from './js/totp-guard.js';
 
         setupTabs();
         loadConfig();
+        wireYoutubeDonationPreview();
 
         document
             .getElementById('basicForm')
@@ -361,6 +581,9 @@ import { requireTotpVerification, getTotpToken } from './js/totp-guard.js';
         document
             .getElementById('youtubeForm')
             .addEventListener('submit', saveYoutubeSettings);
+        document
+            .getElementById('youtubeDonationForm')
+            .addEventListener('submit', saveYoutubeDonationSettings);
         document
             .getElementById('payuniForm')
             .addEventListener('submit', savePayuniSettings);

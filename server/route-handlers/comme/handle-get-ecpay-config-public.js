@@ -1,7 +1,20 @@
 const { getEcpayConfigByMerchantId } = require('../../store/ecpay-config');
 const { getSafeApiErrorMessage } = require('../../lib/safe-error-message');
+const {
+    DEFAULT_YOUTUBE_PRICE_PER_SEC,
+    normalizeYoutubePricePerSec,
+    normalizeYoutubeMaxPlaySec,
+} = require('../../lib/youtube-donation');
 
 function toPublicConfig(config) {
+    const amount = config.youtubeDonationAmount;
+    const youtubeDonationAmount =
+        amount != null
+            ? normalizeYoutubePricePerSec(amount)
+            : DEFAULT_YOUTUBE_PRICE_PER_SEC;
+    const youtubeDonationMaxPlaySec = normalizeYoutubeMaxPlaySec(
+        config.youtubeDonationMaxPlaySec
+    );
     return {
         merchantId: config.merchantId,
         displayName: config.displayName || null,
@@ -10,6 +23,9 @@ function toPublicConfig(config) {
         themeColors: config.themeColors || null,
         ecpayEnabled: config.ecpayEnabled !== false,
         payuniEnabled: config.payuniEnabled !== false,
+        youtubeDonationEnabled: config.youtubeDonationEnabled === true,
+        youtubeDonationAmount,
+        youtubeDonationMaxPlaySec,
     };
 }
 

@@ -105,6 +105,24 @@ const EcpayConfig = sequelize.define(
             defaultValue: true,
             field: 'payuniEnabled',
         },
+        youtubeDonationEnabled: {
+            type: DataTypes.BOOLEAN,
+            allowNull: true,
+            defaultValue: false,
+            field: 'youtubeDonationEnabled',
+        },
+        youtubeDonationAmount: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+            defaultValue: 30,
+            field: 'youtubeDonationAmount',
+        },
+        youtubeDonationMaxPlaySec: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+            defaultValue: 30,
+            field: 'youtubeDonationMaxPlaySec',
+        },
     },
     {
         tableName: 'ecpay_config',

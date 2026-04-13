@@ -2,6 +2,11 @@ const crypto = require('crypto');
 const path = require('path');
 const querystring = require('querystring');
 const { ENUM_DONATION_TYPE } = require('../enum'); // 記得在 enum 加上 PAYUNI
+const {
+    buildVideoTaskFromVideoIdAndCost,
+    getYoutubePricePerSecFromConfig,
+    getYoutubeMaxPlaySecFromConfig,
+} = require('../youtube-donation');
 
 require('dotenv').config({ path: path.resolve(__dirname, '../../../.env') });
 
@@ -58,6 +63,12 @@ function createPayment(merchantId, orderData, { hashKey, hashIV }) {
 
     const safeName = encodeURIComponent(orderData.name);
     const safeMsg = encodeURIComponent(orderData.message);
+    const vidPart =
+        orderData.videoId != null && String(orderData.videoId).trim()
+            ? `&vid=${encodeURIComponent(
+                  String(orderData.videoId).trim().slice(0, 50)
+              )}`
+            : '';
 
     const payload = {
         MerID: merchantId,
@@ -65,7 +76,7 @@ function createPayment(merchantId, orderData, { hashKey, hashIV }) {
         TradeAmt: Math.floor(Number(orderData.amount)) || 0,
         Timestamp: Math.floor(Date.now() / 1000),
         ProdDesc: orderData.description || '斗內贊助',
-        NotifyURL: `${base}/api/v1/comme/payuni/id=${merchantId}?name=${safeName}&msg=${safeMsg}`, // 背景回調
+        NotifyURL: `${base}/api/v1/comme/payuni/id=${merchantId}?name=${safeName}&msg=${safeMsg}${vidPart}`, // 背景回調
     };
 
     const EncryptInfo = aesEncrypt(
@@ -92,7 +103,7 @@ function createPayment(merchantId, orderData, { hashKey, hashIV }) {
  */
 function parseDonationCallback(reqBody, reqQuery, config) {
     const { EncryptInfo, HashInfo } = reqBody;
-    const { name, msg } = reqQuery;
+    const { name, msg, vid } = reqQuery;
     if (
         !EncryptInfo ||
         !HashInfo ||
@@ -125,15 +136,33 @@ function parseDonationCallback(reqBody, reqQuery, config) {
             return null;
         }
 
-        return {
+        const costNum = Number(tradeAmt);
+        const row = {
             merchantId: data.MerID,
             merTradeNo: data.MerTradeNo,
             name: name || '',
-            cost: Number(tradeAmt),
+            cost: costNum,
             message: msg || '',
             type: ENUM_DONATION_TYPE.PAYUNI,
             ecpayConfigId: config.ecpayConfigId,
         };
+
+        if (vid != null && String(vid).trim()) {
+            const videoTask = buildVideoTaskFromVideoIdAndCost(
+                String(vid).trim(),
+                costNum,
+                null,
+                {
+                    pricePerSec: getYoutubePricePerSecFromConfig(config),
+                    maxPlaySec: getYoutubeMaxPlaySecFromConfig(config),
+                }
+            );
+            if (videoTask) {
+                row.videoTask = videoTask;
+            }
+        }
+
+        return row;
     } catch (error) {
         console.error('PAYUNi 解密或解析失敗:', error);
         return null;

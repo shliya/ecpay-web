@@ -210,6 +210,10 @@ function createOverlay() {
 
 function showOverlay(merchantId) {
     return new Promise(resolve => {
+        const existing = document.getElementById('totpGuardOverlay');
+        if (existing) {
+            existing.remove();
+        }
         const overlay = createOverlay();
         const input = document.getElementById('totpGuardInput');
         const form = document.getElementById('totpGuardForm');

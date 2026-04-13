@@ -1,6 +1,7 @@
 import './css/common.css';
 import './css/index.css';
 import checkTotpBinding from './js/totp-guard.js';
+import { buildDonationOverlayPageUrl } from './js/donation-overlay-url.js';
 
 let isInitialized = false;
 
@@ -8,6 +9,7 @@ let indexState = {
     merchantId: null,
     currentPage: 'home',
     viewerDonateUrl: '',
+    viewerDonateYoutubeUrl: '',
     selectedDonationTypes: [1, 2, 3],
 };
 
@@ -54,6 +56,16 @@ const PAGE_CONFIG = {
             },
         ],
     },
+    'youtube-donation-settings': {
+        file: 'youtube-donation-settings.html',
+        title: '🎬 影音斗內設定',
+        links: [
+            {
+                label: '觀眾影片斗內連結',
+                type: 'viewer-donate-youtube',
+            },
+        ],
+    },
 };
 
 async function initializeIndex() {
@@ -80,7 +92,7 @@ async function initializeIndex() {
     localStorage.setItem('merchantId', merchantId);
 
     displayMerchantId(merchantId);
-    loadViewerDonateUrl(merchantId);
+    loadViewerDonateUrls(merchantId);
     bindEventListeners();
 }
 
@@ -103,11 +115,14 @@ function getViewerDonateBaseUrl() {
     return window.location.origin + path + 'viewer-donate.html';
 }
 
-async function loadViewerDonateUrl(merchantId) {
+function getViewerDonateYoutubeBaseUrl() {
+    const path = window.location.pathname.replace(/[^/]*$/, '');
+    return window.location.origin + path + 'viewer-donate-youtube.html';
+}
+
+async function loadViewerDonateUrls(merchantId) {
     const inputEl = document.getElementById('viewerDonateUrl');
-    if (!inputEl) {
-        return;
-    }
+    const ytInputEl = document.getElementById('viewerDonateYoutubeUrl');
 
     try {
         const res = await fetch(
@@ -115,19 +130,35 @@ async function loadViewerDonateUrl(merchantId) {
         );
         const data = await res.json().catch(() => ({}));
         const baseUrl = getViewerDonateBaseUrl();
+        const ytBaseUrl = getViewerDonateYoutubeBaseUrl();
 
         if (res.ok && data.displayName) {
-            const url =
-                baseUrl + '?name=' + encodeURIComponent(data.displayName);
+            const q = '?name=' + encodeURIComponent(data.displayName);
+            const url = baseUrl + q;
+            const ytUrl = ytBaseUrl + q;
             indexState.viewerDonateUrl = url;
-            inputEl.value = url;
-            inputEl.placeholder = '';
-            inputEl.removeAttribute('data-no-display-name');
+            indexState.viewerDonateYoutubeUrl = ytUrl;
+            if (inputEl) {
+                inputEl.value = url;
+                inputEl.placeholder = '';
+                inputEl.removeAttribute('data-no-display-name');
+            }
+            if (ytInputEl) {
+                ytInputEl.value = ytUrl;
+                ytInputEl.placeholder = '';
+                ytInputEl.removeAttribute('data-no-display-name');
+            }
         } else {
+            indexState.viewerDonateUrl = '';
+            indexState.viewerDonateYoutubeUrl = '';
             setDonateLinkPlaceholder(inputEl);
+            setDonateLinkPlaceholder(ytInputEl);
         }
     } catch {
+        indexState.viewerDonateUrl = '';
+        indexState.viewerDonateYoutubeUrl = '';
         setDonateLinkPlaceholder(inputEl);
+        setDonateLinkPlaceholder(ytInputEl);
     }
 }
 
@@ -143,11 +174,22 @@ function setDonateLinkPlaceholder(inputEl) {
 function bindEventListeners() {
     document.querySelectorAll('.nav-item').forEach(item => {
         item.addEventListener('click', () => navigateTo(item.dataset.page));
+        item.addEventListener('keydown', e => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                navigateTo(item.dataset.page);
+            }
+        });
     });
 
     bindElement('logoutBtn', 'click', handleLogout);
     bindElement('settingsBtn', 'click', handleSettings);
     bindElement('copyDonateLinkBtn', 'click', handleCopyDonateLink);
+    bindElement(
+        'copyDonateYoutubeLinkBtn',
+        'click',
+        handleCopyDonateYoutubeLink
+    );
     bindElement('sidebarToggle', 'click', toggleSidebar);
 }
 
@@ -166,7 +208,13 @@ function navigateTo(page) {
     indexState.currentPage = page;
 
     document.querySelectorAll('.nav-item').forEach(item => {
-        item.classList.toggle('active', item.dataset.page === page);
+        const isActive = item.dataset.page === page && page !== 'home';
+        item.classList.toggle('active', isActive);
+        if (isActive) {
+            item.setAttribute('aria-current', 'page');
+        } else {
+            item.removeAttribute('aria-current');
+        }
     });
 
     const homeContent = document.getElementById('homeContent');
@@ -244,8 +292,11 @@ function getLinkUrl(type, pageFile) {
     if (type === 'viewer-donate') {
         return indexState.viewerDonateUrl || '';
     }
+    if (type === 'viewer-donate-youtube') {
+        return indexState.viewerDonateYoutubeUrl || '';
+    }
     if (type === 'donation-overlay') {
-        return buildFullUrl('donation-overlay.html');
+        return buildDonationOverlayPageUrl(indexState.merchantId);
     }
     return '';
 }
@@ -280,7 +331,10 @@ function renderToolbar(config) {
         input.readOnly = true;
         input.value = url;
         if (!url) {
-            if (link.type === 'viewer-donate') {
+            if (
+                link.type === 'viewer-donate' ||
+                link.type === 'viewer-donate-youtube'
+            ) {
                 input.placeholder = '請先至設定頁面設定顯示名稱';
                 input.setAttribute('data-requires-display-name', '1');
             } else {
@@ -345,9 +399,10 @@ function updateDonationTypeSelection(type, checked) {
             indexState.selectedDonationTypes.push(type);
         }
     } else {
-        indexState.selectedDonationTypes = indexState.selectedDonationTypes.filter(
-            selectedType => selectedType !== type
-        );
+        indexState.selectedDonationTypes =
+            indexState.selectedDonationTypes.filter(
+                selectedType => selectedType !== type
+            );
     }
 
     indexState.selectedDonationTypes.sort((a, b) => a - b);
@@ -394,14 +449,32 @@ function handleCopyToolbarLink(input, btn) {
 
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
+    const btn = document.getElementById('sidebarToggle');
     if (sidebar) {
         sidebar.classList.toggle('collapsed');
+        const collapsed = sidebar.classList.contains('collapsed');
+        if (btn) {
+            btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+        }
     }
 }
 
 function handleCopyDonateLink() {
     const inputEl = document.getElementById('viewerDonateUrl');
     const btn = document.getElementById('copyDonateLinkBtn');
+    if (!inputEl || !btn) {
+        return;
+    }
+    if (inputEl.hasAttribute('data-no-display-name') || !inputEl.value) {
+        showError('請先至設定頁面設定顯示名稱後才能複製連結');
+        return;
+    }
+    copyToClipboard(inputEl.value, inputEl, btn);
+}
+
+function handleCopyDonateYoutubeLink() {
+    const inputEl = document.getElementById('viewerDonateYoutubeUrl');
+    const btn = document.getElementById('copyDonateYoutubeLinkBtn');
     if (!inputEl || !btn) {
         return;
     }

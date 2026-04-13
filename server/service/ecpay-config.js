@@ -39,7 +39,11 @@ const ALLOWED_THEME_COLOR_KEYS = new Set([
 ]);
 
 function normalizeUpdateField(field, value) {
-    if (field === 'ecpayEnabled' || field === 'payuniEnabled') {
+    if (
+        field === 'ecpayEnabled' ||
+        field === 'payuniEnabled' ||
+        field === 'youtubeDonationEnabled'
+    ) {
         if (value === true || value === false) return value;
         return null;
     }
@@ -59,6 +63,20 @@ function normalizeUpdateField(field, value) {
         }
         return Object.keys(sanitized).length ? sanitized : null;
     }
+    if (field === 'youtubeDonationAmount') {
+        const n = Math.floor(Number(value));
+        if (!Number.isFinite(n) || n < 1) {
+            return null;
+        }
+        return Math.min(9999, n);
+    }
+    if (field === 'youtubeDonationMaxPlaySec') {
+        const n = Math.floor(Number(value));
+        if (!Number.isFinite(n) || n < 1) {
+            return null;
+        }
+        return Math.min(9999, n);
+    }
     return value;
 }
 
@@ -72,10 +90,13 @@ async function updateEcpayConfig(merchantId, updates) {
         'payuniHashIV',
         'youtubeChannelHandle',
         'youtubeChannelId',
+        'youtubeDonationAmount',
+        'youtubeDonationMaxPlaySec',
         'themeColors',
         'blockedKeywords',
         'ecpayEnabled',
         'payuniEnabled',
+        'youtubeDonationEnabled',
     ];
     const updateData = {};
 
@@ -83,7 +104,16 @@ async function updateEcpayConfig(merchantId, updates) {
         if (Object.hasOwn(updates, field)) {
             const normalized = normalizeUpdateField(field, updates[field]);
             if (
-                (field === 'ecpayEnabled' || field === 'payuniEnabled') &&
+                (field === 'youtubeDonationAmount' ||
+                    field === 'youtubeDonationMaxPlaySec') &&
+                normalized === null
+            ) {
+                continue;
+            }
+            if (
+                (field === 'ecpayEnabled' ||
+                    field === 'payuniEnabled' ||
+                    field === 'youtubeDonationEnabled') &&
                 normalized === null
             ) {
                 continue;

@@ -385,3 +385,130 @@
         align-items: flex-start;
     }
 }
+
+/* 影音斗內定價 */
+.yt-pricing-lead {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 0 0 24px;
+    padding: 14px 16px;
+    background: rgba(33, 150, 243, 0.08);
+    border: 1px solid rgba(33, 150, 243, 0.25);
+    border-radius: 8px;
+    color: #b0bec5;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.yt-pricing-icon {
+    flex-shrink: 0;
+    margin-top: 2px;
+    color: #64b5f6;
+}
+
+.yt-pricing-preview {
+    padding: 20px;
+    margin-top: 8px;
+    background: #2c3e50;
+    border-radius: 10px;
+    border: 1px solid #455a64;
+}
+
+.yt-preview-title {
+    margin: 0 0 16px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #eceff1;
+}
+
+.yt-preview-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.yt-preview-amount-input {
+    max-width: 120px;
+    padding: 10px 12px;
+    border: 1px solid #555;
+    border-radius: 6px;
+    background: #37474f;
+    color: #e0e0e0;
+    font-size: 1rem;
+}
+
+.yt-preview-unit {
+    color: #90a4ae;
+    font-size: 0.95rem;
+}
+
+#ytPreviewAmount {
+    width: 100%;
+    margin-top: 8px;
+    cursor: pointer;
+    accent-color: #2196f3;
+}
+
+.yt-preview-result {
+    margin-top: 16px;
+    padding: 14px 16px;
+    background: #1b2836;
+    border-radius: 8px;
+    font-size: 1.05rem;
+    color: #e0e0e0;
+    transition: background-color 0.2s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .yt-preview-result {
+        transition: none;
+    }
+}
+
+.yt-preview-result strong {
+    color: #81c784;
+    font-size: 1.25rem;
+}
+
+.yt-preview-examples {
+    margin: 12px 0 0;
+    padding-left: 1.2rem;
+    color: #90a4ae;
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+.form-actions-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    margin-top: 8px;
+}
+
+.btn-secondary {
+    padding: 12px 24px;
+    border: 1px solid #546e7a;
+    border-radius: 6px;
+    background: transparent;
+    color: #b0bec5;
+    font-size: 1rem;
+    cursor: pointer;
+    transition:
+        background 0.2s,
+        border-color 0.2s,
+        color 0.2s;
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: #78909c;
+    color: #eceff1;
+}
+
+.btn-secondary:focus-visible {
+    outline: 2px solid #2196f3;
+    outline-offset: 2px;
+}

@@ -21,10 +21,19 @@ module.exports = async (req, res) => {
             payuniMerchantId: config.payuniMerchantId || null,
             youtubeChannelHandle: config.youtubeChannelHandle || null,
             youtubeChannelId: config.youtubeChannelId || null,
+            youtubeDonationAmount:
+                config.youtubeDonationAmount != null
+                    ? Number(config.youtubeDonationAmount)
+                    : null,
+            youtubeDonationMaxPlaySec:
+                config.youtubeDonationMaxPlaySec != null
+                    ? Number(config.youtubeDonationMaxPlaySec)
+                    : null,
             themeColors: config.themeColors || null,
             blockedKeywords: config.blockedKeywords || [],
             ecpayEnabled: config.ecpayEnabled !== false,
             payuniEnabled: config.payuniEnabled !== false,
+            youtubeDonationEnabled: config.youtubeDonationEnabled === true,
         });
     } catch (error) {
         console.error('[get-ecpay-config]', error);

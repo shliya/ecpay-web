@@ -18,11 +18,19 @@ module.exports = {
         ichibanClient: path.resolve(__dirname, 'app/ichiban-client.js'),
         ichiban: path.resolve(__dirname, 'app/ichiban.js'),
         viewerDonate: path.resolve(__dirname, 'app/viewer-donate.js'),
+        viewerDonateYoutube: path.resolve(
+            __dirname,
+            'app/viewer-donate-youtube.js'
+        ),
         donateTheme: path.resolve(__dirname, 'app/donate-theme.js'),
         donationOverlay: path.resolve(__dirname, 'app/donation-overlay.js'),
         donationOverlaySettings: path.resolve(
             __dirname,
             'app/donation-overlay-settings.js'
+        ),
+        youtubeDonationSettings: path.resolve(
+            __dirname,
+            'app/youtube-donation-settings.js'
         ),
     },
     output: {
@@ -199,6 +207,21 @@ module.exports = {
         new HtmlWebpackPlugin({
             template: path.resolve(
                 __dirname,
+                'app/templates/viewer-donate-youtube.html'
+            ),
+            filename: 'viewer-donate-youtube.html',
+            chunks: ['viewerDonateYoutube'],
+            inject: true,
+            scriptLoading: 'defer',
+            minify: {
+                removeComments: true,
+                collapseWhitespace: true,
+            },
+            cache: false,
+        }),
+        new HtmlWebpackPlugin({
+            template: path.resolve(
+                __dirname,
                 'app/templates/donate-theme.html'
             ),
             filename: 'donate-theme.html',
@@ -233,6 +256,21 @@ module.exports = {
             ),
             filename: 'donation-overlay-settings.html',
             chunks: ['donationOverlaySettings'],
+            inject: true,
+            scriptLoading: 'defer',
+            minify: {
+                removeComments: true,
+                collapseWhitespace: true,
+            },
+            cache: false,
+        }),
+        new HtmlWebpackPlugin({
+            template: path.resolve(
+                __dirname,
+                'app/templates/youtube-donation-settings.html'
+            ),
+            filename: 'youtube-donation-settings.html',
+            chunks: ['youtubeDonationSettings'],
             inject: true,
             scriptLoading: 'defer',
             minify: {

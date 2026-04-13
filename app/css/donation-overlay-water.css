@@ -6,6 +6,25 @@
     padding: 0;
 }
 
+/*
+ * 實際斗內頁：#donationOverlayStage 與 YouTube 列同屬 .donation-overlay-stack。
+ * 此時父層已固定 100vh，若再 min-height:100vh 會整段溢出，YouTube 被擠到捲動區上方而「消失」，
+ * 若仍載入舊 fixed 樣式則會像釘在右下角。
+ */
+.donation-overlay-stack > .donation-overlay-root.donation-overlay-root--water {
+    flex: 0 1 auto;
+    min-height: 0;
+    max-height: calc(100vh - 8px);
+    max-height: calc(100dvh - 8px);
+    overflow: hidden;
+}
+
+/* stack 內縮小主舞台最小高度，避免 YouTube + 文字 + 圖片區加總超過一屏 */
+.donation-overlay-stack .donation-water-stage {
+    min-height: min(32vh, 260px);
+    flex: 1 1 auto;
+}
+
 /* 主區塊：全透明背景（OBS 疊圖，非綠幕去背） */
 .donation-water-stage {
     background-color: transparent;
@@ -52,6 +71,15 @@
     display: flex;
     align-items: flex-end;
     justify-content: center;
+}
+
+.donation-water-row-youtube {
+    flex-shrink: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 0 8px;
 }
 
 .donation-water-image {

@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="zh-Hant">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>影音斗內設定</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@600;800&display=swap"
+            rel="stylesheet"
+        />
+    </head>
+    <body>
+        <div class="donation-overlay-settings-page">
+            <header class="dos-header">
+                <h1>影音斗內設定</h1>
+                <p class="dos-desc">
+                    開啟或關閉影片斗內、設定每秒金額，並調整 OBS 中 YouTube
+                    影片播放音量（網址參數
+                    <code class="dos-inline-code">youtubeVolume</code>）。
+                </p>
+            </header>
+
+            <div class="dos-layout dos-layout-yt-single">
+                <section class="dos-panel">
+                    <h2 class="dos-panel-title">影音斗內</h2>
+                    <p class="dos-panel-lead">
+                        關閉後觀眾無法使用影片斗內付款；變更後請按儲存。
+                    </p>
+                    <label class="yt-donation-switch-row" for="ytDonationEnabled">
+                        <span class="yt-donation-switch-label">開啟影音斗內</span>
+                        <input
+                            type="checkbox"
+                            id="ytDonationEnabled"
+                            class="yt-donation-checkbox"
+                        />
+                    </label>
+                    <label class="yt-donation-field-label" for="ytDonationAmount"
+                        >每 1 秒金額（元）</label
+                    >
+                    <input
+                        type="number"
+                        id="ytDonationAmount"
+                        class="dos-url-input yt-donation-amount-input"
+                        min="1"
+                        max="9999"
+                        step="1"
+                        inputmode="numeric"
+                        autocomplete="off"
+                    />
+                    <label class="yt-donation-field-label" for="ytDonationMaxPlaySec"
+                        >單筆可播放秒數上限</label
+                    >
+                    <input
+                        type="number"
+                        id="ytDonationMaxPlaySec"
+                        class="dos-url-input yt-donation-amount-input"
+                        min="1"
+                        max="9999"
+                        step="1"
+                        inputmode="numeric"
+                        autocomplete="off"
+                    />
+                    <div class="yt-donation-actions">
+                        <button
+                            type="button"
+                            class="btn dos-btn-save-yt"
+                            id="btnSaveYtDonation"
+                        >
+                            儲存
+                        </button>
+                    </div>
+                    <p
+                        id="ytDonationMsg"
+                        class="yt-donation-msg"
+                        role="status"
+                        aria-live="polite"
+                    ></p>
+
+                    <div class="dos-volume-block">
+                        <h3 class="dos-volume-title">YouTube 影片音量</h3>
+                        <p class="dos-volume-desc">
+                            調整斗內通知中影片播放音量（0% 為靜音）。下方 OBS
+                            網址會帶上
+                            <code class="dos-inline-code">youtubeVolume</code>
+                            參數；請複製最新網址到 OBS。
+                        </p>
+                        <div class="dos-volume-row">
+                            <input
+                                type="range"
+                                id="donationYoutubeVolume"
+                                class="dos-volume-range"
+                                min="0"
+                                max="100"
+                                value="100"
+                                aria-valuemin="0"
+                                aria-valuemax="100"
+                                aria-valuenow="100"
+                                aria-label="YouTube 影片音量"
+                            />
+                            <span
+                                id="donationYoutubeVolumeLabel"
+                                class="dos-volume-label"
+                                >100%</span
+                            >
+                        </div>
+                    </div>
+
+                    <div class="dos-test-block">
+                        <h3 class="dos-test-title">本地預覽測試</h3>
+                        <p class="dos-test-desc">
+                            使用固定測試影片（與斗內通知相同播放方式），依上方「YouTube
+                            影片音量」滑桿試聽；僅在瀏覽器內預覽，不寫入資料庫。若無聲音，請再按一次按鈕或檢查瀏覽器分頁是否靜音。
+                        </p>
+                        <button
+                            type="button"
+                            class="btn dos-btn-test"
+                            id="btnYoutubeVolumeTestPlay"
+                        >
+                            播放測試影片
+                        </button>
+                        <div
+                            id="youtubeVolumeTestMount"
+                            class="dos-overlay-preview yt-volume-test-preview"
+                            aria-live="polite"
+                        ></div>
+                    </div>
+
+                    <h2 class="dos-panel-title dos-panel-title--sub">
+                        OBS 斗內通知網址（含音量參數）
+                    </h2>
+                    <p class="dos-panel-lead">
+                        與「OBS
+                        斗內通知」頁相同來源；若已調整提示音音量，請以最新複製的網址為準。
+                    </p>
+                    <div class="dos-url-row">
+                        <input
+                            type="text"
+                            id="ytDonationOverlayUrl"
+                            class="dos-url-input"
+                            readonly
+                            placeholder="載入中…"
+                            autocomplete="off"
+                        />
+                        <button
+                            type="button"
+                            class="btn dos-btn-copy"
+                            id="btnCopyYtDonationOverlayUrl"
+                        >
+                            複製網址
+                        </button>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </body>
+</html>
