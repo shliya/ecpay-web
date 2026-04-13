@@ -20,6 +20,7 @@ function toPublicConfig(config) {
         themeColors: config.themeColors || null,
         ecpayEnabled: config.ecpayEnabled !== false,
         payuniEnabled: config.payuniEnabled !== false,
+        youtubeDonationEnabled: config.youtubeDonationEnabled === true,
         youtubeDonationAmount,
         youtubeDonationMaxPlaySec: YOUTUBE_DONATION_MAX_PLAY_SEC,
     };

@@ -12,6 +12,10 @@ import {
     playDonationBell,
     unlockDonationBellAudio,
 } from './js/play-donation-bell.js';
+import {
+    getYoutubeOverlayVolumePercent,
+    initYoutubeOverlayVolumeFromUrl,
+} from './js/youtube-overlay-volume.js';
 import { createDonationYoutubeQueue } from './js/donation-overlay-youtube-queue.js';
 
 /** 與 donation-overlay-youtube-queue.js 的 safetyMs 一致，讓文字覆蓋層與影片切段對齊 */
@@ -59,12 +63,16 @@ function init() {
 
     const id = merchantId.trim();
 
-    initDonationBellVolumeFromUrl(new URL(window.location.href).searchParams);
+    const overlayParams = new URL(window.location.href).searchParams;
+    initDonationBellVolumeFromUrl(overlayParams);
+    initYoutubeOverlayVolumeFromUrl(overlayParams);
 
     installDonationOverlayAudioUnlock();
 
     const { stage: stageEl, ytMount: ytMountEl } = getOverlayElements(rootEl);
-    const ytQueue = createDonationYoutubeQueue(ytMountEl);
+    const ytQueue = createDonationYoutubeQueue(ytMountEl, {
+        volumePercent: getYoutubeOverlayVolumePercent(),
+    });
 
     const activeKeeper = new ActiveStatusKeeper(id, 3001, {
         onMessage(msg) {

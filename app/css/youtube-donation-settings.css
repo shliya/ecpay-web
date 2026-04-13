@@ -1,0 +1,91 @@
+/* 影音斗內設定頁（與 donation-overlay-settings 共用基底樣式） */
+.dos-layout-yt-single {
+    grid-template-columns: 1fr;
+    max-width: 560px;
+}
+
+.dos-panel-title--sub {
+    margin-top: 24px;
+}
+
+.yt-donation-switch-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #e0e0e0;
+}
+
+.yt-donation-switch-label {
+    flex: 1;
+    min-width: 0;
+}
+
+.yt-donation-checkbox {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    accent-color: #4fc3f7;
+    cursor: pointer;
+}
+
+.yt-donation-field-label {
+    display: block;
+    font-size: 13px;
+    margin-bottom: 6px;
+    color: #bdbdbd;
+}
+
+.yt-donation-amount-input {
+    margin-bottom: 14px;
+}
+
+.yt-donation-actions {
+    margin-bottom: 8px;
+}
+
+.dos-btn-save-yt {
+    width: 100%;
+    padding: 10px 18px;
+    background: #5c6bc0;
+    color: #fff;
+    font-weight: 600;
+}
+
+.dos-btn-save-yt:hover {
+    filter: brightness(1.08);
+}
+
+.yt-donation-msg {
+    margin: 0 0 8px;
+    min-height: 1.3em;
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+.yt-donation-msg--ok {
+    color: #a5d6a7;
+}
+
+.yt-donation-msg--err {
+    color: #ef9a9a;
+}
+
+/* 影音音量本地預覽（YouTube IFrame，沿用 .dos-test-block 外框） */
+.yt-volume-test-preview {
+    position: relative;
+    min-height: 220px;
+    aspect-ratio: 16 / 9;
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+.yt-volume-test-preview .yt-volume-test-player-host {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}

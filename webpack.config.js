@@ -28,6 +28,10 @@ module.exports = {
             __dirname,
             'app/donation-overlay-settings.js'
         ),
+        youtubeDonationSettings: path.resolve(
+            __dirname,
+            'app/youtube-donation-settings.js'
+        ),
     },
     output: {
         path: path.resolve(__dirname, 'public'),
@@ -252,6 +256,21 @@ module.exports = {
             ),
             filename: 'donation-overlay-settings.html',
             chunks: ['donationOverlaySettings'],
+            inject: true,
+            scriptLoading: 'defer',
+            minify: {
+                removeComments: true,
+                collapseWhitespace: true,
+            },
+            cache: false,
+        }),
+        new HtmlWebpackPlugin({
+            template: path.resolve(
+                __dirname,
+                'app/templates/youtube-donation-settings.html'
+            ),
+            filename: 'youtube-donation-settings.html',
+            chunks: ['youtubeDonationSettings'],
             inject: true,
             scriptLoading: 'defer',
             minify: {

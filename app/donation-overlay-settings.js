@@ -8,6 +8,7 @@ import {
     playDonationBell,
     setDonationBellVolumePercent,
 } from './js/play-donation-bell.js';
+import { buildDonationOverlayPageUrl } from './js/donation-overlay-url.js';
 import checkTotpBinding from './js/totp-guard.js';
 
 const TEST_DONATION = {
@@ -21,17 +22,6 @@ function getMerchantId() {
     const fromQuery = (params.get('merchantId') || '').trim();
     const fromStorage = (localStorage.getItem('merchantId') || '').trim();
     return fromQuery || fromStorage;
-}
-
-function buildDonationOverlayPageUrl() {
-    const merchantId = getMerchantId();
-    if (!merchantId) {
-        return '';
-    }
-    const path = window.location.pathname.replace(/[^/]*$/, '');
-    const mid = encodeURIComponent(merchantId);
-    const volume = getDonationBellVolumePercent();
-    return `${window.location.origin}${path}donation-overlay.html?merchantId=${mid}&volume=${encodeURIComponent(String(volume))}`;
 }
 
 function flashButton(btn, text) {
@@ -91,7 +81,8 @@ async function init() {
 
     if (previewBtn && inputEl) {
         previewBtn.addEventListener('click', () => {
-            const url = inputEl.value || buildDonationOverlayPageUrl();
+            const url =
+                inputEl.value || buildDonationOverlayPageUrl(getMerchantId());
             if (!url) {
                 return;
             }
@@ -131,13 +122,13 @@ async function init() {
             setDonationBellVolumePercent(percent);
             syncVolumeLabel(percent);
             if (inputEl) {
-                inputEl.value = buildDonationOverlayPageUrl();
+                inputEl.value = buildDonationOverlayPageUrl(getMerchantId());
             }
         });
     }
 
     if (inputEl) {
-        inputEl.value = buildDonationOverlayPageUrl();
+        inputEl.value = buildDonationOverlayPageUrl(getMerchantId());
     }
 
     if (testBtn && previewRoot) {

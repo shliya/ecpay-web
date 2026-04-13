@@ -104,6 +104,13 @@ import { requireTotpVerification, getTotpToken } from './js/totp-guard.js';
         if (payuniEnabledEl) {
             payuniEnabledEl.checked = config.payuniEnabled !== false;
         }
+        const youtubeDonationEnabledEl = document.getElementById(
+            'youtubeDonationEnabled'
+        );
+        if (youtubeDonationEnabledEl) {
+            youtubeDonationEnabledEl.checked =
+                config.youtubeDonationEnabled === true;
+        }
     }
 
     function populateForms(config) {
@@ -376,6 +383,9 @@ import { requireTotpVerification, getTotpToken } from './js/totp-guard.js';
                         'Content-Type': 'application/json',
                     }),
                     body: JSON.stringify({
+                        youtubeDonationEnabled:
+                            document.getElementById('youtubeDonationEnabled')
+                                ?.checked ?? false,
                         youtubeDonationAmount: n,
                     }),
                 }
@@ -389,6 +399,7 @@ import { requireTotpVerification, getTotpToken } from './js/totp-guard.js';
 
             showMessage('影音斗內定價已儲存', 'success');
             currentConfig = { ...currentConfig, ...result };
+            setPaymentToggleFromConfig(result);
             const ytEl = document.getElementById('youtubeDonationAmount');
             if (ytEl && result.youtubeDonationAmount != null) {
                 ytEl.value = Number(result.youtubeDonationAmount);

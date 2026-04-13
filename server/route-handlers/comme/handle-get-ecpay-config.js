@@ -29,6 +29,7 @@ module.exports = async (req, res) => {
             blockedKeywords: config.blockedKeywords || [],
             ecpayEnabled: config.ecpayEnabled !== false,
             payuniEnabled: config.payuniEnabled !== false,
+            youtubeDonationEnabled: config.youtubeDonationEnabled === true,
         });
     } catch (error) {
         console.error('[get-ecpay-config]', error);

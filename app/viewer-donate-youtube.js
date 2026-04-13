@@ -220,7 +220,11 @@ import './css/viewer-donate.css';
     }
 
     function runPage(merchantId) {
-        var pricing = { pricePerSec: 30, maxPlaySec: 30 };
+        var pricing = {
+            pricePerSec: 30,
+            maxPlaySec: 30,
+            youtubeDonationEnabled: false,
+        };
 
         fetch(
             '/api/v1/comme/ecpay/config/public/id=' +
@@ -235,6 +239,9 @@ import './css/viewer-donate.css';
             })
             .then(function (data) {
                 if (data.themeColors) applyTheme(data.themeColors);
+                if (data.youtubeDonationEnabled === true) {
+                    pricing.youtubeDonationEnabled = true;
+                }
                 if (data.youtubeDonationAmount != null) {
                     var pp = parseInt(data.youtubeDonationAmount, 10);
                     if (Number.isFinite(pp) && pp >= 1) {
@@ -260,6 +267,18 @@ import './css/viewer-donate.css';
         const quickBtns = document.querySelectorAll('.quick button');
         const btnEcpay = document.getElementById('btnEcpay');
         const linkPayuni = document.getElementById('linkPayuni');
+        const altLinks = document.querySelector('.alt-links');
+
+        if (pricing.youtubeDonationEnabled !== true) {
+            if (btnEcpay) {
+                btnEcpay.style.display = 'none';
+            }
+            if (altLinks) {
+                altLinks.style.display = 'none';
+            }
+            showError('影音斗內已關閉');
+            return;
+        }
 
         var minPay = Math.max(1, pricing.pricePerSec || 30);
 

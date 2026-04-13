@@ -48,6 +48,13 @@ module.exports = async (req, res) => {
             return;
         }
 
+        const hasYoutubeUrl =
+            youtubeUrl != null && String(youtubeUrl).trim();
+        if (hasYoutubeUrl && row.youtubeDonationEnabled !== true) {
+            res.status(403).json({ error: '影音斗內已關閉' });
+            return;
+        }
+
         const config = await getPayuniConfigByPayuniMerchantId(
             row.payuniMerchantId,
             {

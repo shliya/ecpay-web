@@ -1,6 +1,7 @@
 import './css/common.css';
 import './css/index.css';
 import checkTotpBinding from './js/totp-guard.js';
+import { buildDonationOverlayPageUrl } from './js/donation-overlay-url.js';
 
 let isInitialized = false;
 
@@ -52,6 +53,16 @@ const PAGE_CONFIG = {
             {
                 label: 'OBS 瀏覽器來源（斗內通知畫面）',
                 type: 'donation-overlay',
+            },
+        ],
+    },
+    'youtube-donation-settings': {
+        file: 'youtube-donation-settings.html',
+        title: '🎬 影音斗內設定',
+        links: [
+            {
+                label: '觀眾影片斗內連結',
+                type: 'viewer-donate-youtube',
             },
         ],
     },
@@ -281,8 +292,11 @@ function getLinkUrl(type, pageFile) {
     if (type === 'viewer-donate') {
         return indexState.viewerDonateUrl || '';
     }
+    if (type === 'viewer-donate-youtube') {
+        return indexState.viewerDonateYoutubeUrl || '';
+    }
     if (type === 'donation-overlay') {
-        return buildFullUrl('donation-overlay.html');
+        return buildDonationOverlayPageUrl(indexState.merchantId);
     }
     return '';
 }
@@ -317,7 +331,10 @@ function renderToolbar(config) {
         input.readOnly = true;
         input.value = url;
         if (!url) {
-            if (link.type === 'viewer-donate') {
+            if (
+                link.type === 'viewer-donate' ||
+                link.type === 'viewer-donate-youtube'
+            ) {
                 input.placeholder = '請先至設定頁面設定顯示名稱';
                 input.setAttribute('data-requires-display-name', '1');
             } else {

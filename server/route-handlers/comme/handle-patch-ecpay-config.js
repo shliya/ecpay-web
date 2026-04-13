@@ -86,6 +86,7 @@ module.exports = async (req, res) => {
             blockedKeywords,
             ecpayEnabled: updated.ecpayEnabled !== false,
             payuniEnabled: updated.payuniEnabled !== false,
+            youtubeDonationEnabled: updated.youtubeDonationEnabled === true,
             hasSensitiveEcpayUpdate: hasSensitiveEcpay,
             hasSensitivePayuniUpdate: hasSensitivePayuni,
         };

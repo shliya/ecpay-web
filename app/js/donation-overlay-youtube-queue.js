@@ -22,8 +22,11 @@ function loadYoutubeIframeApi() {
 
 /**
  * @param {HTMLElement} mountEl
+ * @param {{ volumePercent?: number }} [options]
  */
-export function createDonationYoutubeQueue(mountEl) {
+export function createDonationYoutubeQueue(mountEl, options = {}) {
+    const volumePercent =
+        options.volumePercent != null ? Number(options.volumePercent) : 100;
     const queue = [];
     let busy = false;
     let player = null;
@@ -113,6 +116,13 @@ export function createDonationYoutubeQueue(mountEl) {
                                     e.target.seekTo(startSec, true);
                                 } else {
                                     e.target.seekTo(0, true);
+                                }
+                                const vol = Math.min(
+                                    100,
+                                    Math.max(0, volumePercent)
+                                );
+                                if (Number.isFinite(vol)) {
+                                    e.target.setVolume(vol);
                                 }
                                 e.target.playVideo();
                             } catch (_) {

@@ -42,6 +42,13 @@ module.exports = async (req, res) => {
             return;
         }
 
+        const hasYoutubeUrl =
+            youtubeUrl != null && String(youtubeUrl).trim();
+        if (hasYoutubeUrl && config.youtubeDonationEnabled !== true) {
+            res.status(403).json({ error: '影音斗內已關閉' });
+            return;
+        }
+
         const pricePerSec = getYoutubePricePerSecFromConfig(config);
 
         let videoId = null;

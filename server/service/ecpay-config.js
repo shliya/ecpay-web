@@ -39,7 +39,11 @@ const ALLOWED_THEME_COLOR_KEYS = new Set([
 ]);
 
 function normalizeUpdateField(field, value) {
-    if (field === 'ecpayEnabled' || field === 'payuniEnabled') {
+    if (
+        field === 'ecpayEnabled' ||
+        field === 'payuniEnabled' ||
+        field === 'youtubeDonationEnabled'
+    ) {
         if (value === true || value === false) return value;
         return null;
     }
@@ -84,6 +88,7 @@ async function updateEcpayConfig(merchantId, updates) {
         'blockedKeywords',
         'ecpayEnabled',
         'payuniEnabled',
+        'youtubeDonationEnabled',
     ];
     const updateData = {};
 
@@ -94,7 +99,9 @@ async function updateEcpayConfig(merchantId, updates) {
                 continue;
             }
             if (
-                (field === 'ecpayEnabled' || field === 'payuniEnabled') &&
+                (field === 'ecpayEnabled' ||
+                    field === 'payuniEnabled' ||
+                    field === 'youtubeDonationEnabled') &&
                 normalized === null
             ) {
                 continue;
