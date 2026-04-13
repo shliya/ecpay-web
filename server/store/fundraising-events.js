@@ -93,6 +93,9 @@ async function updateFundraisingEventByIdAndEcpayConfigId(
         }
         update.cost = sequelize.literal(`"cost" + ${numericCost}`);
     }
+    if (Object.keys(update).length > 0) {
+        update.updated_at = new Date();
+    }
     return FundraisingEvents.update(update, {
         where,
     });
@@ -121,6 +124,7 @@ async function batchUpdateFundraisingEventByEcpayConfigId(
     return FundraisingEvents.update(
         {
             cost: sequelize.literal(`"cost" + ${numericCost}`),
+            updated_at: new Date(),
         },
         { where }
     );
@@ -140,6 +144,7 @@ async function disableFundraisingEventByIdAndEcpayConfigId(id, ecpayConfigId) {
     return FundraisingEvents.update(
         {
             status: ENUM_FUNDRAISING_EVENT_STATUS.INACTIVE,
+            updated_at: new Date(),
         },
         {
             where,
@@ -161,6 +166,7 @@ async function enableFundraisingEventByIdAndEcpayConfigId(id, ecpayConfigId) {
     return FundraisingEvents.update(
         {
             status: ENUM_FUNDRAISING_EVENT_STATUS.ACTIVE,
+            updated_at: new Date(),
         },
         {
             where,
@@ -182,6 +188,7 @@ async function pauseFundraisingEventByIdAndEcpayConfigId(id, ecpayConfigId) {
     return FundraisingEvents.update(
         {
             status: ENUM_FUNDRAISING_EVENT_STATUS.PAUSE,
+            updated_at: new Date(),
         },
         {
             where,
@@ -195,6 +202,7 @@ async function expireOutdatedEvents() {
     const [updatedRowsCount] = await FundraisingEvents.update(
         {
             status: ENUM_FUNDRAISING_EVENT_STATUS.INACTIVE,
+            updated_at: new Date(),
         },
         {
             where: {

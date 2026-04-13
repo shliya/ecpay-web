@@ -96,14 +96,6 @@ const FundraisingEvents = sequelize.define(
     {
         tableName: 'fundraising_events',
         timestamps: false,
-        hooks: {
-            beforeBulkUpdate(options) {
-                if (!options.attributes) {
-                    options.attributes = {};
-                }
-                options.attributes.updated_at = new Date();
-            },
-        },
         indexes: [
             {
                 name: 'idx_fundraising_events_ecpayConfigId',
