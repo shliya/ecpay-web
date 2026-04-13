@@ -15,7 +15,7 @@ function normalizeBlockedKeywords(value) {
         .map(keyword => keyword.replace(/[<>"'`]/g, ''));
 }
 
-const ECPAY_HASH_KEYS = ['hashKey', 'hashIV'];
+const ECPAY_HASH_KEYS = ['hashKey', 'hashIV', 'payuniHashKey', 'payuniHashIV'];
 
 function sanitizeUpdates(rawUpdates) {
     const updates =
@@ -29,7 +29,7 @@ function sanitizeUpdates(rawUpdates) {
     }
 
     for (const key of ECPAY_HASH_KEYS) {
-        if (Object.hasOwn(result, key) && result[key] === null) {
+        if (Object.hasOwn(result, key) && !result[key]) {
             delete result[key];
         }
     }
