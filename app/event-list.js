@@ -16,6 +16,40 @@ let eventListState = {
     editingEvent: null,
 };
 
+const DONATION_TYPE = {
+    ECPAY: 1,
+    YOUTUBE_SUPER_CHAT: 2,
+    PAYUNI: 3,
+};
+
+function formatDonationTypeLabel(type) {
+    const n = Number(type);
+    if (n === DONATION_TYPE.YOUTUBE_SUPER_CHAT) return 'YouTube';
+    if (n === DONATION_TYPE.PAYUNI) return 'PAYUNi';
+    if (n === DONATION_TYPE.ECPAY) return '綠界';
+    return '—';
+}
+
+/** 台灣時間 YYYY-MM-DD HH:mm（與 donate-list 時區邏輯一致） */
+function formatDonationDateTime(isoString) {
+    if (!isoString) return '—';
+    const date = new Date(isoString);
+    if (Number.isNaN(date.getTime())) return '—';
+    const taiwan = new Date(date.getTime() + 8 * 60 * 60 * 1000);
+    const y = taiwan.getUTCFullYear();
+    const m = String(taiwan.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(taiwan.getUTCDate()).padStart(2, '0');
+    const h = String(taiwan.getUTCHours()).padStart(2, '0');
+    const min = String(taiwan.getUTCMinutes()).padStart(2, '0');
+    return `${y}-${m}-${day} ${h}:${min}`;
+}
+
+function handleDonationsDrawerEscape(e) {
+    if (e.key === 'Escape') {
+        closeDonationsDrawer();
+    }
+}
+
 async function initializeEventList() {
     if (isInitialized) {
         console.log('Event list already initialized');
@@ -118,6 +152,123 @@ function bindEventListeners() {
                 handleHideEditTitleModal();
             }
         });
+    }
+
+    bindDonationsDrawer();
+}
+
+function bindDonationsDrawer() {
+    const overlay = document.getElementById('donationsDrawer');
+    const closeBtn = document.getElementById('donationsDrawerClose');
+    if (overlay && closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            closeDonationsDrawer();
+        });
+        overlay.addEventListener('click', e => {
+            if (e.target === overlay) {
+                closeDonationsDrawer();
+            }
+        });
+    }
+}
+
+function openDonationsDrawer() {
+    const overlay = document.getElementById('donationsDrawer');
+    if (!overlay) return;
+    overlay.classList.add('donations-drawer-overlay--open');
+    overlay.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', handleDonationsDrawerEscape);
+    closeBtnFocus();
+}
+
+function closeBtnFocus() {
+    const closeBtn = document.getElementById('donationsDrawerClose');
+    if (closeBtn) {
+        closeBtn.focus();
+    }
+}
+
+function closeDonationsDrawer() {
+    const overlay = document.getElementById('donationsDrawer');
+    if (!overlay) return;
+    overlay.classList.remove('donations-drawer-overlay--open');
+    overlay.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    document.removeEventListener('keydown', handleDonationsDrawerEscape);
+}
+
+async function loadDonationsIntoDrawer(merchantId, startDate, endDate) {
+    const loading = document.getElementById('donationsDrawerLoading');
+    const errorEl = document.getElementById('donationsDrawerError');
+    const emptyEl = document.getElementById('donationsDrawerEmpty');
+    const tableWrap = document.getElementById('donationsDrawerTableWrap');
+    const tbody = document.getElementById('donationsDrawerRows');
+    const rangeEl = document.getElementById('donationsDrawerRange');
+
+    if (rangeEl) {
+        rangeEl.textContent = `期間：${startDate} ～ ${endDate}（商店 ${merchantId}）`;
+    }
+    if (loading) loading.style.display = 'block';
+    if (errorEl) {
+        errorEl.style.display = 'none';
+        errorEl.textContent = '';
+    }
+    if (emptyEl) emptyEl.style.display = 'none';
+    if (tableWrap) tableWrap.style.display = 'none';
+    if (tbody) tbody.innerHTML = '';
+
+    const path =
+        `/api/v1/comme/ecpay/donations` +
+        `/startDate=${encodeURIComponent(startDate)}` +
+        `/endDate=${encodeURIComponent(endDate)}` +
+        `/id=${encodeURIComponent(merchantId)}`;
+
+    try {
+        const response = await fetch(path);
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        const donations = await response.json();
+        const list = Array.isArray(donations) ? donations : [];
+
+        if (loading) loading.style.display = 'none';
+
+        if (list.length === 0) {
+            if (emptyEl) emptyEl.style.display = 'flex';
+            return;
+        }
+
+        if (tbody) {
+            tbody.innerHTML = list
+                .map(d => {
+                    const name = escapeHtml(d.name || '');
+                    const cost = Number(d.cost) || 0;
+                    const msg = escapeHtml(d.message || '');
+                    const typeLabel = escapeHtml(
+                        formatDonationTypeLabel(d.type)
+                    );
+                    const dt = escapeHtml(
+                        formatDonationDateTime(d.created_at || d.createdAt)
+                    );
+                    return `<tr>
+                        <td>${name || '—'}</td>
+                        <td class="col-amount">${cost.toLocaleString()}</td>
+                        <td class="col-message">${msg || '—'}</td>
+                        <td>${typeLabel}</td>
+                        <td class="col-datetime">${dt}</td>
+                    </tr>`;
+                })
+                .join('');
+        }
+        if (tableWrap) tableWrap.style.display = 'block';
+    } catch (err) {
+        console.error(err);
+        if (loading) loading.style.display = 'none';
+        if (errorEl) {
+            errorEl.textContent = '載入斗內紀錄失敗，請稍後再試';
+            errorEl.style.display = 'block';
+        }
     }
 }
 
@@ -240,6 +391,13 @@ function createEventCard(event) {
                         data-event-id="${event.id}">
                     查看
                 </button>
+                <button class="btn btn-secondary view-donations-btn" 
+                        type="button"
+                        data-merchant-id="${escapeHtml(String(event.merchantId || ''))}" 
+                        data-start-date="${escapeHtml(toDateOnlyParam(event.startMonth))}"
+                        data-end-date="${escapeHtml(toDateOnlyParam(event.endMonth))}">
+                    查看斗內
+                </button>
                 <button class="btn btn-secondary edit-title-btn" 
                         data-merchant-id="${event.merchantId}" 
                         data-event-id="${event.id}"
@@ -297,9 +455,13 @@ function bindEventCardListeners() {
     const pauseEventBtns = document.querySelectorAll('.pause-event-btn');
     const resumeEventBtns = document.querySelectorAll('.resume-event-btn');
     const editTitleBtns = document.querySelectorAll('.edit-title-btn');
+    const viewDonationsBtns = document.querySelectorAll('.view-donations-btn');
 
     viewEventBtns.forEach(btn => {
         btn.addEventListener('click', handleViewEvent);
+    });
+    viewDonationsBtns.forEach(btn => {
+        btn.addEventListener('click', handleViewDonations);
     });
     disableEventBtns.forEach(btn => {
         btn.addEventListener('click', handleDisableEvent);
@@ -327,6 +489,18 @@ function handleViewEvent(event) {
         const eventUrl = `event.html?merchantId=${encodeURIComponent(merchantId)}&id=${encodeURIComponent(eventId)}`;
         window.open(eventUrl, '_blank');
     }
+}
+
+async function handleViewDonations(clickEvent) {
+    const btn = clickEvent.currentTarget;
+    const merchantId = btn.getAttribute('data-merchant-id');
+    const startDate = btn.getAttribute('data-start-date');
+    const endDate = btn.getAttribute('data-end-date');
+    if (!merchantId || !startDate || !endDate) {
+        return;
+    }
+    openDonationsDrawer();
+    await loadDonationsIntoDrawer(merchantId, startDate, endDate);
 }
 
 // 處理重新整理
@@ -538,6 +712,14 @@ function formatDate(dateString) {
     } catch (error) {
         return '日期格式錯誤';
     }
+}
+
+/** 活動起迄轉成 YYYY-MM-DD，供「查看斗內」查詢 API */
+function toDateOnlyParam(value) {
+    if (value == null || value === '') return '';
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return '';
+    return d.toISOString().slice(0, 10);
 }
 
 function formatDateForInput(date) {

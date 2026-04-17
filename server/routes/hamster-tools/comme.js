@@ -9,6 +9,7 @@ const {
     handleCreateEcpaySettingRequest,
     handleGetEcpayMerchantRequest,
     handleGetEcpayDonationsRequest,
+    handleGetEcpayDonationsByStartDateEndDateRequest,
     handleGetEcpayConfigRequest,
     handleGetEcpayConfigPublicRequest,
     handlePatchEcpayConfigRequest,
@@ -47,6 +48,10 @@ router.get('/ecpay/donations/id=:merchantId', handleGetEcpayDonationsRequest);
 router.get(
     '/ecpay/config/public/id=:merchantId',
     handleGetEcpayConfigPublicRequest
+);
+router.get(
+    '/ecpay/donations/startDate=:startDate/endDate=:endDate/id=:merchantId',
+    handleGetEcpayDonationsByStartDateEndDateRequest
 );
 router.get(
     '/ecpay/config/id=:merchantId',

@@ -109,9 +109,14 @@ async function createDonation(row, { transaction, skipDedupCheck } = {}) {
     }
 }
 
-async function getDonationsByEcpayConfigId(ecpayConfigId) {
+async function getDonationsByEcpayConfigId(merchantId) {
+    const ecpayConfigId =
+        await DonationStore.transferMerchantIdToEcpayConfigId(merchantId);
+    if (ecpayConfigId == null) {
+        throw new Error('Ecpay config not found');
+    }
     const donations =
-        await DonationStore.getDonationsByMerchantId(ecpayConfigId);
+        await DonationStore.getDonationsByEcpayConfigId(ecpayConfigId);
     const filteredDonations = donations.filter(donation => {
         const blockedKeywords = donation.ecpayConfig.blockedKeywords;
         return blockedKeywords.every(
@@ -122,8 +127,25 @@ async function getDonationsByEcpayConfigId(ecpayConfigId) {
     return filteredDonations;
 }
 
+async function getDonationsByStartDateEndDateAndEcpayConfigId(
+    startDate,
+    endDate,
+    merchantId
+) {
+    const ecpayConfigId =
+        await DonationStore.transferMerchantIdToEcpayConfigId(merchantId);
+    if (ecpayConfigId == null) {
+        throw new Error('Ecpay config not found');
+    }
+    return DonationStore.getDonationsByEcpayConfigIdAndDate(ecpayConfigId, {
+        startDate,
+        endDate,
+    });
+}
+
 module.exports = {
     getDonationsByMerchantId: DonationStore.getDonationsByMerchantId,
     getDonationsByEcpayConfigId,
     createDonation,
+    getDonationsByStartDateEndDateAndEcpayConfigId,
 };
