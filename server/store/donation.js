@@ -5,16 +5,37 @@ const { ENUM_DONATION_TYPE } = require('../lib/enum');
 const { getEcpayConfigByMerchantId } = require('./ecpay-config');
 const ecpayConfigModel = require('../model/ecpayConfig');
 
+/** 僅日期 `YYYY-MM-DD`（無時間／時區）時，依 UTC 曆法轉成查詢上下界。 */
+const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
+
+function normalizeCreatedAtRangeBounds(startDate, endDate) {
+    const start = String(startDate ?? '').trim();
+    const end = String(endDate ?? '').trim();
+
+    const startBound = DATE_ONLY.test(start)
+        ? new Date(`${start}T00:00:00.000Z`)
+        : new Date(start);
+
+    const endBound = DATE_ONLY.test(end)
+        ? new Date(`${end}T23:59:59.999Z`)
+        : new Date(end);
+
+    return [startBound, endBound];
+}
+
 async function resolveEcpayConfigId(merchantId) {
     if (!merchantId) return null;
     const config = await getEcpayConfigByMerchantId(merchantId.trim());
     return config ? config.id : null;
 }
 
-async function getDonationsByMerchantId(merchantId) {
+// TO-DO 轉換成configId，應該拉到common function
+async function transferMerchantIdToEcpayConfigId(merchantId) {
     const ecpayConfigId = await resolveEcpayConfigId(merchantId);
-    if (ecpayConfigId == null) return [];
-    return getDonationsByEcpayConfigId(ecpayConfigId);
+    if (ecpayConfigId == null) {
+        return null;
+    }
+    return ecpayConfigId;
 }
 
 async function getDonationsByEcpayConfigId(ecpayConfigId) {
@@ -32,28 +53,21 @@ async function getDonationsByEcpayConfigId(ecpayConfigId) {
     });
 }
 
-async function getDonationsByMerchantIdAndDate(
-    merchantId,
-    { startDate, endDate } = {}
-) {
-    const ecpayConfigId = await resolveEcpayConfigId(merchantId);
-    if (ecpayConfigId == null) return [];
-    return getDonationsByEcpayConfigIdAndDate(ecpayConfigId, {
-        startDate,
-        endDate,
-    });
-}
-
 async function getDonationsByEcpayConfigIdAndDate(
     ecpayConfigId,
     { startDate, endDate } = {}
 ) {
+    const [startBound, endBound] = normalizeCreatedAtRangeBounds(
+        startDate,
+        endDate
+    );
     return donationModel.findAll({
         where: {
             ecpayConfigId,
-            created_at: { [Op.between]: [startDate, endDate] },
+            created_at: { [Op.between]: [startBound, endBound] },
         },
         order: [['created_at', 'DESC']],
+        attributes: ['id', 'name', 'cost', 'message', 'created_at', 'type'],
     });
 }
 
@@ -140,12 +154,12 @@ function getTransaction() {
 
 module.exports = {
     getTransaction,
-    getDonationsByMerchantId,
     getDonationsByEcpayConfigId,
-    getDonationsByMerchantIdAndDate,
     getDonationsByEcpayConfigIdAndDate,
     createDonation,
     isDuplicateDonation,
     checkDuplicateSuperChat,
     getLastSuperChatTime,
+
+    transferMerchantIdToEcpayConfigId,
 };

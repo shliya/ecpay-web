@@ -126,6 +126,70 @@
             </div>
         </div>
 
+        <!-- 查看斗內：右側抽屜，點遮罩關閉 -->
+        <div
+            id="donationsDrawer"
+            class="donations-drawer-overlay"
+            aria-hidden="true"
+        >
+            <aside
+                class="donations-drawer"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="donationsDrawerTitle"
+                tabindex="-1"
+            >
+                <div class="donations-drawer-header">
+                    <h2 id="donationsDrawerTitle">活動期間斗內紀錄</h2>
+                    <button
+                        type="button"
+                        class="donations-drawer-close"
+                        id="donationsDrawerClose"
+                        aria-label="關閉"
+                    >
+                        &times;
+                    </button>
+                </div>
+                <p class="donations-drawer-range" id="donationsDrawerRange"></p>
+                <div
+                    class="donations-drawer-loading"
+                    id="donationsDrawerLoading"
+                >
+                    載入中...
+                </div>
+                <div
+                    class="donations-drawer-error"
+                    id="donationsDrawerError"
+                    style="display: none"
+                ></div>
+                <div
+                    class="donations-drawer-scroll"
+                    id="donationsDrawerTableWrap"
+                    style="display: none"
+                >
+                    <table class="donations-drawer-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">暱稱</th>
+                                <th scope="col">金額</th>
+                                <th scope="col">訊息</th>
+                                <th scope="col">類型</th>
+                                <th scope="col">日期</th>
+                            </tr>
+                        </thead>
+                        <tbody id="donationsDrawerRows"></tbody>
+                    </table>
+                </div>
+                <div
+                    class="donations-drawer-empty"
+                    id="donationsDrawerEmpty"
+                    style="display: none"
+                >
+                    <p>此期間沒有斗內紀錄</p>
+                </div>
+            </aside>
+        </div>
+
         <div id="editTitleModal" class="modal" style="display: none">
             <div class="modal-content">
                 <div class="modal-header">

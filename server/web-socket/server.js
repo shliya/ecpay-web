@@ -2,9 +2,7 @@ const WebSocket = require('ws');
 const http = require('http');
 const IchibanEventStore = require('../store/ichiban-event');
 const IchibanCardStore = require('../store/ichiban-card');
-const {
-    ENUM_ICHIBAN_CARD_STATUS,
-} = require('../lib/enum');
+const { ENUM_ICHIBAN_CARD_STATUS } = require('../lib/enum');
 const {
     createPayment: createEcpayPayment,
 } = require('../lib/payment-providers/ecpay');
@@ -17,7 +15,6 @@ const {
     getPaymentOrderByEventAndCard,
     deletePaymentOrder,
 } = require('../store/payment-order');
-
 const {
     updateMerchantActiveTime,
 } = require('../service/check-youtube-live-streams');
