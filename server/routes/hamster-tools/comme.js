@@ -22,7 +22,7 @@ const {
 } = require('../../route-handlers/comme');
 
 //綠界notify回調
-router.post('/ecpay/id=:merchantId');
+router.post('/ecpay/id=:merchantId', handleGetEcpayRequest);
 
 //建立綠界商店設定
 router.post(
