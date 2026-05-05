@@ -38,8 +38,12 @@ module.exports = async (req, res) => {
         } = req.body || {};
 
         const orderInfo = getPaymentOrder(MerchantTradeNo);
+        const isIchibanOrder =
+            orderInfo &&
+            orderInfo.kind !== 'ecpay-donation' &&
+            orderInfo.eventId != null;
 
-        if (orderInfo) {
+        if (isIchibanOrder) {
             const { eventId, cardIndex, clientId, merchantId, nickname } =
                 orderInfo;
 
@@ -119,6 +123,10 @@ module.exports = async (req, res) => {
             // 清理訂單資訊
             deletePaymentOrder(MerchantTradeNo);
         } else {
+            const pendingDonation =
+                orderInfo && orderInfo.kind === 'ecpay-donation'
+                    ? orderInfo
+                    : null;
             // 無一番賞訂單：視為斗內回調，寫入 donations
             if (process.env.NODE_ENV !== 'production') {
                 console.log('[ecpay-success] 無一番賞訂單，當作斗內回調處理');
@@ -152,7 +160,18 @@ module.exports = async (req, res) => {
             }
 
             if (row) {
+                if (pendingDonation) {
+                    if (pendingDonation.fullMessage) {
+                        row.message = pendingDonation.fullMessage;
+                    }
+                    if (pendingDonation.fullName) {
+                        row.name = pendingDonation.fullName;
+                    }
+                }
                 await createDonation(row);
+                if (pendingDonation) {
+                    deletePaymentOrder(MerchantTradeNo);
+                }
                 if (process.env.NODE_ENV !== 'production') {
                     console.log(
                         '[ecpay-success] 已寫入 donation',

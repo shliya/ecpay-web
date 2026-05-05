@@ -1,4 +1,5 @@
 const { getEcpayConfigByMerchantId } = require('../../store/ecpay-config');
+const { setPaymentOrder } = require('../../store/payment-order');
 const { createPayment } = require('../../lib/payment-providers/ecpay');
 const { getSafeApiErrorMessage } = require('../../lib/safe-error-message');
 const {
@@ -43,8 +44,7 @@ module.exports = async (req, res) => {
             return;
         }
 
-        const hasYoutubeUrl =
-            youtubeUrl != null && String(youtubeUrl).trim();
+        const hasYoutubeUrl = youtubeUrl != null && String(youtubeUrl).trim();
         if (hasYoutubeUrl && config.youtubeDonationEnabled !== true) {
             res.status(403).json({ error: '影音斗內已關閉' });
             return;
@@ -99,6 +99,11 @@ module.exports = async (req, res) => {
         }
 
         const result = await createPayment(merchantId.trim(), orderData);
+        setPaymentOrder(result.merchantTradeNo, {
+            kind: 'ecpay-donation',
+            fullMessage: orderData.message || '',
+            fullName: orderData.name || '',
+        });
         console.log('[ReturnUrl]: ', result.params.ReturnURL);
 
         res.status(200).json({

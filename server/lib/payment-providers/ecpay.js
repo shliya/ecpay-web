@@ -212,6 +212,8 @@ async function createPayment(merchantId, orderData) {
     const MerchantTradeNo = `ECPAY${Date.now()}`;
     const { hashKey, hashIV } = await getEcpayConfigByMerchantId(merchantId);
 
+    // 綠界全方位金流 CustomField1–4 為 String(50)；超過會被截斷並可能驗證失敗。
+    // 網頁斗內流程另於伺服器暫存完整留言（見 handle-create-donate-ecpay + ecpay-success）。
     const custom1 =
         orderData.name != null && String(orderData.name).trim()
             ? String(orderData.name).trim().slice(0, 50)
