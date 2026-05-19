@@ -17,76 +17,103 @@ async function handlePaymentTimeoutWorker(taskName) {
 
         const currentTime = Date.now();
         const timeoutDuration = 5 * 60 * 1000; // 5分鐘
-        let timeoutCount = 0;
+        let ichibanTimeoutCount = 0;
+        let staleOrderClearedCount = 0;
 
         for (const [merchantTradeNo, orderInfo] of paymentOrders.entries()) {
             const { eventId, cardIndex, clientId, merchantId, createdAt } =
                 orderInfo;
 
-            if (currentTime - createdAt > timeoutDuration) {
-                try {
-                    console.log(
-                        `[${taskName}] 處理超時付款: ${merchantTradeNo}`
+            if (currentTime - createdAt <= timeoutDuration) {
+                continue;
+            }
+
+            if (orderInfo.kind === 'ecpay-donation') {
+                deletePaymentOrder(merchantTradeNo);
+                staleOrderClearedCount++;
+                console.log(
+                    `[${taskName}] 綠界斗內預存訂單逾時已清除: ${merchantTradeNo}`
+                );
+                continue;
+            }
+
+            if (eventId == null || cardIndex == null) {
+                deletePaymentOrder(merchantTradeNo);
+                staleOrderClearedCount++;
+                console.log(
+                    `[${taskName}] 無效或缺少 eventId 的預存訂單已清除: ${merchantTradeNo}`
+                );
+                continue;
+            }
+
+            try {
+                console.log(`[${taskName}] 處理超時付款: ${merchantTradeNo}`);
+
+                const card =
+                    await IchibanCardService.getIchibanCardByEventIdAndCardIndexAndStatusWithLock(
+                        eventId,
+                        cardIndex,
+                        ENUM_ICHIBAN_CARD_STATUS.LOCKED
                     );
 
-                    const card =
-                        await IchibanCardService.getIchibanCardByEventIdAndCardIndexAndStatusWithLock(
-                            eventId,
-                            cardIndex,
-                            ENUM_ICHIBAN_CARD_STATUS.LOCKED
-                        );
+                if (card) {
+                    await IchibanCardService.updateIchibanCardByIdAndStatus(
+                        card.id,
+                        {
+                            status: ENUM_ICHIBAN_CARD_STATUS.CLOSED,
+                            openedAt: null,
+                            openedBy: null,
+                        }
+                    );
+                    // 廣播付款超時訊息
+                    if (ichibanWebSocketServer) {
+                        ichibanWebSocketServer.broadcastToEvent(eventId, {
+                            type: 'card-payment-failed',
+                            eventId: eventId,
+                            cardIndex: cardIndex,
+                            clientId: clientId,
+                            timestamp: new Date().toISOString(),
+                            reason: 'payment-timeout',
+                        });
 
-                    if (card) {
-                        await IchibanCardService.updateIchibanCardByIdAndStatus(
-                            card.id,
+                        ichibanWebSocketServer.broadcastToRoom(
+                            `merchant-${merchantId}`,
                             {
-                                status: ENUM_ICHIBAN_CARD_STATUS.CLOSED,
-                                openedAt: null,
-                                openedBy: null,
-                            }
-                        );
-                        // 廣播付款超時訊息
-                        if (ichibanWebSocketServer) {
-                            ichibanWebSocketServer.broadcastToEvent(eventId, {
-                                type: 'card-payment-failed',
+                                type: 'card-payment-failed-notification',
                                 eventId: eventId,
                                 cardIndex: cardIndex,
                                 clientId: clientId,
                                 timestamp: new Date().toISOString(),
                                 reason: 'payment-timeout',
-                            });
-
-                            ichibanWebSocketServer.broadcastToRoom(
-                                `merchant-${merchantId}`,
-                                {
-                                    type: 'card-payment-failed-notification',
-                                    eventId: eventId,
-                                    cardIndex: cardIndex,
-                                    clientId: clientId,
-                                    timestamp: new Date().toISOString(),
-                                    reason: 'payment-timeout',
-                                }
-                            );
-                        }
-
-                        console.log(
-                            `[${taskName}] 卡片 ${cardIndex} 付款超時，已恢復為可點擊狀態`
+                            }
                         );
-                        timeoutCount++;
-                        deletePaymentOrder(merchantTradeNo);
                     }
-                } catch (error) {
-                    console.error(
-                        `[${taskName}] 處理超時付款 ${merchantTradeNo} 時發生錯誤:`,
-                        error
+
+                    console.log(
+                        `[${taskName}] 卡片 ${cardIndex} 付款超時，已恢復為可點擊狀態`
                     );
+                    ichibanTimeoutCount++;
+                    deletePaymentOrder(merchantTradeNo);
                 }
+            } catch (error) {
+                console.error(
+                    `[${taskName}] 處理超時付款 ${merchantTradeNo} 時發生錯誤:`,
+                    error
+                );
             }
         }
 
-        if (timeoutCount > 0) {
-            console.log(`[${taskName}] 處理了 ${timeoutCount} 個超時付款`);
-        } else {
+        if (ichibanTimeoutCount > 0) {
+            console.log(
+                `[${taskName}] 處理了 ${ichibanTimeoutCount} 個一番賞付款超時`
+            );
+        }
+        if (staleOrderClearedCount > 0) {
+            console.log(
+                `[${taskName}] 已清除 ${staleOrderClearedCount} 筆逾時預存訂單（斗內／無效）`
+            );
+        }
+        if (ichibanTimeoutCount === 0 && staleOrderClearedCount === 0) {
             console.log(`[${taskName}] 沒有發現超時付款`);
         }
 

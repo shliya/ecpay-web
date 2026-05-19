@@ -3,4 +3,7 @@ module.exports = {
         .handleAutoExpireEventsWorker,
     handlePaymentTimeoutWorker: require('./handle-payment-timeout-worker')
         .handlePaymentTimeoutWorker,
+    handleReconcileFundraisingEventCostWorker:
+        require('./handle-reconcile-fundraising-event-cost-worker')
+            .handleReconcileFundraisingEventCostWorker,
 };

@@ -4,10 +4,7 @@ const { getEcpayConfigByMerchantId } = require('../store/ecpay-config');
 const {
     batchUpdateFundraisingEventByMerchantId,
 } = require('./fundraising-events');
-const {
-    ENUM_FUNDRAISING_EVENT_TYPE,
-    ENUM_DONATION_TYPE,
-} = require('../lib/enum');
+const { ENUM_DONATION_TYPE } = require('../lib/enum');
 
 const SPECIAL_MESSAGE_CONDITION_MERCHANTS = (
     process.env.SPECIAL_MESSAGE_CONDITION_MERCHANTS || ''
@@ -63,16 +60,9 @@ async function createDonation(row, { transaction, skipDedupCheck } = {}) {
             transaction: txn,
         });
 
-        if (row.message === '') {
-            await batchUpdateFundraisingEventByMerchantId(row.merchantId, {
-                cost: row.cost,
-                type: ENUM_FUNDRAISING_EVENT_TYPE.BLOOD_PRESSURE,
-            });
-        } else {
-            await batchUpdateFundraisingEventByMerchantId(row.merchantId, {
-                cost: row.cost,
-            });
-        }
+        await batchUpdateFundraisingEventByMerchantId(row.merchantId, {
+            cost: row.cost,
+        });
 
         if (shouldCommit) {
             await txn.commit();

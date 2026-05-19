@@ -53,6 +53,33 @@ async function getDonationsByEcpayConfigId(ecpayConfigId) {
     });
 }
 
+/**
+ * @param {bigint|number|string} ecpayConfigId
+ * @param {string|Date} startDate 支援 YYYY-MM-DD（與活動前台「查看斗內」一致）或 ISO 時間
+ * @param {string|Date} endDate
+ * @returns {Promise<number>}
+ */
+async function sumDonationCostByEcpayConfigIdAndDateRange(
+    ecpayConfigId,
+    startDate,
+    endDate
+) {
+    const [startBound, endBound] = normalizeCreatedAtRangeBounds(
+        startDate,
+        endDate
+    );
+
+    const total = await donationModel.sum('cost', {
+        where: {
+            ecpayConfigId,
+            created_at: { [Op.between]: [startBound, endBound] },
+        },
+    });
+
+    const n = Number(total);
+    return Number.isFinite(n) ? n : 0;
+}
+
 async function getDonationsByEcpayConfigIdAndDate(
     ecpayConfigId,
     { startDate, endDate } = {}
@@ -155,6 +182,7 @@ function getTransaction() {
 module.exports = {
     getTransaction,
     getDonationsByEcpayConfigId,
+    sumDonationCostByEcpayConfigIdAndDateRange,
     getDonationsByEcpayConfigIdAndDate,
     createDonation,
     isDuplicateDonation,

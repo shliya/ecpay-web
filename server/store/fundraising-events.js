@@ -112,10 +112,14 @@ async function batchUpdateFundraisingEventByEcpayConfigId(
     if (type) {
         where.type = type;
     } else {
-        where.type = [
-            ENUM_FUNDRAISING_EVENT_TYPE.UP,
-            ENUM_FUNDRAISING_EVENT_TYPE.DOWN,
-        ];
+        // 所有斗內（含無留言）一併累加：倒扣/累積/血壓（type 1–3）
+        where.type = {
+            [Op.in]: [
+                ENUM_FUNDRAISING_EVENT_TYPE.DOWN,
+                ENUM_FUNDRAISING_EVENT_TYPE.UP,
+                ENUM_FUNDRAISING_EVENT_TYPE.BLOOD_PRESSURE,
+            ],
+        };
     }
     const numericCost = Number(cost);
     if (!Number.isFinite(numericCost)) {
