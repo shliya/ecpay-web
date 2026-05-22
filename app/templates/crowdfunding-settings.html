@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="zh-Hant">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>大型募資設定</title>
+    </head>
+    <body>
+        <div class="cfs-page">
+            <header class="cfs-header">
+                <h1>大型募資設定</h1>
+                <p class="cfs-desc">
+                    編輯募資落地頁內容。目前資料來源為靜態 JSON；儲存會寫入本機草稿，正式 API
+                    上線後將同步至伺服器。
+                </p>
+            </header>
+
+            <section class="cfs-status-panel" aria-live="polite">
+                <div class="cfs-status-main">
+                    <span class="cfs-status-label">活動狀態</span>
+                    <span id="activityStatusBadge" class="cfs-status-badge"
+                        >—</span
+                    >
+                </div>
+                <p id="activityStatusDetail" class="cfs-status-detail"></p>
+                <label class="cfs-manual-close">
+                    <input type="checkbox" id="manuallyClosed" />
+                    <span>手動關閉活動（覆蓋時間判斷）</span>
+                </label>
+                <p id="dataSourceHint" class="cfs-source-hint"></p>
+            </section>
+
+            <div class="cfs-layout">
+                <form id="cfsForm" class="cfs-form" novalidate>
+                    <fieldset class="cfs-fieldset">
+                        <legend>基本設定</legend>
+                        <div class="cfs-grid">
+                            <label class="cfs-field">
+                                <span>公開網址代碼（pageKey）</span>
+                                <input
+                                    type="text"
+                                    id="pageKey"
+                                    name="pageKey"
+                                    pattern="[a-zA-Z0-9_-]{1,80}"
+                                    required
+                                />
+                            </label>
+                            <label class="cfs-field">
+                                <span>募資名稱（後台辨識用）</span>
+                                <input
+                                    type="text"
+                                    id="largeFundraisingName"
+                                    name="largeFundraisingName"
+                                />
+                            </label>
+                            <label class="cfs-field cfs-field--wide">
+                                <span>前台頁面標題</span>
+                                <input type="text" id="title" name="title" />
+                            </label>
+                            <label class="cfs-field cfs-field--wide">
+                                <span>募資期間說明（一行文字）</span>
+                                <input
+                                    type="text"
+                                    id="periodLabel"
+                                    name="periodLabel"
+                                />
+                            </label>
+                            <label class="cfs-field">
+                                <span>募資開始時間</span>
+                                <input
+                                    type="datetime-local"
+                                    id="fundraisingStartsAt"
+                                    name="fundraisingStartsAt"
+                                />
+                            </label>
+                            <label class="cfs-field">
+                                <span>募資結束時間</span>
+                                <input
+                                    type="datetime-local"
+                                    id="fundraisingEndsAt"
+                                    name="fundraisingEndsAt"
+                                />
+                            </label>
+                        </div>
+                    </fieldset>
+
+                    <fieldset class="cfs-fieldset">
+                        <legend>視覺與贊助</legend>
+                        <div class="cfs-grid">
+                            <label class="cfs-field cfs-field--wide">
+                                <span>贊助按鈕（文字或圖片網址）</span>
+                                <input
+                                    type="text"
+                                    id="sponsorLabel"
+                                    name="sponsorLabel"
+                                />
+                            </label>
+                            <label class="cfs-field cfs-field--wide">
+                                <span>全頁背景圖網址</span>
+                                <input
+                                    type="url"
+                                    id="backgroundImageUrl"
+                                    name="backgroundImageUrl"
+                                />
+                            </label>
+                            <label class="cfs-field cfs-field--wide">
+                                <span>主視覺圖網址</span>
+                                <input
+                                    type="url"
+                                    id="heroImageUrl"
+                                    name="heroImageUrl"
+                                />
+                            </label>
+                            <label class="cfs-field cfs-field--wide">
+                                <span>Logo 圖網址</span>
+                                <input
+                                    type="url"
+                                    id="logoImageUrl"
+                                    name="logoImageUrl"
+                                />
+                            </label>
+                            <label class="cfs-field cfs-field--wide">
+                                <span>左側榜單底圖網址</span>
+                                <input
+                                    type="url"
+                                    id="donorListBackgroundImageUrl"
+                                    name="donorListBackgroundImageUrl"
+                                />
+                            </label>
+                            <label class="cfs-field">
+                                <span>目前累積金額（元）</span>
+                                <input
+                                    type="number"
+                                    id="currentTotal"
+                                    name="currentTotal"
+                                    min="0"
+                                    step="1"
+                                />
+                            </label>
+                        </div>
+                    </fieldset>
+
+                    <fieldset class="cfs-fieldset">
+                        <legend>頁面配色</legend>
+                        <div class="cfs-grid cfs-grid--colors" id="themeColorFields"></div>
+                    </fieldset>
+
+                    <fieldset class="cfs-fieldset">
+                        <legend>榜單名次圖示</legend>
+                        <div class="cfs-grid">
+                            <label class="cfs-field cfs-field--wide">
+                                <span>榜一 rank1</span>
+                                <input type="url" id="tierRank1" />
+                            </label>
+                            <label class="cfs-field cfs-field--wide">
+                                <span>榜二 rank2</span>
+                                <input type="url" id="tierRank2" />
+                            </label>
+                            <label class="cfs-field cfs-field--wide">
+                                <span>榜三 rank3</span>
+                                <input type="url" id="tierRank3" />
+                            </label>
+                            <label class="cfs-field cfs-field--wide">
+                                <span>其他 other</span>
+                                <input type="url" id="tierOther" />
+                            </label>
+                        </div>
+                    </fieldset>
+
+                    <div class="cfs-info-panel">
+                        <strong>左側贊助榜單</strong>
+                        <p>
+                            不需在此設定。榜單與排名將由資料庫依實際斗內紀錄即時提供（API
+                            上線後自動顯示）。
+                        </p>
+                    </div>
+
+                    <fieldset class="cfs-fieldset cfs-fieldset--list">
+                        <legend>募資說明區塊</legend>
+                        <p class="cfs-fieldset-hint">
+                            右側可捲動區塊與上方導覽按鈕；可只放圖片、或圖片加文字。
+                        </p>
+                        <div id="contentBlocksList" class="cfs-list"></div>
+                        <button
+                            type="button"
+                            class="btn cfs-btn-secondary cfs-btn-add"
+                            id="btnAddContentBlock"
+                        >
+                            ＋ 新增區塊
+                        </button>
+                    </fieldset>
+
+                    <fieldset class="cfs-fieldset cfs-fieldset--list">
+                        <legend>募資門檻（進度條計算用）</legend>
+                        <p class="cfs-fieldset-hint">
+                            依門檻金額計算進度條百分比（取最高門檻為
+                            100%）。前台目前僅顯示進度條，不顯示節點。
+                        </p>
+                        <div id="milestonesList" class="cfs-list"></div>
+                        <button
+                            type="button"
+                            class="btn cfs-btn-secondary cfs-btn-add"
+                            id="btnAddMilestone"
+                        >
+                            ＋ 新增門檻
+                        </button>
+                    </fieldset>
+
+                    <div class="cfs-actions">
+                        <button type="button" class="btn cfs-btn-primary" id="btnSave">
+                            儲存設定
+                        </button>
+                        <button
+                            type="button"
+                            class="btn cfs-btn-secondary"
+                            id="btnPreview"
+                        >
+                            預覽募資頁
+                        </button>
+                    </div>
+                    <div id="cfsMessage" class="cfs-message" role="status"></div>
+                </form>
+
+                <aside class="cfs-aside">
+                    <section class="cfs-panel">
+                        <h2 class="cfs-panel-title">公開募資網址</h2>
+                        <p class="cfs-panel-lead">
+                            訪客開啟此連結即可看到募資落地頁。
+                        </p>
+                        <div class="cfs-url-row">
+                            <input
+                                type="text"
+                                id="publicPageUrl"
+                                class="cfs-url-input"
+                                readonly
+                            />
+                            <button
+                                type="button"
+                                class="btn cfs-btn-copy"
+                                id="btnCopyPublicUrl"
+                            >
+                                複製
+                            </button>
+                        </div>
+                        <button
+                            type="button"
+                            class="btn cfs-btn-secondary cfs-btn-block"
+                            id="btnOpenPublic"
+                        >
+                            開啟正式頁面
+                        </button>
+                    </section>
+
+                    <section class="cfs-panel cfs-preview-panel">
+                        <h2 class="cfs-panel-title">即時預覽</h2>
+                        <p class="cfs-panel-lead">
+                            儲存或按「預覽」後，右側嵌入草稿版募資頁（不影響正式
+                            JSON）。
+                        </p>
+                        <iframe
+                            id="previewFrame"
+                            class="cfs-preview-frame"
+                            title="募資頁預覽"
+                        ></iframe>
+                    </section>
+                </aside>
+            </div>
+        </div>
+    </body>
+</html>

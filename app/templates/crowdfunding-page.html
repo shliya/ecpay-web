@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="zh-Hant">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>募資計畫</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@200..900&display=swap"
+            rel="stylesheet"
+        />
+    </head>
+    <body>
+        <div id="loadError" class="cf-load-error" hidden></div>
+
+        <div id="cfEndedScreen" class="cf-ended-screen" hidden>
+            <div class="cf-ended-card" role="status">
+                <h1 class="cf-ended-title">募資已終止</h1>
+                <p id="cfEndedMessage" class="cf-ended-message"></p>
+                <p id="cfEndedPeriod" class="cf-ended-period" hidden></p>
+            </div>
+        </div>
+
+        <div id="pageRoot" class="cf-page" hidden>
+            <div class="cf-bg" id="cfBg" aria-hidden="true"></div>
+
+            <div class="cf-sidebar-column">
+                <a
+                    id="sponsorCta"
+                    class="cf-sponsor-cta"
+                    href="#"
+                    data-placeholder="true"
+                >
+                    我要贊助
+                </a>
+                <aside class="cf-sidebar" aria-label="近期斗內">
+                    <ul id="donorList" class="cf-donor-list"></ul>
+                </aside>
+            </div>
+
+            <section class="cf-hero-wrap" aria-label="主視覺">
+                <div id="heroFrame" class="cf-hero-frame">
+                    <img id="heroImg" class="cf-hero-img" alt="" />
+                    <div id="heroPlaceholder" class="cf-hero-placeholder">
+                        主視覺圖尚未設定
+                    </div>
+                </div>
+            </section>
+
+            <section class="cf-panel" aria-label="募資說明">
+                <div class="cf-panel-inner">
+                    <header class="cf-panel-header">
+                        <img id="logoImg" class="cf-logo" alt="" hidden />
+                        <nav
+                            id="anchorNav"
+                            class="cf-anchor-nav"
+                            aria-label="內容錨點"
+                            hidden
+                        ></nav>
+                    </header>
+                    <div id="contentScroll" class="cf-content-scroll">
+                        <div id="contentEmpty" class="cf-content-empty">
+                            尚未新增說明內容
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <footer class="cf-footer">
+                <div class="cf-total-bar">
+                    <span class="cf-total-label">累積金額</span>
+                    <span id="totalAmount" class="cf-total-value">$0</span>
+                </div>
+                <div class="cf-funding-progress">
+                    <span class="cf-progress-label">募資進度</span>
+                    <div class="cf-timeline-wrap">
+                        <div id="timelineEmpty" class="cf-timeline-empty">
+                            尚未設定募資目標
+                        </div>
+                        <div id="timelineTrack" class="cf-timeline" hidden>
+                            <div class="cf-timeline-rail">
+                                <div
+                                    id="timelineFill"
+                                    class="cf-timeline-fill"
+                                ></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </body>
+</html>

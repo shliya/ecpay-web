@@ -66,6 +66,11 @@ const PAGE_CONFIG = {
             },
         ],
     },
+    'crowdfunding-settings': {
+        file: 'crowdfunding-settings.html',
+        title: '🎯 大型募資設定',
+        links: [],
+    },
 };
 
 async function initializeIndex() {
@@ -298,7 +303,25 @@ function getLinkUrl(type, pageFile) {
     if (type === 'donation-overlay') {
         return buildDonationOverlayPageUrl(indexState.merchantId);
     }
+    if (type === 'crowdfunding-public') {
+        return buildCrowdfundingPageUrl('default', false);
+    }
+    if (type === 'crowdfunding-preview') {
+        return buildCrowdfundingPageUrl('default', true);
+    }
     return '';
+}
+
+function buildCrowdfundingPageUrl(pageKey, preview) {
+    const path = window.location.pathname.replace(/[^/]*$/, '');
+    const url = new URL(
+        window.location.origin + path + 'crowdfunding-page.html'
+    );
+    url.searchParams.set('name', pageKey || 'default');
+    if (preview) {
+        url.searchParams.set('preview', '1');
+    }
+    return url.toString();
 }
 
 function renderToolbar(config) {

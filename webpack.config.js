@@ -32,6 +32,11 @@ module.exports = {
             __dirname,
             'app/youtube-donation-settings.js'
         ),
+        crowdfundingPage: path.resolve(__dirname, 'app/crowdfunding-page.js'),
+        crowdfundingSettings: path.resolve(
+            __dirname,
+            'app/crowdfunding-settings.js'
+        ),
     },
     output: {
         path: path.resolve(__dirname, 'public'),
@@ -279,12 +284,56 @@ module.exports = {
             },
             cache: false,
         }),
+        new HtmlWebpackPlugin({
+            template: path.resolve(
+                __dirname,
+                'app/templates/crowdfunding-page.html'
+            ),
+            filename: 'crowdfunding-page.html',
+            chunks: ['crowdfundingPage'],
+            inject: true,
+            scriptLoading: 'defer',
+            minify: {
+                removeComments: true,
+                collapseWhitespace: true,
+            },
+            cache: false,
+        }),
+        new HtmlWebpackPlugin({
+            template: path.resolve(
+                __dirname,
+                'app/templates/crowdfunding-settings.html'
+            ),
+            filename: 'crowdfunding-settings.html',
+            chunks: ['crowdfundingSettings'],
+            inject: true,
+            scriptLoading: 'defer',
+            minify: {
+                removeComments: true,
+                collapseWhitespace: true,
+            },
+            cache: false,
+        }),
     ],
     devtool: 'source-map',
     devServer: {
-        static: {
-            directory: path.join(__dirname, 'public'),
-        },
+        static: [
+            {
+                directory: path.join(__dirname, 'public'),
+            },
+            {
+                directory: path.join(
+                    __dirname,
+                    'static',
+                    'crowdfunding-data'
+                ),
+                publicPath: '/crowdfunding-data',
+            },
+            {
+                directory: path.join(__dirname, 'static', 'image'),
+                publicPath: '/image',
+            },
+        ],
         compress: true,
         port: 9000,
         historyApiFallback: true,

@@ -78,4 +78,32 @@ router.post(
 
 router.get('/resolve-name', handleResolveDisplayNameRequest);
 
+/** Phase 2：大型募資落地頁 CRUD（目前回傳 501，前端改讀 static / localStorage） */
+function handleCrowdfundingApiStub(_req, res) {
+    res.status(501).json({
+        ok: false,
+        message: 'Crowdfunding page API not implemented (Phase 2)',
+    });
+}
+
+router.get(
+    '/crowdfunding/id=:merchantId/pageKey=:pageKey',
+    requireTotp,
+    handleCrowdfundingApiStub
+);
+router.put(
+    '/crowdfunding/id=:merchantId/pageKey=:pageKey',
+    requireTotp,
+    handleCrowdfundingApiStub
+);
+router.post(
+    '/crowdfunding/id=:merchantId/pageKey=:pageKey/publish',
+    requireTotp,
+    handleCrowdfundingApiStub
+);
+router.get(
+    '/crowdfunding/donors/pageKey=:pageKey',
+    handleCrowdfundingApiStub
+);
+
 module.exports = router;

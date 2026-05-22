@@ -1,0 +1,462 @@
+import './css/common.css';
+import './css/crowdfunding-settings.css';
+import checkTotpBinding from './js/totp-guard.js';
+import {
+    getCrowdfundingActivityStatus,
+    loadCrowdfundingPage,
+    saveCrowdfundingPage,
+    stashCrowdfundingPreview,
+} from './js/crowdfunding-settings-api.js';
+import {
+    collectContentBlocks,
+    collectMilestones,
+    fillAllListEditors,
+    initCrowdfundingListEditors,
+} from './js/crowdfunding-settings-editors.js';
+
+const THEME_COLOR_FIELDS = [
+    { key: 'accent', label: '主色 accent' },
+    { key: 'timelineTrack', label: '進度軌道' },
+    { key: 'timelineFill', label: '進度填充' },
+    { key: 'totalBarText', label: '累積金額文字' },
+    { key: 'totalValueColor', label: '金額數字' },
+    { key: 'ctaBg', label: '贊助鈕背景' },
+    { key: 'ctaBorder', label: '贊助鈕邊框' },
+    { key: 'ctaText', label: '贊助鈕文字' },
+];
+
+let merchantId = '';
+let loadSource = 'static';
+let previewDebounce = null;
+
+function getMerchantId() {
+    const p = new URLSearchParams(window.location.search);
+    return (
+        (p.get('merchantId') || '').trim() ||
+        (localStorage.getItem('merchantId') || '').trim()
+    );
+}
+
+function showMessage(text, type) {
+    const el = document.getElementById('cfsMessage');
+    if (!el) {
+        return;
+    }
+    el.textContent = text || '';
+    el.className = 'cfs-message' + (type ? ' is-' + type : '');
+}
+
+function normalizePageKeyInput(raw) {
+    const trimmed = String(raw || '')
+        .trim()
+        .toLowerCase();
+    if (!/^[a-z0-9_-]{1,80}$/.test(trimmed)) {
+        return null;
+    }
+    return trimmed;
+}
+
+function toDatetimeLocalValue(iso) {
+    if (!iso) {
+        return '';
+    }
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) {
+        return '';
+    }
+    const pad = (n) => String(n).padStart(2, '0');
+    return (
+        d.getFullYear() +
+        '-' +
+        pad(d.getMonth() + 1) +
+        '-' +
+        pad(d.getDate()) +
+        'T' +
+        pad(d.getHours()) +
+        ':' +
+        pad(d.getMinutes())
+    );
+}
+
+function fromDatetimeLocalValue(value) {
+    if (!value) {
+        return '';
+    }
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) {
+        return '';
+    }
+    return d.toISOString();
+}
+
+function buildThemeFromForm() {
+    const theme = {};
+    THEME_COLOR_FIELDS.forEach(({ key }) => {
+        const el = document.getElementById('theme_' + key);
+        if (el && el.value.trim()) {
+            theme[key] = el.value.trim();
+        }
+    });
+    const base = document.getElementById('theme_fontFamily');
+    if (base && base.value.trim()) {
+        theme.fontFamily = base.value.trim();
+    }
+    return theme;
+}
+
+function collectFormData() {
+    const pageKey = normalizePageKeyInput(
+        document.getElementById('pageKey').value
+    );
+    if (!pageKey) {
+        throw new Error('pageKey 格式不正確（英數、-、_，最多 80 字）');
+    }
+
+    return {
+        pageKey,
+        largeFundraisingName: document
+            .getElementById('largeFundraisingName')
+            .value.trim(),
+        title: document.getElementById('title').value.trim(),
+        sponsorLabel: document.getElementById('sponsorLabel').value.trim(),
+        periodLabel: document.getElementById('periodLabel').value.trim(),
+        fundraisingStartsAt: fromDatetimeLocalValue(
+            document.getElementById('fundraisingStartsAt').value
+        ),
+        fundraisingEndsAt: fromDatetimeLocalValue(
+            document.getElementById('fundraisingEndsAt').value
+        ),
+        manuallyClosed: document.getElementById('manuallyClosed').checked,
+        backgroundImageUrl: document
+            .getElementById('backgroundImageUrl')
+            .value.trim(),
+        heroImageUrl: document.getElementById('heroImageUrl').value.trim(),
+        logoImageUrl: document.getElementById('logoImageUrl').value.trim(),
+        donorListBackgroundImageUrl: document
+            .getElementById('donorListBackgroundImageUrl')
+            .value.trim(),
+        currentTotal:
+            Number(document.getElementById('currentTotal').value) || 0,
+        donorTierIcons: {
+            rank1: document.getElementById('tierRank1').value.trim(),
+            rank2: document.getElementById('tierRank2').value.trim(),
+            rank3: document.getElementById('tierRank3').value.trim(),
+            other: document.getElementById('tierOther').value.trim(),
+        },
+        theme: buildThemeFromForm(),
+        contentBlocks: collectContentBlocks(),
+        milestones: collectMilestones(),
+    };
+}
+
+function fillThemeFields(theme) {
+    const t = theme || {};
+    THEME_COLOR_FIELDS.forEach(({ key }) => {
+        const el = document.getElementById('theme_' + key);
+        const picker = document.getElementById('theme_' + key + '_picker');
+        const val = t[key] || '';
+        if (el) {
+            el.value = val;
+        }
+        if (picker && /^#[0-9a-f]{6}$/i.test(val)) {
+            picker.value = val;
+        }
+    });
+    const fontEl = document.getElementById('theme_fontFamily');
+    if (fontEl) {
+        fontEl.value = t.fontFamily || '';
+    }
+}
+
+function fillForm(data) {
+    const d = data || {};
+    document.getElementById('pageKey').value = d.pageKey || 'default';
+    document.getElementById('largeFundraisingName').value =
+        d.largeFundraisingName || '';
+    document.getElementById('title').value = d.title || '';
+    document.getElementById('sponsorLabel').value = d.sponsorLabel || '';
+    document.getElementById('periodLabel').value = d.periodLabel || '';
+    document.getElementById('fundraisingStartsAt').value = toDatetimeLocalValue(
+        d.fundraisingStartsAt
+    );
+    document.getElementById('fundraisingEndsAt').value = toDatetimeLocalValue(
+        d.fundraisingEndsAt
+    );
+    document.getElementById('manuallyClosed').checked = !!d.manuallyClosed;
+    document.getElementById('backgroundImageUrl').value =
+        d.backgroundImageUrl || '';
+    document.getElementById('heroImageUrl').value = d.heroImageUrl || '';
+    document.getElementById('logoImageUrl').value = d.logoImageUrl || '';
+    document.getElementById('donorListBackgroundImageUrl').value =
+        d.donorListBackgroundImageUrl || '';
+    document.getElementById('currentTotal').value =
+        d.currentTotal != null ? String(d.currentTotal) : '0';
+
+    const icons = d.donorTierIcons || {};
+    document.getElementById('tierRank1').value = icons.rank1 || '';
+    document.getElementById('tierRank2').value = icons.rank2 || '';
+    document.getElementById('tierRank3').value = icons.rank3 || '';
+    document.getElementById('tierOther').value = icons.other || '';
+
+    fillThemeFields(d.theme);
+    fillAllListEditors(d);
+
+    updateStatusPanel(d);
+    updatePublicUrl(d.pageKey || 'default');
+}
+
+function updateStatusPanel(data) {
+    const status = getCrowdfundingActivityStatus(data);
+    const badge = document.getElementById('activityStatusBadge');
+    const detail = document.getElementById('activityStatusDetail');
+    if (badge) {
+        badge.textContent = status.label;
+        badge.className =
+            'cfs-status-badge is-' + status.key.replace(/_/g, '-');
+    }
+    if (detail) {
+        detail.textContent = status.detail;
+    }
+}
+
+function updateSourceHint() {
+    const el = document.getElementById('dataSourceHint');
+    if (!el) {
+        return;
+    }
+    const labels = {
+        static: '目前載入：static/crowdfunding-data/*.json',
+        localDraft: '目前載入：本機草稿（尚未部署至 static）',
+        api: '目前載入：伺服器 API',
+    };
+    el.textContent = labels[loadSource] || '';
+}
+
+function getPublicPagePath(pageKey) {
+    const path = window.location.pathname.replace(/[^/]*$/, '');
+    const url = new URL(
+        window.location.origin + path + 'crowdfunding-page.html'
+    );
+    url.searchParams.set('name', pageKey);
+    return url.pathname.split('/').pop() + url.search;
+}
+
+function getPublicPageFullUrl(pageKey) {
+    const path = window.location.pathname.replace(/[^/]*$/, '');
+    const url = new URL(
+        window.location.origin + path + 'crowdfunding-page.html'
+    );
+    url.searchParams.set('name', pageKey);
+    return url.toString();
+}
+
+function getPreviewUrl(pageKey) {
+    const path = window.location.pathname.replace(/[^/]*$/, '');
+    const url = new URL(
+        window.location.origin + path + 'crowdfunding-page.html'
+    );
+    url.searchParams.set('name', pageKey);
+    url.searchParams.set('preview', '1');
+    return url.toString();
+}
+
+function updatePublicUrl(pageKey) {
+    const input = document.getElementById('publicPageUrl');
+    if (input) {
+        input.value = getPublicPageFullUrl(pageKey);
+    }
+}
+
+function refreshPreviewIframe(pageKey, data) {
+    stashCrowdfundingPreview(pageKey, data);
+    const frame = document.getElementById('previewFrame');
+    if (frame) {
+        frame.src = getPreviewUrl(pageKey) + '&_=' + Date.now();
+    }
+}
+
+function schedulePreviewRefresh() {
+    clearTimeout(previewDebounce);
+    previewDebounce = setTimeout(function () {
+        try {
+            const data = collectFormData();
+            refreshPreviewIframe(data.pageKey, data);
+        } catch {
+            /* 表單未完成時略過 */
+        }
+    }, 600);
+}
+
+function renderThemeColorInputs() {
+    const container = document.getElementById('themeColorFields');
+    if (!container) {
+        return;
+    }
+    container.innerHTML = '';
+
+    THEME_COLOR_FIELDS.forEach(({ key, label }) => {
+        const row = document.createElement('div');
+        row.className = 'cfs-color-row';
+        const span = document.createElement('span');
+        span.textContent = label;
+        const inputs = document.createElement('div');
+        inputs.className = 'cfs-color-inputs';
+
+        const color = document.createElement('input');
+        color.type = 'color';
+        color.id = 'theme_' + key + '_picker';
+
+        const text = document.createElement('input');
+        text.type = 'text';
+        text.id = 'theme_' + key;
+        text.placeholder = '#000000';
+
+        color.addEventListener('input', function () {
+            text.value = color.value;
+            schedulePreviewRefresh();
+        });
+        text.addEventListener('input', function () {
+            if (/^#[0-9a-f]{6}$/i.test(text.value.trim())) {
+                color.value = text.value.trim();
+            }
+            schedulePreviewRefresh();
+        });
+
+        inputs.appendChild(color);
+        inputs.appendChild(text);
+        row.appendChild(span);
+        row.appendChild(inputs);
+        container.appendChild(row);
+    });
+
+    const fontRow = document.createElement('label');
+    fontRow.className = 'cfs-field cfs-field--wide';
+    fontRow.innerHTML =
+        '<span>字型 fontFamily</span><input type="text" id="theme_fontFamily" />';
+    container.appendChild(fontRow);
+    const fontInput = document.getElementById('theme_fontFamily');
+    if (fontInput) {
+        fontInput.addEventListener('input', schedulePreviewRefresh);
+    }
+}
+
+async function loadPage(preferDraft) {
+    const pageKeyInput = document.getElementById('pageKey');
+    const key =
+        normalizePageKeyInput(pageKeyInput && pageKeyInput.value) || 'default';
+
+    showMessage('載入中…', '');
+    try {
+        const result = await loadCrowdfundingPage(merchantId, key, {
+            preferDraft: !!preferDraft,
+        });
+        loadSource = result.source;
+        fillForm(result.data);
+        updateSourceHint();
+        refreshPreviewIframe(result.data.pageKey || key, result.data);
+        showMessage('已載入設定', 'ok');
+    } catch {
+        showMessage('載入失敗', 'error');
+    }
+}
+
+async function handleSave() {
+    try {
+        const data = collectFormData();
+        const result = await saveCrowdfundingPage(
+            merchantId,
+            data.pageKey,
+            data
+        );
+        loadSource = result.source === 'api' ? 'api' : 'localDraft';
+        updateSourceHint();
+        updateStatusPanel(data);
+        refreshPreviewIframe(data.pageKey, data);
+        const hint =
+            result.source === 'api'
+                ? '已儲存至伺服器'
+                : '已儲存至本機草稿（API 上線後將同步伺服器）';
+        showMessage(hint, 'ok');
+    } catch (e) {
+        showMessage(e.message || '儲存失敗', 'error');
+    }
+}
+
+function handlePreview() {
+    try {
+        const data = collectFormData();
+        stashCrowdfundingPreview(data.pageKey, data);
+        window.open(getPreviewUrl(data.pageKey), '_blank', 'noopener');
+        refreshPreviewIframe(data.pageKey, data);
+        showMessage('已開啟預覽分頁', 'ok');
+    } catch (e) {
+        showMessage(e.message || '預覽失敗', 'error');
+    }
+}
+
+function bindEvents() {
+    document.getElementById('btnSave').addEventListener('click', handleSave);
+    document
+        .getElementById('btnPreview')
+        .addEventListener('click', handlePreview);
+
+    document.getElementById('btnCopyPublicUrl').addEventListener('click', function () {
+        const input = document.getElementById('publicPageUrl');
+        if (!input || !input.value) {
+            return;
+        }
+        navigator.clipboard.writeText(input.value).then(
+            function () {
+                showMessage('已複製公開網址', 'ok');
+            },
+            function () {
+                showMessage('複製失敗', 'error');
+            }
+        );
+    });
+
+    document.getElementById('btnOpenPublic').addEventListener('click', function () {
+        const key =
+            normalizePageKeyInput(document.getElementById('pageKey').value) ||
+            'default';
+        window.open(getPublicPageFullUrl(key), '_blank', 'noopener');
+    });
+
+    document.getElementById('manuallyClosed').addEventListener('change', function () {
+        try {
+            updateStatusPanel(collectFormData());
+        } catch {
+            /* ignore */
+        }
+        schedulePreviewRefresh();
+    });
+
+    document.getElementById('pageKey').addEventListener('change', function () {
+        loadPage(true);
+    });
+
+    const form = document.getElementById('cfsForm');
+    if (form) {
+        form.addEventListener('input', schedulePreviewRefresh);
+    }
+}
+
+async function init() {
+    merchantId = getMerchantId();
+    if (!merchantId) {
+        showMessage('缺少 merchantId', 'error');
+        return;
+    }
+
+    const totpOk = await checkTotpBinding(merchantId);
+    if (!totpOk) {
+        return;
+    }
+
+    renderThemeColorInputs();
+    initCrowdfundingListEditors({ onChange: schedulePreviewRefresh });
+    bindEvents();
+    await loadPage(false);
+}
+
+init();
