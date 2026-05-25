@@ -1,4 +1,5 @@
 :root {
+    --cf-page-bg: #d4c4a8;
     --cf-accent: #8b2323;
     --cf-accent-muted: #8b2323;
     --cf-cta-bg: #fff;
@@ -149,13 +150,15 @@ body {
     position: fixed;
     inset: 0;
     z-index: 0;
-    background: linear-gradient(145deg, #d4c4a8 0%, #a89878 45%, #6b5d4a 100%);
+    background-color: var(--cf-page-bg);
+    background-image: none;
     background-size: cover;
     background-position: center;
 }
 
 .cf-bg.is-empty {
-    background: linear-gradient(145deg, #d4c4a8 0%, #a89878 45%, #6b5d4a 100%);
+    background-color: var(--cf-page-bg);
+    background-image: none;
 }
 
 .cf-sidebar-column {

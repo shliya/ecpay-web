@@ -19,6 +19,13 @@ const {
     handleCreateDonatePayuniRequest,
     handleCreatePayuniSettingRequest,
     handlePatchEcpayThemeRequest,
+    handleListCrowdfundingPagesRequest,
+    handleGetCrowdfundingPageRequest,
+    handleGetCrowdfundingPagePublicRequest,
+    handlePutCrowdfundingPageRequest,
+    handlePublishCrowdfundingPageRequest,
+    handleDeleteCrowdfundingPageRequest,
+    handleGetCrowdfundingDonorsRequest,
 } = require('../../route-handlers/comme');
 
 //綠界notify回調
@@ -78,32 +85,46 @@ router.post(
 
 router.get('/resolve-name', handleResolveDisplayNameRequest);
 
-/** Phase 2：大型募資落地頁 CRUD（目前回傳 501，前端改讀 static / localStorage） */
-function handleCrowdfundingApiStub(_req, res) {
-    res.status(501).json({
-        ok: false,
-        message: 'Crowdfunding page API not implemented (Phase 2)',
-    });
-}
-
+/** Phase 2：大型募資落地頁 */
+router.get(
+    '/crowdfunding/pageKey=:pageKey',
+    handleGetCrowdfundingPagePublicRequest
+);
+router.get(
+    '/crowdfunding/public/pageKey=:pageKey',
+    handleGetCrowdfundingPagePublicRequest
+);
+router.get(
+    '/crowdfunding/public/id=:merchantId/pageKey=:pageKey',
+    handleGetCrowdfundingPagePublicRequest
+);
+router.get(
+    '/crowdfunding/donors/pageKey=:pageKey',
+    handleGetCrowdfundingDonorsRequest
+);
+router.get(
+    '/crowdfunding/id=:merchantId',
+    handleListCrowdfundingPagesRequest
+);
 router.get(
     '/crowdfunding/id=:merchantId/pageKey=:pageKey',
     requireTotp,
-    handleCrowdfundingApiStub
+    handleGetCrowdfundingPageRequest
 );
 router.put(
     '/crowdfunding/id=:merchantId/pageKey=:pageKey',
     requireTotp,
-    handleCrowdfundingApiStub
+    handlePutCrowdfundingPageRequest
 );
 router.post(
     '/crowdfunding/id=:merchantId/pageKey=:pageKey/publish',
     requireTotp,
-    handleCrowdfundingApiStub
+    handlePublishCrowdfundingPageRequest
 );
-router.get(
-    '/crowdfunding/donors/pageKey=:pageKey',
-    handleCrowdfundingApiStub
+router.delete(
+    '/crowdfunding/id=:merchantId/pageKey=:pageKey',
+    requireTotp,
+    handleDeleteCrowdfundingPageRequest
 );
 
 module.exports = router;

@@ -12,7 +12,9 @@ const {
     getEcpayConfigByMerchantId,
     getAllEcpayConfigs,
 } = require('../../store/ecpay-config');
-const { createDonation } = require('../../service/donation');
+const {
+    completeDonationFromPayment,
+} = require('../../service/large-crowdfunding-donation');
 const {
     parseDonationCallback,
     parseUrlDonationCallback,
@@ -168,7 +170,7 @@ module.exports = async (req, res) => {
                         row.name = pendingDonation.fullName;
                     }
                 }
-                await createDonation(row);
+                await completeDonationFromPayment(row, pendingDonation);
                 if (pendingDonation) {
                     deletePaymentOrder(MerchantTradeNo);
                 }

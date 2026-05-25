@@ -275,11 +275,34 @@ function showOverlay(merchantId) {
 }
 
 /**
+ * @param {string} [merchantId] 可從 localStorage session 取 24h token
  * @returns {string|null}
  */
-function getTotpToken() {
-    return resolvedToken;
+function getTotpToken(merchantId) {
+    if (resolvedToken) {
+        return resolvedToken;
+    }
+    const mid =
+        merchantId != null ? String(merchantId).trim() : '';
+    if (!mid) {
+        return null;
+    }
+    const session = loadSession(mid);
+    if (session && Number(session.expiresAt) > Date.now()) {
+        return session.sessionToken;
+    }
+    return null;
+}
+
+/**
+ * API 回傳 401 時重新驗證
+ * @param {string} merchantId
+ * @returns {Promise<boolean>}
+ */
+async function refreshTotpVerification(merchantId) {
+    resolvedToken = null;
+    return showOverlay(merchantId);
 }
 
 export default checkTotpBinding;
-export { requireTotpVerification, getTotpToken };
+export { requireTotpVerification, getTotpToken, refreshTotpVerification };

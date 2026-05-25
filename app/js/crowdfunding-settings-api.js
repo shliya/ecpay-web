@@ -1,9 +1,19 @@
 /**
- * 大型募資設定 API（Phase 1：靜態 JSON + localStorage 草稿；Phase 2 串接後端）
+ * 大型募資設定 API（伺服器 API + localStorage 草稿／預覽）
  */
 
-const CF_DATA_BASE = '/crowdfunding-data';
+import { getTotpToken } from './totp-guard.js';
+
 const CF_DRAFT_PREFIX = 'ecpay-cf-draft:';
+
+function buildAuthHeaders(merchantId, extra = {}) {
+    const headers = { ...extra };
+    const token = getTotpToken(merchantId);
+    if (token) {
+        headers['X-TOTP-Token'] = token;
+    }
+    return headers;
+}
 const CF_PREVIEW_PREFIX = 'ecpay-cf-preview:';
 
 /** @returns {string} */
@@ -37,7 +47,7 @@ export function prepareCrowdfundingPageConfig(data) {
 }
 
 /**
- * TODO Phase 2: GET /api/v1/comme/ecpay/crowdfunding/donors/pageKey=:pageKey
+ * GET /api/v1/comme/crowdfunding/donors/pageKey=:pageKey
  * 由資料庫讀取近期斗內榜單（依金額排序）。
  * @param {string} pageKey
  * @returns {Promise<Array<{ name: string, amount: number }>>}
@@ -45,7 +55,7 @@ export function prepareCrowdfundingPageConfig(data) {
 export async function fetchRecentDonors(pageKey) {
     const key = String(pageKey || 'default').trim() || 'default';
     const url =
-        '/api/v1/comme/ecpay/crowdfunding/donors/pageKey=' +
+        '/api/v1/comme/crowdfunding/donors/pageKey=' +
         encodeURIComponent(key);
     try {
         const res = await fetch(url, { cache: 'no-store' });
@@ -69,51 +79,56 @@ export async function fetchRecentDonors(pageKey) {
 }
 
 /**
- * API 優先；無資料時使用 JSON 內 recentDonors（如 default.json 測試資料）。
  * @param {string} pageKey
- * @param {object} [pageData]
  * @returns {Promise<Array<{ name: string, amount: number }>>}
  */
-export async function resolveRecentDonors(pageKey, pageData) {
-    const fromApi = await fetchRecentDonors(pageKey);
-    if (fromApi.length > 0) {
-        return fromApi;
-    }
-    if (
-        pageData &&
-        Array.isArray(pageData.recentDonors) &&
-        pageData.recentDonors.length > 0
-    ) {
-        return pageData.recentDonors;
-    }
-    try {
-        const fixture = await fetchCrowdfundingStatic(pageKey);
-        if (
-            Array.isArray(fixture.recentDonors) &&
-            fixture.recentDonors.length > 0
-        ) {
-            return fixture.recentDonors;
-        }
-    } catch {
-        /* static 測試檔不存在 */
-    }
-    return [];
+export async function resolveRecentDonors(pageKey) {
+    return fetchRecentDonors(pageKey);
 }
 
 /**
- * TODO Phase 2: GET /api/v1/comme/ecpay/crowdfunding/id=:merchantId/pageKey=:pageKey
+ * GET /api/v1/comme/crowdfunding/id=:merchantId（列表摘要）
+ * @param {string} merchantId
+ * @returns {Promise<Array<object>>}
+ */
+export async function fetchCrowdfundingList(merchantId) {
+    const url =
+        '/api/v1/comme/crowdfunding/id=' + encodeURIComponent(merchantId);
+    try {
+        const res = await fetch(url, { cache: 'no-store' });
+        if (!res.ok) {
+            return [];
+        }
+        const body = await res.json();
+        if (Array.isArray(body)) {
+            return body;
+        }
+        if (Array.isArray(body.pages)) {
+            return body.pages;
+        }
+        return [];
+    } catch {
+        return [];
+    }
+}
+
+/**
+ * GET /api/v1/comme/crowdfunding/id=:merchantId/pageKey=:pageKey
  * @param {string} merchantId
  * @param {string} pageKey
  * @returns {Promise<object|null>}
  */
 export async function fetchCrowdfundingFromApi(merchantId, pageKey) {
     const url =
-        '/api/v1/comme/ecpay/crowdfunding/id=' +
+        '/api/v1/comme/crowdfunding/id=' +
         encodeURIComponent(merchantId) +
         '/pageKey=' +
         encodeURIComponent(pageKey);
     try {
-        const res = await fetch(url, { cache: 'no-store' });
+        const res = await fetch(url, {
+            cache: 'no-store',
+            headers: buildAuthHeaders(merchantId),
+        });
         if (!res.ok) {
             return null;
         }
@@ -125,18 +140,40 @@ export async function fetchCrowdfundingFromApi(merchantId, pageKey) {
 }
 
 /**
+ * GET /api/v1/comme/crowdfunding/pageKey=:pageKey（已發布）
+ * 或 /crowdfunding/public/id=:merchantId/pageKey=:pageKey
  * @param {string} pageKey
- * @returns {Promise<object>}
+ * @param {string} [merchantId]
+ * @returns {Promise<object|null>}
  */
-export async function fetchCrowdfundingStatic(pageKey) {
-    const res = await fetch(
-        `${CF_DATA_BASE}/${encodeURIComponent(pageKey)}.json`,
-        { cache: 'no-store' }
-    );
-    if (!res.ok) {
-        throw new Error('static_load_failed');
+export async function fetchCrowdfundingPublic(pageKey, merchantId) {
+    const key = String(pageKey || '').trim();
+    const mid = merchantId ? String(merchantId).trim() : '';
+    const url = mid
+        ? '/api/v1/comme/crowdfunding/public/id=' +
+          encodeURIComponent(mid) +
+          '/pageKey=' +
+          encodeURIComponent(key)
+        : '/api/v1/comme/crowdfunding/pageKey=' + encodeURIComponent(key);
+    try {
+        const res = await fetch(url, { cache: 'no-store' });
+        if (res.status === 403) {
+            const body = await res.json().catch(() => ({}));
+            if (body.code === 'not_published') {
+                const err = new Error('not_published');
+                throw err;
+            }
+        }
+        if (!res.ok) {
+            return null;
+        }
+        return stripCrowdfundingMeta(await res.json());
+    } catch (err) {
+        if (err && err.message === 'not_published') {
+            throw err;
+        }
+        return null;
     }
-    return stripCrowdfundingMeta(await res.json());
 }
 
 /**
@@ -177,7 +214,7 @@ export function clearCrowdfundingDraft(merchantId, pageKey) {
 }
 
 /**
- * TODO Phase 2: PUT /api/v1/comme/ecpay/crowdfunding/id=:merchantId/pageKey=:pageKey
+ * PUT /api/v1/comme/crowdfunding/id=:merchantId/pageKey=:pageKey
  * @param {string} merchantId
  * @param {string} pageKey
  * @param {object} data
@@ -188,51 +225,112 @@ export async function saveCrowdfundingPage(merchantId, pageKey, data) {
     saveCrowdfundingDraft(merchantId, pageKey, payload);
     try {
         const url =
-            '/api/v1/comme/ecpay/crowdfunding/id=' +
+            '/api/v1/comme/crowdfunding/id=' +
             encodeURIComponent(merchantId) +
             '/pageKey=' +
             encodeURIComponent(pageKey);
         const res = await fetch(url, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: buildAuthHeaders(merchantId, {
+                'Content-Type': 'application/json',
+            }),
             body: JSON.stringify(payload),
         });
         if (res.ok) {
             return { ok: true, source: 'api' };
         }
+        if (res.status === 401) {
+            const body = await res.json().catch(() => ({}));
+            return {
+                ok: false,
+                source: 'auth',
+                error: body.error || '需要 TOTP 驗證碼',
+            };
+        }
     } catch {
-        /* API 尚未上線 */
+        /* 網路錯誤 */
     }
     return { ok: true, source: 'localDraft' };
 }
 
 /**
- * TODO Phase 2: POST .../crowdfunding/.../publish
+ * POST .../crowdfunding/.../publish
  * @param {string} merchantId
  * @param {string} pageKey
  * @param {object} data
  * @returns {Promise<{ ok: boolean, source: string }>}
  */
+/**
+ * DELETE /api/v1/comme/crowdfunding/id=:merchantId/pageKey=:pageKey
+ * 軟刪除（status=3）
+ * @param {string} merchantId
+ * @param {string} pageKey
+ * @returns {Promise<{ ok: boolean, source?: string, error?: string }>}
+ */
+export async function deleteCrowdfundingPage(merchantId, pageKey) {
+    try {
+        const url =
+            '/api/v1/comme/crowdfunding/id=' +
+            encodeURIComponent(merchantId) +
+            '/pageKey=' +
+            encodeURIComponent(pageKey);
+        const res = await fetch(url, {
+            method: 'DELETE',
+            headers: buildAuthHeaders(merchantId),
+        });
+        if (res.ok) {
+            clearCrowdfundingDraft(merchantId, pageKey);
+            return { ok: true, source: 'api' };
+        }
+        if (res.status === 401) {
+            const body = await res.json().catch(() => ({}));
+            return {
+                ok: false,
+                source: 'auth',
+                error: body.error || '需要 TOTP 驗證碼',
+            };
+        }
+        const body = await res.json().catch(() => ({}));
+        return {
+            ok: false,
+            source: 'api',
+            error: body.error || '刪除失敗',
+        };
+    } catch {
+        return { ok: false, source: 'network', error: '網路錯誤' };
+    }
+}
+
 export async function publishCrowdfundingPage(merchantId, pageKey, data) {
     const payload = prepareCrowdfundingPageConfig(data);
     await saveCrowdfundingPage(merchantId, pageKey, payload);
     try {
         const url =
-            '/api/v1/comme/ecpay/crowdfunding/id=' +
+            '/api/v1/comme/crowdfunding/id=' +
             encodeURIComponent(merchantId) +
             '/pageKey=' +
             encodeURIComponent(pageKey) +
             '/publish';
         const res = await fetch(url, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: buildAuthHeaders(merchantId, {
+                'Content-Type': 'application/json',
+            }),
             body: JSON.stringify(payload),
         });
         if (res.ok) {
             return { ok: true, source: 'api' };
         }
+        if (res.status === 401) {
+            const body = await res.json().catch(() => ({}));
+            return {
+                ok: false,
+                source: 'auth',
+                error: body.error || '需要 TOTP 驗證碼',
+            };
+        }
     } catch {
-        /* API 尚未上線 */
+        /* 網路錯誤 */
     }
     return { ok: true, source: 'exportOnly' };
 }
@@ -272,11 +370,7 @@ export async function loadCrowdfundingPage(merchantId, pageKey, opts) {
         };
     }
 
-    const staticData = await fetchCrowdfundingStatic(pageKey);
-    return {
-        data: prepareCrowdfundingPageConfig(staticData),
-        source: 'static',
-    };
+    throw new Error('crowdfunding_not_found');
 }
 
 /**

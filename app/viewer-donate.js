@@ -187,7 +187,17 @@ import './css/viewer-donate.css';
         }
     }
 
+    function getLargeCrowdfundingPageId() {
+        var raw = getQuery('largeCrowdfundingPageId');
+        if (!raw) {
+            return null;
+        }
+        var n = parseInt(raw, 10);
+        return Number.isInteger(n) && n > 0 ? n : null;
+    }
+
     async function runPage(merchantId, prefetchedConfig) {
+        var largeCrowdfundingPageId = getLargeCrowdfundingPageId();
         var data = {};
         try {
             var r = await fetch(
@@ -302,15 +312,20 @@ import './css/viewer-donate.css';
                 var originalText = linkPayuni.textContent;
                 linkPayuni.textContent = '處理中…';
 
+                var payuniBody = {
+                    merchantId: merchantId,
+                    amount: amount,
+                    name: name.trim() || undefined,
+                    message: message.trim() || undefined,
+                };
+                if (largeCrowdfundingPageId) {
+                    payuniBody.largeCrowdfundingPageId =
+                        largeCrowdfundingPageId;
+                }
                 fetch('/api/v1/comme/donate/payuni', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        merchantId: merchantId,
-                        amount: amount,
-                        name: name.trim() || undefined,
-                        message: message.trim() || undefined,
-                    }),
+                    body: JSON.stringify(payuniBody),
                 })
                     .then(async function (res) {
                         const data = await res.json();
@@ -373,15 +388,20 @@ import './css/viewer-donate.css';
             btnEcpay.textContent = '處理中…';
 
             try {
+                var ecpayBody = {
+                    merchantId: merchantId,
+                    amount: amount,
+                    name: name.trim() || undefined,
+                    message: message.trim() || undefined,
+                };
+                if (largeCrowdfundingPageId) {
+                    ecpayBody.largeCrowdfundingPageId =
+                        largeCrowdfundingPageId;
+                }
                 const res = await fetch('/api/v1/comme/donate/ecpay', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        merchantId: merchantId,
-                        amount: amount,
-                        name: name.trim() || undefined,
-                        message: message.trim() || undefined,
-                    }),
+                    body: JSON.stringify(ecpayBody),
                 });
 
                 const data = await res.json().catch(function () {

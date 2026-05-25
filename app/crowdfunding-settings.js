@@ -1,9 +1,13 @@
 import './css/common.css';
 import './css/crowdfunding-settings.css';
-import checkTotpBinding from './js/totp-guard.js';
+import {
+    requireTotpVerification,
+    refreshTotpVerification,
+} from './js/totp-guard.js';
 import {
     getCrowdfundingActivityStatus,
     loadCrowdfundingPage,
+    publishCrowdfundingPage,
     saveCrowdfundingPage,
     stashCrowdfundingPreview,
 } from './js/crowdfunding-settings-api.js';
@@ -14,19 +18,21 @@ import {
     initCrowdfundingListEditors,
 } from './js/crowdfunding-settings-editors.js';
 
+/** 後台可調；贊助鈕／進度條等維持前台 CSS 預設 */
 const THEME_COLOR_FIELDS = [
-    { key: 'accent', label: '主色 accent' },
-    { key: 'timelineTrack', label: '進度軌道' },
-    { key: 'timelineFill', label: '進度填充' },
-    { key: 'totalBarText', label: '累積金額文字' },
-    { key: 'totalValueColor', label: '金額數字' },
-    { key: 'ctaBg', label: '贊助鈕背景' },
-    { key: 'ctaBorder', label: '贊助鈕邊框' },
-    { key: 'ctaText', label: '贊助鈕文字' },
+    { key: 'pageBg', label: '全頁背景色' },
+    { key: 'sidebarBg', label: '斗內列表背景' },
 ];
 
+const DEFAULT_EDITABLE_THEME = {
+    pageBg: '#d4c4a8',
+    sidebarBg: 'rgba(245, 240, 232, 0.82)',
+};
+
 let merchantId = '';
-let loadSource = 'static';
+let pageKeyFromUrl = '';
+let isNewProject = false;
+let loadSource = 'api';
 let previewDebounce = null;
 
 function getMerchantId() {
@@ -35,6 +41,54 @@ function getMerchantId() {
         (p.get('merchantId') || '').trim() ||
         (localStorage.getItem('merchantId') || '').trim()
     );
+}
+
+function getPageKeyFromUrl() {
+    const p = new URLSearchParams(window.location.search);
+    return normalizePageKeyInput(p.get('pageKey') || '');
+}
+
+function getIsNewFromUrl() {
+    return new URLSearchParams(window.location.search).get('new') === '1';
+}
+
+function setPageKeyReadonly(readonly) {
+    const input = document.getElementById('pageKey');
+    if (input) {
+        input.readOnly = !!readonly;
+    }
+}
+
+function applyEditModeAfterCreate(pageKey) {
+    isNewProject = false;
+    pageKeyFromUrl = pageKey;
+    setPageKeyReadonly(true);
+    const keyLabel = document.getElementById('settingsPageKeyLabel');
+    if (keyLabel) {
+        keyLabel.textContent = pageKey;
+    }
+    const titleEl = document.querySelector('.cfs-header h1');
+    if (titleEl) {
+        titleEl.textContent = '大型募資設定';
+    }
+    const path = window.location.pathname.replace(/[^/]*$/, '');
+    const url = new URL(
+        window.location.origin + path + 'crowdfunding-settings.html'
+    );
+    url.searchParams.set('merchantId', merchantId);
+    url.searchParams.set('pageKey', pageKey);
+    window.history.replaceState(null, '', url.pathname + url.search);
+}
+
+function getListPageUrl() {
+    const path = window.location.pathname.replace(/[^/]*$/, '');
+    const url = new URL(
+        window.location.origin + path + 'crowdfunding-list.html'
+    );
+    if (merchantId) {
+        url.searchParams.set('merchantId', merchantId);
+    }
+    return url.pathname + url.search;
 }
 
 function showMessage(text, type) {
@@ -154,7 +208,7 @@ function fillThemeFields(theme) {
     THEME_COLOR_FIELDS.forEach(({ key }) => {
         const el = document.getElementById('theme_' + key);
         const picker = document.getElementById('theme_' + key + '_picker');
-        const val = t[key] || '';
+        const val = t[key] || DEFAULT_EDITABLE_THEME[key] || '';
         if (el) {
             el.value = val;
         }
@@ -170,7 +224,7 @@ function fillThemeFields(theme) {
 
 function fillForm(data) {
     const d = data || {};
-    document.getElementById('pageKey').value = d.pageKey || 'default';
+    document.getElementById('pageKey').value = d.pageKey || '';
     document.getElementById('largeFundraisingName').value =
         d.largeFundraisingName || '';
     document.getElementById('title').value = d.title || '';
@@ -225,8 +279,7 @@ function updateSourceHint() {
         return;
     }
     const labels = {
-        static: '目前載入：static/crowdfunding-data/*.json',
-        localDraft: '目前載入：本機草稿（尚未部署至 static）',
+        localDraft: '目前載入：本機草稿',
         api: '目前載入：伺服器 API',
     };
     el.textContent = labels[loadSource] || '';
@@ -340,10 +393,33 @@ function renderThemeColorInputs() {
     }
 }
 
+function loadNewProjectForm() {
+    fillForm({
+        pageKey: '',
+        theme: { ...DEFAULT_EDITABLE_THEME },
+        contentBlocks: [],
+        milestones: [],
+    });
+    fillAllListEditors({ contentBlocks: [], milestones: [] });
+    updateStatusPanel({ manuallyClosed: false });
+    updateSourceHint();
+    const keyLabel = document.getElementById('settingsPageKeyLabel');
+    if (keyLabel) {
+        keyLabel.textContent = '（請填寫 pageKey 後儲存）';
+    }
+    showMessage('請填寫專案資料後按「儲存設定」', 'ok');
+}
+
 async function loadPage(preferDraft) {
-    const pageKeyInput = document.getElementById('pageKey');
-    const key =
-        normalizePageKeyInput(pageKeyInput && pageKeyInput.value) || 'default';
+    if (isNewProject) {
+        loadNewProjectForm();
+        return;
+    }
+
+    const key = pageKeyFromUrl;
+    if (!key) {
+        return;
+    }
 
     showMessage('載入中…', '');
     try {
@@ -360,7 +436,7 @@ async function loadPage(preferDraft) {
     }
 }
 
-async function handleSave() {
+async function handleSave(isRetry) {
     try {
         const data = collectFormData();
         const result = await saveCrowdfundingPage(
@@ -368,6 +444,14 @@ async function handleSave() {
             data.pageKey,
             data
         );
+        if (result.source === 'auth' && !isRetry) {
+            const verified = await refreshTotpVerification(merchantId);
+            if (verified) {
+                return handleSave(true);
+            }
+            showMessage(result.error || '請完成 TOTP 驗證', 'error');
+            return;
+        }
         loadSource = result.source === 'api' ? 'api' : 'localDraft';
         updateSourceHint();
         updateStatusPanel(data);
@@ -375,10 +459,46 @@ async function handleSave() {
         const hint =
             result.source === 'api'
                 ? '已儲存至伺服器'
-                : '已儲存至本機草稿（API 上線後將同步伺服器）';
+                : '已儲存至本機草稿（請確認 API 連線後再試）';
         showMessage(hint, 'ok');
+        if (isNewProject && result.source === 'api') {
+            applyEditModeAfterCreate(data.pageKey);
+        }
     } catch (e) {
         showMessage(e.message || '儲存失敗', 'error');
+    }
+}
+
+async function handlePublish(isRetry) {
+    try {
+        const data = collectFormData();
+        const result = await publishCrowdfundingPage(
+            merchantId,
+            data.pageKey,
+            data
+        );
+        if (result.source === 'auth' && !isRetry) {
+            const verified = await refreshTotpVerification(merchantId);
+            if (verified) {
+                return handlePublish(true);
+            }
+            showMessage(result.error || '請完成 TOTP 驗證', 'error');
+            return;
+        }
+        loadSource = result.source === 'api' ? 'api' : loadSource;
+        updateSourceHint();
+        updateStatusPanel(data);
+        refreshPreviewIframe(data.pageKey, data);
+        const hint =
+            result.source === 'api'
+                ? '已發布，公開募資頁可正常載入'
+                : '已儲存草稿，發布至伺服器失敗請稍後再試';
+        showMessage(hint, result.source === 'api' ? 'ok' : 'error');
+        if (isNewProject && result.source === 'api') {
+            applyEditModeAfterCreate(data.pageKey);
+        }
+    } catch (e) {
+        showMessage(e.message || '發布失敗', 'error');
     }
 }
 
@@ -399,6 +519,9 @@ function bindEvents() {
     document
         .getElementById('btnPreview')
         .addEventListener('click', handlePreview);
+    document
+        .getElementById('btnPublish')
+        .addEventListener('click', handlePublish);
 
     document.getElementById('btnCopyPublicUrl').addEventListener('click', function () {
         const input = document.getElementById('publicPageUrl');
@@ -431,9 +554,10 @@ function bindEvents() {
         schedulePreviewRefresh();
     });
 
-    document.getElementById('pageKey').addEventListener('change', function () {
-        loadPage(true);
-    });
+    const back = document.getElementById('btnBackList');
+    if (back) {
+        back.href = getListPageUrl();
+    }
 
     const form = document.getElementById('cfsForm');
     if (form) {
@@ -443,12 +567,38 @@ function bindEvents() {
 
 async function init() {
     merchantId = getMerchantId();
+    pageKeyFromUrl = getPageKeyFromUrl();
+    isNewProject = getIsNewFromUrl() && !pageKeyFromUrl;
+
     if (!merchantId) {
-        showMessage('缺少 merchantId', 'error');
+        window.location.href = '/login.html';
         return;
     }
 
-    const totpOk = await checkTotpBinding(merchantId);
+    if (!pageKeyFromUrl && !isNewProject) {
+        window.location.href = getListPageUrl();
+        return;
+    }
+
+    const titleEl = document.querySelector('.cfs-header h1');
+    if (isNewProject) {
+        if (titleEl) {
+            titleEl.textContent = '新增大型募資專案';
+        }
+        setPageKeyReadonly(false);
+    } else {
+        const keyLabel = document.getElementById('settingsPageKeyLabel');
+        if (keyLabel) {
+            keyLabel.textContent = pageKeyFromUrl;
+        }
+        const pageKeyInput = document.getElementById('pageKey');
+        if (pageKeyInput) {
+            pageKeyInput.value = pageKeyFromUrl;
+        }
+        setPageKeyReadonly(true);
+    }
+
+    const totpOk = await requireTotpVerification(merchantId);
     if (!totpOk) {
         return;
     }

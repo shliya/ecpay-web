@@ -8,10 +8,12 @@
     <body>
         <div class="cfs-page">
             <header class="cfs-header">
+                <p class="cfs-back-wrap">
+                    <a id="btnBackList" class="cfs-back-link" href="#">← 返回專案列表</a>
+                </p>
                 <h1>大型募資設定</h1>
                 <p class="cfs-desc">
-                    編輯募資落地頁內容。目前資料來源為靜態 JSON；儲存會寫入本機草稿，正式 API
-                    上線後將同步至伺服器。
+                    編輯「<span id="settingsPageKeyLabel">—</span>」落地頁內容。儲存同步至伺服器，發布後公開頁方可載入。
                 </p>
             </header>
 
@@ -141,7 +143,10 @@
                     </fieldset>
 
                     <fieldset class="cfs-fieldset">
-                        <legend>頁面配色</legend>
+                        <legend>背景配色</legend>
+                        <p class="cfs-field-hint">
+                            可填色碼（#RRGGBB）或 rgba。贊助按鈕與進度條顏色為固定樣式，不在此調整。
+                        </p>
                         <div class="cfs-grid cfs-grid--colors" id="themeColorFields"></div>
                     </fieldset>
 
@@ -216,6 +221,13 @@
                             id="btnPreview"
                         >
                             預覽募資頁
+                        </button>
+                        <button
+                            type="button"
+                            class="btn cfs-btn-secondary"
+                            id="btnPublish"
+                        >
+                            發布至公開頁
                         </button>
                     </div>
                     <div id="cfsMessage" class="cfs-message" role="status"></div>

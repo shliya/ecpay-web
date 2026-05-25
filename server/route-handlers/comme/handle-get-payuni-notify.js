@@ -2,7 +2,9 @@ const {
     getPayuniConfigByPayuniMerchantId,
 } = require('../../service/ecpay-config');
 const { parseDonationCallback } = require('../../lib/payment-providers/payuni');
-const { createDonation } = require('../../service/donation');
+const {
+    completeDonationFromPayment,
+} = require('../../service/large-crowdfunding-donation');
 const IchibanCardStore = require('../../store/ichiban-card');
 const IchibanEventStore = require('../../store/ichiban-event');
 const IchibanEventService = require('../../service/ichiban-event');
@@ -131,7 +133,10 @@ module.exports = async (req, res) => {
 
             deletePaymentOrder(merTradeNo);
         } else {
-            await createDonation(row);
+            await completeDonationFromPayment(row, orderInfo, req.query);
+            if (merTradeNo) {
+                deletePaymentOrder(merTradeNo);
+            }
         }
 
         res.status(200).send('OK');

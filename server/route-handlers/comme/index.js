@@ -14,4 +14,11 @@ module.exports = {
     handleGetPayuniNotifyRequest: require('./handle-get-payuni-notify'),
     handleCreateDonatePayuniRequest: require('./handle-create-donate-payuni'),
     handleCreatePayuniSettingRequest: require('./handle-create-payuni-setting'),
+    handleListCrowdfundingPagesRequest: require('./handle-list-crowdfunding-pages'),
+    handleGetCrowdfundingPageRequest: require('./handle-get-crowdfunding-page'),
+    handleGetCrowdfundingPagePublicRequest: require('./handle-get-crowdfunding-page-public'),
+    handlePutCrowdfundingPageRequest: require('./handle-put-crowdfunding-page'),
+    handlePublishCrowdfundingPageRequest: require('./handle-publish-crowdfunding-page'),
+    handleDeleteCrowdfundingPageRequest: require('./handle-delete-crowdfunding-page'),
+    handleGetCrowdfundingDonorsRequest: require('./handle-get-crowdfunding-donors'),
 };

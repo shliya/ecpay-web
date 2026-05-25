@@ -52,7 +52,11 @@ function genHashInfo(encryptInfo, hashKey, hashIV) {
 /**
  * 建立 PAYUNi 付款參數
  */
-function createPayment(merchantId, orderData, { hashKey, hashIV }) {
+function createPayment(
+    merchantId,
+    orderData,
+    { hashKey, hashIV, extraNotifyQuery = '' }
+) {
     const MerchantTradeNo = `PAYUNI${Date.now()}`.slice(0, 20); // PAYUNi 建議 20 碼內
 
     const baseUrl =
@@ -76,7 +80,7 @@ function createPayment(merchantId, orderData, { hashKey, hashIV }) {
         TradeAmt: Math.floor(Number(orderData.amount)) || 0,
         Timestamp: Math.floor(Date.now() / 1000),
         ProdDesc: orderData.description || '斗內贊助',
-        NotifyURL: `${base}/api/v1/comme/payuni/id=${merchantId}?name=${safeName}&msg=${safeMsg}${vidPart}`, // 背景回調
+        NotifyURL: `${base}/api/v1/comme/payuni/id=${merchantId}?name=${safeName}&msg=${safeMsg}${vidPart}${extraNotifyQuery}`, // 背景回調
     };
 
     const EncryptInfo = aesEncrypt(

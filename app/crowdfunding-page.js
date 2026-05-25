@@ -1,12 +1,12 @@
 import './css/crowdfunding-page.css';
 import {
+    fetchCrowdfundingPublic,
     getCrowdfundingActivityStatus,
     readCrowdfundingPreview,
     resolveRecentDonors,
 } from './js/crowdfunding-settings-api.js';
 
 const PAGE_KEY_RE = /^[a-z0-9_-]{1,80}$/i;
-const DATA_BASE = '/crowdfunding-data';
 const DEFAULT_KEY = 'default';
 
 function getQueryName() {
@@ -19,10 +19,6 @@ function normalizePageKey(raw) {
         return null;
     }
     return trimmed.toLowerCase();
-}
-
-function dataUrlForKey(pageKey) {
-    return `${DATA_BASE}/${encodeURIComponent(pageKey)}.json`;
 }
 
 function isPreviewMode() {
@@ -41,11 +37,23 @@ async function fetchPageData(pageKey) {
         }
     }
 
-    const res = await fetch(dataUrlForKey(key), { cache: 'no-store' });
-    if (!res.ok) {
-        throw new Error('load_failed');
+    const merchantFromQuery =
+        new URLSearchParams(window.location.search).get('merchantId') || '';
+    try {
+        const fromApi = await fetchCrowdfundingPublic(
+            key,
+            merchantFromQuery.trim() || undefined
+        );
+        if (fromApi) {
+            return fromApi;
+        }
+    } catch (err) {
+        if (err && err.message === 'not_published') {
+            throw err;
+        }
     }
-    return res.json();
+
+    throw new Error('load_failed');
 }
 
 function isNonEmptyString(v) {
@@ -74,23 +82,16 @@ function formatMoney(n) {
 function applyTheme(theme) {
     const root = document.documentElement;
     const map = {
+        pageBg: '--cf-page-bg',
+        sidebarBg: '--cf-sidebar-bg',
+        paperBg: '--cf-paper-bg',
         accent: '--cf-accent',
         accentMuted: '--cf-accent-muted',
-        ctaBg: '--cf-cta-bg',
-        ctaBorder: '--cf-cta-border',
-        ctaText: '--cf-cta-text',
-        paperBg: '--cf-paper-bg',
-        sidebarBg: '--cf-sidebar-bg',
-        timelineTrack: '--cf-timeline-track',
-        timelineFill: '--cf-timeline-fill',
         mutedText: '--cf-muted-text',
         fontFamily: '--cf-font-family',
         milestoneTextShadow: '--cf-milestone-text-shadow',
         nodeColor: '--cf-node-color',
         nodeBorderColor: '--cf-node-border',
-        totalBarBg: '--cf-total-bar-bg',
-        totalBarText: '--cf-total-bar-text',
-        totalValueColor: '--cf-total-value-color',
         pageTextColor: '--cf-page-text',
     };
     Object.entries(map).forEach(([key, cssVar]) => {
@@ -185,10 +186,37 @@ function resolveDonorTierIconUrl(icons, listIndex) {
     return isNonEmptyString(url) ? url.trim() : null;
 }
 
+function buildViewerDonateUrl(data) {
+    const merchantId =
+        data && isNonEmptyString(data.merchantId) ?
+            data.merchantId.trim()
+        :   '';
+    const pageId = data && data.id != null ? Number(data.id) : NaN;
+    if (!merchantId || !Number.isInteger(pageId) || pageId <= 0) {
+        return null;
+    }
+    const path = window.location.pathname.replace(/[^/]*$/, '');
+    const params = new URLSearchParams({
+        merchantId: merchantId,
+        largeCrowdfundingPageId: String(pageId),
+    });
+    return (
+        window.location.origin +
+        path +
+        'viewer-donate.html?' +
+        params.toString()
+    );
+}
+
 function renderSponsorCta(data) {
     const cta = document.getElementById('sponsorCta');
     if (!cta) return;
-    cta.href = '#';
+    const donateUrl = buildViewerDonateUrl(data);
+    cta.href = donateUrl || '#';
+    cta.removeAttribute('data-placeholder');
+    if (!donateUrl) {
+        cta.setAttribute('data-placeholder', 'true');
+    }
     cta.innerHTML = '';
     cta.classList.remove('is-image', 'is-placeholder');
     cta.removeAttribute('aria-label');
@@ -671,7 +699,7 @@ async function renderPage(data, pageKey) {
     applyTheme(data.theme || {});
     renderBackground(data);
     renderSponsorCta(data);
-    const donors = await resolveRecentDonors(key, data);
+    const donors = await resolveRecentDonors(key);
     renderDonors(data, donors);
     renderHero(data);
     renderPanelHeader(data);
@@ -689,35 +717,25 @@ async function init() {
         }, 120);
     });
 
-    const sponsorCta = document.getElementById('sponsorCta');
-    if (sponsorCta) {
-        sponsorCta.addEventListener('click', function (e) {
-            e.preventDefault();
-        });
-    }
 
     const rawName = getQueryName();
     const pageKey = normalizePageKey(rawName);
 
     try {
-        let data;
-        if (pageKey) {
-            try {
-                data = await fetchPageData(pageKey);
-            } catch {
-                data = await fetchPageData(DEFAULT_KEY);
-            }
-        } else {
-            data = await fetchPageData(DEFAULT_KEY);
-        }
+        const key = pageKey || DEFAULT_KEY;
+        const data = await fetchPageData(key);
         if (!isPreviewMode() && isPublicCrowdfundingClosed(data)) {
             showEndedScreen(data);
             return;
         }
         showPage();
-        await renderPage(data, pageKey || DEFAULT_KEY);
-    } catch {
-        showLoadError('載入募資資料失敗，請稍後再試。');
+        await renderPage(data, key);
+    } catch (err) {
+        const msg =
+            err && err.message === 'not_published'
+                ? '此募資頁尚未發布，請至後台大型募資設定按「發布」後再開啟。'
+                : '載入募資資料失敗，請確認 pageKey 是否正確且已發布。';
+        showLoadError(msg);
     }
 }
 

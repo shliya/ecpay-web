@@ -66,10 +66,16 @@ const PAGE_CONFIG = {
             },
         ],
     },
+    'crowdfunding-list': {
+        file: 'crowdfunding-list.html',
+        title: '🎯 大型募資',
+        links: [],
+    },
     'crowdfunding-settings': {
         file: 'crowdfunding-settings.html',
         title: '🎯 大型募資設定',
         links: [],
+        hidden: true,
     },
 };
 
