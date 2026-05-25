@@ -1,50 +1,133 @@
-const paymentOrders = new Map();
+const { Op } = require('sequelize');
+const PaymentPendingOrder = require('../model/schema/payment-pending-order');
 
-function setPaymentOrder(merchantTradeNo, orderInfo) {
-    paymentOrders.set(merchantTradeNo, {
-        ...orderInfo,
-        createdAt: Date.now(), // 使用時間戳而不是 Date 對象
+const PENDING_ORDER_TTL_MS = 30 * 60 * 1000;
+
+function rowToOrderInfo(row) {
+    if (!row) {
+        return null;
+    }
+    const plain = typeof row.get === 'function' ? row.get({ plain: true }) : row;
+    const meta =
+        plain.meta && typeof plain.meta === 'object' ? plain.meta : {};
+    const createdAt = plain.created_at
+        ? new Date(plain.created_at).getTime()
+        : Date.now();
+    return {
+        ...meta,
+        kind: plain.kind || meta.kind,
+        createdAt,
+    };
+}
+
+/**
+ * @param {string} merchantTradeNo
+ * @param {object} orderInfo
+ */
+async function setPaymentOrder(merchantTradeNo, orderInfo) {
+    const tradeNo = String(merchantTradeNo || '').trim();
+    if (!tradeNo) {
+        throw new Error('merchantTradeNo 為必填');
+    }
+
+    const info = orderInfo && typeof orderInfo === 'object' ? orderInfo : {};
+    const { createdAt: _omit, kind: kindFromMeta, ...meta } = info;
+    const kind = String(kindFromMeta || info.kind || '').slice(0, 30);
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + PENDING_ORDER_TTL_MS);
+
+    await PaymentPendingOrder.upsert({
+        merchantTradeNo: tradeNo,
+        kind,
+        meta,
+        created_at: now,
+        expires_at: expiresAt,
     });
 }
 
-function getPaymentOrder(merchantTradeNo) {
-    const orderInfo = paymentOrders.get(merchantTradeNo);
-    if (orderInfo) {
-        console.log(`找到付款訂單: ${merchantTradeNo}`, orderInfo);
-    } else {
-        console.log(`未找到付款訂單: ${merchantTradeNo}`);
+/**
+ * @param {string} merchantTradeNo
+ * @returns {Promise<object|null>}
+ */
+async function getPaymentOrder(merchantTradeNo) {
+    const tradeNo = String(merchantTradeNo || '').trim();
+    if (!tradeNo) {
+        return null;
     }
-    return orderInfo;
+
+    const row = await PaymentPendingOrder.findByPk(tradeNo);
+    if (!row) {
+        return null;
+    }
+
+    const plain = row.get({ plain: true });
+    if (plain.expires_at && new Date(plain.expires_at).getTime() < Date.now()) {
+        return null;
+    }
+
+    return rowToOrderInfo(row);
 }
 
-function getPaymentOrderByEventAndCard(eventId, cardIndex, clientId) {
-    for (const [merchantTradeNo, orderInfo] of paymentOrders.entries()) {
+async function getPaymentOrderByEventAndCard(eventId, cardIndex, clientId) {
+    const rows = await PaymentPendingOrder.findAll({
+        where: {
+            expires_at: { [Op.gt]: new Date() },
+        },
+        order: [['created_at', 'DESC']],
+        limit: 200,
+    });
+
+    for (const row of rows) {
+        const info = rowToOrderInfo(row);
         if (
-            orderInfo.eventId === eventId &&
-            orderInfo.cardIndex === cardIndex &&
-            orderInfo.clientId === clientId
+            info &&
+            info.eventId === eventId &&
+            info.cardIndex === cardIndex &&
+            info.clientId === clientId
         ) {
-            return { merchantTradeNo, ...orderInfo };
+            return {
+                merchantTradeNo: row.merchantTradeNo,
+                ...info,
+            };
         }
     }
     return null;
 }
 
-function getAllPaymentOrders() {
-    return paymentOrders;
+/**
+ * 供 timeout worker 使用，回傳 Map 相容舊介面
+ * @returns {Promise<Map<string, object>>}
+ */
+async function getAllPaymentOrders() {
+    const rows = await PaymentPendingOrder.findAll({
+        where: {
+            expires_at: { [Op.gt]: new Date() },
+        },
+    });
+
+    const map = new Map();
+    for (const row of rows) {
+        const info = rowToOrderInfo(row);
+        if (info) {
+            map.set(row.merchantTradeNo, info);
+        }
+    }
+    return map;
 }
 
-function deletePaymentOrder(merchantTradeNo) {
-    const deleted = paymentOrders.delete(merchantTradeNo);
-    if (deleted) {
-        console.log(`付款訂單已刪除: ${merchantTradeNo}`);
-    } else {
-        console.log(`付款訂單不存在: ${merchantTradeNo}`);
+async function deletePaymentOrder(merchantTradeNo) {
+    const tradeNo = String(merchantTradeNo || '').trim();
+    if (!tradeNo) {
+        return false;
     }
-    return deleted;
+    const count = await PaymentPendingOrder.destroy({
+        where: { merchantTradeNo: tradeNo },
+    });
+    return count > 0;
 }
 
 module.exports = {
+    PENDING_ORDER_TTL_MS,
     setPaymentOrder,
     getPaymentOrder,
     getPaymentOrderByEventAndCard,

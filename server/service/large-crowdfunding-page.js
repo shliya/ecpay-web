@@ -1,11 +1,14 @@
 const PageStore = require('../store/large-crowdfunding-page');
 const DonationStore = require('../store/large-crowdfunding-donation');
 const {
+    isLargeCrowdfundingEnabledForMerchant,
+} = require('../lib/large-crowdfunding-feature');
+const {
     normalizePageKey,
     pageRowToApiJson,
     pageRowToSummaryJson,
     apiJsonToPageRow,
-    assertPageAcceptsDonations,
+    assertPageAcceptsDonationsAtOrderTime,
     parseLargeCrowdfundingPageId,
     LCF_PAGE_STATUS,
     isPageActiveStatus,
@@ -148,8 +151,14 @@ async function resolveDonateContext(merchantId, largeCrowdfundingPageId) {
     if (pageId == null) {
         return null;
     }
-    const page = await getPageForDonationValidation(pageId, merchantId);
-    const gate = assertPageAcceptsDonations(page);
+    const mid = String(merchantId || '').trim();
+    if (!(await isLargeCrowdfundingEnabledForMerchant(mid))) {
+        const err = new Error('此商店未開放大型募資功能');
+        err.statusCode = 403;
+        throw err;
+    }
+    const page = await getPageForDonationValidation(pageId, mid);
+    const gate = assertPageAcceptsDonationsAtOrderTime(page);
     if (!gate.ok) {
         const err = new Error(gate.reason || '無法接受斗內');
         err.statusCode = 403;

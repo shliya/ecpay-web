@@ -61,7 +61,11 @@ module.exports = async (req, res) => {
             });
             return;
         }
-        if (largeCrowdfundingPageId != null && largeCrowdfundingPageId !== '' && !lcfContext) {
+        if (
+            largeCrowdfundingPageId != null &&
+            largeCrowdfundingPageId !== '' &&
+            !lcfContext
+        ) {
             res.status(400).json({ error: 'largeCrowdfundingPageId 無效' });
             return;
         }
@@ -133,7 +137,7 @@ module.exports = async (req, res) => {
         if (lcfContext) {
             orderMeta.largeCrowdfundingPageId = lcfContext.pageId;
         }
-        setPaymentOrder(result.merchantTradeNo, orderMeta);
+        await setPaymentOrder(result.merchantTradeNo, orderMeta);
         console.log('[ReturnUrl]: ', result.params.ReturnURL);
 
         res.status(200).json({

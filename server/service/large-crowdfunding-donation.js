@@ -3,9 +3,24 @@ const DonationStore = require('../store/large-crowdfunding-donation');
 const PageService = require('./large-crowdfunding-page');
 const { createDonation: createEcpayDonation } = require('./donation');
 const {
-    assertPageAcceptsDonations,
+    assertPageAcceptsDonationsAtOrderTime,
+    assertPageAcceptsPaymentCallback,
     parseLargeCrowdfundingPageId,
 } = require('../lib/large-crowdfunding');
+
+/**
+ * @param {object} result
+ * @param {object} context
+ */
+function logLcfDonationResult(result, context) {
+    if (!result || result.status === 'recorded' || result.status === 'duplicate') {
+        return;
+    }
+    console.error('[large-crowdfunding-donation]', result.status, {
+        reason: result.reason,
+        ...context,
+    });
+}
 
 /**
  * 近期榜單（公開 API）
@@ -25,13 +40,7 @@ async function listRecentDonorsForApi(pageKey) {
 
 /**
  * 付款成功後寫入大型募資斗內表（不寫入 donations、不更新月曆募資）
- * @param {object} params
- * @param {number} params.largeCrowdfundingPageId
- * @param {string} params.merchantId
- * @param {string} params.donorName
- * @param {number} params.amount
- * @param {string} [params.message]
- * @param {number} [params.sourceDonationId]
+ * @returns {Promise<{ status: string, reason?: string, pageKey?: string, amount?: number, name?: string }>}
  */
 async function recordDonationFromPayment({
     largeCrowdfundingPageId,
@@ -40,39 +49,44 @@ async function recordDonationFromPayment({
     amount,
     message,
     sourceDonationId,
+    paymentTradeNo,
+    trustOrderContext,
 }) {
     const pageId = parseLargeCrowdfundingPageId(largeCrowdfundingPageId);
     if (pageId == null) {
-        throw new Error('largeCrowdfundingPageId 無效');
+        return { status: 'rejected', reason: 'largeCrowdfundingPageId 無效' };
     }
 
     const page = await PageService.getPageForDonationValidation(
         pageId,
         merchantId
     );
-    const gate = assertPageAcceptsDonations(page);
+
+    const gate = trustOrderContext
+        ? assertPageAcceptsPaymentCallback(page, merchantId)
+        : assertPageAcceptsDonationsAtOrderTime(page);
     if (!gate.ok) {
-        throw new Error(gate.reason || '無法接受斗內');
+        return { status: 'rejected', reason: gate.reason || '無法接受斗內' };
     }
 
     const amountNum = Number(amount);
     if (!Number.isInteger(amountNum) || amountNum <= 0) {
-        throw new Error('amount 須為正整數');
+        return { status: 'rejected', reason: 'amount 須為正整數' };
     }
 
     const name = String(donorName || '').trim() || '匿名';
-    const isDup = await DonationStore.isDuplicateWithinWindow(
-        pageId,
-        name,
-        amountNum
-    );
-    if (isDup) {
-        return null;
+    const tradeNo = paymentTradeNo ? String(paymentTradeNo).trim() : '';
+
+    if (tradeNo) {
+        const existing = await DonationStore.findByPaymentTradeNo(tradeNo);
+        if (existing) {
+            return { status: 'duplicate' };
+        }
     }
 
     const txn = await PageStore.getTransaction();
     try {
-        await DonationStore.createDonation(
+        const created = await DonationStore.createDonation(
             {
                 largeCrowdfundingPageId: pageId,
                 merchantId: page.merchantId,
@@ -81,14 +95,24 @@ async function recordDonationFromPayment({
                 amount: amountNum,
                 message: message ? String(message).trim() : null,
                 sourceDonationId: sourceDonationId || null,
+                paymentTradeNo: tradeNo || null,
             },
             { transaction: txn }
         );
+        if (created.duplicate) {
+            await txn.rollback();
+            return { status: 'duplicate' };
+        }
         await PageStore.incrementCurrentTotal(pageId, amountNum, {
             transaction: txn,
         });
         await txn.commit();
-        return { pageKey: page.pageKey, amount: amountNum, name };
+        return {
+            status: 'recorded',
+            pageKey: page.pageKey,
+            amount: amountNum,
+            name,
+        };
     } catch (err) {
         await txn.rollback();
         throw err;
@@ -98,16 +122,24 @@ async function recordDonationFromPayment({
 /**
  * 依付款來源完成斗內：大型募資 → 專表；一般 → donations
  * @param {object} row 綠界/PAYUNi 解析後的斗內列
- * @param {object} [orderInfo] payment-order 暫存
- * @param {object} [query] PAYUNi NotifyURL query（lcfPageId）
+ * @param {object} [orderInfo] payment_pending_orders.meta（建單時寫入 DB）
+ * @param {object} [query] PAYUNi NotifyURL query（僅無 order 時當後備）
  */
 async function completeDonationFromPayment(row, orderInfo, query) {
-    const pageId =
-        parseLargeCrowdfundingPageId(orderInfo?.largeCrowdfundingPageId) ??
-        parseLargeCrowdfundingPageId(query?.lcfPageId);
+    const trustedPageId = parseLargeCrowdfundingPageId(
+        orderInfo?.largeCrowdfundingPageId
+    );
+    const fallbackPageId =
+        trustedPageId == null
+            ? parseLargeCrowdfundingPageId(query?.lcfPageId)
+            : null;
+    const pageId = trustedPageId ?? fallbackPageId;
+    const trustOrderContext = trustedPageId != null;
 
     if (pageId != null) {
-        return recordDonationFromPayment({
+        const paymentTradeNo =
+            row.merTradeNo != null ? String(row.merTradeNo).trim() : '';
+        const result = await recordDonationFromPayment({
             largeCrowdfundingPageId: pageId,
             merchantId: row.merchantId,
             donorName:
@@ -119,7 +151,16 @@ async function completeDonationFromPayment(row, orderInfo, query) {
                 orderInfo?.fullMessage != null
                     ? orderInfo.fullMessage
                     : row.message,
+            paymentTradeNo: paymentTradeNo || undefined,
+            trustOrderContext,
         });
+        logLcfDonationResult(result, {
+            pageId,
+            trustOrderContext,
+            paymentTradeNo: paymentTradeNo || null,
+            merchantId: row.merchantId,
+        });
+        return result;
     }
 
     return createEcpayDonation(row);
@@ -129,4 +170,5 @@ module.exports = {
     listRecentDonorsForApi,
     recordDonationFromPayment,
     completeDonationFromPayment,
+    logLcfDonationResult,
 };

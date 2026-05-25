@@ -5,6 +5,7 @@ import {
     refreshTotpVerification,
 } from './js/totp-guard.js';
 import {
+    fetchLargeCrowdfundingEnabled,
     getCrowdfundingActivityStatus,
     loadCrowdfundingPage,
     publishCrowdfundingPage,
@@ -600,6 +601,13 @@ async function init() {
 
     const totpOk = await requireTotpVerification(merchantId);
     if (!totpOk) {
+        return;
+    }
+
+    const enabled = await fetchLargeCrowdfundingEnabled(merchantId);
+    if (!enabled) {
+        window.location.href =
+            'index.html?merchantId=' + encodeURIComponent(merchantId);
         return;
     }
 

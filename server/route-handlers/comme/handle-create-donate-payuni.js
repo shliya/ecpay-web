@@ -159,7 +159,7 @@ module.exports = async (req, res) => {
         });
         console.log('[Payuni CreateOrder]: ', result.merchantTradeNo);
 
-        setPaymentOrder(result.merchantTradeNo, {
+        await setPaymentOrder(result.merchantTradeNo, {
             kind: 'payuni-donation',
             fullMessage: orderData.message || '',
             fullName: orderData.name || '',

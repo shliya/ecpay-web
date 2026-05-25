@@ -87,6 +87,27 @@ export async function resolveRecentDonors(pageKey) {
 }
 
 /**
+ * 是否開放大型募資（讀 public config）
+ * @param {string} merchantId
+ * @returns {Promise<boolean>}
+ */
+export async function fetchLargeCrowdfundingEnabled(merchantId) {
+    try {
+        const res = await fetch(
+            '/api/v1/comme/ecpay/config/public/id=' +
+                encodeURIComponent(merchantId)
+        );
+        if (!res.ok) {
+            return false;
+        }
+        const data = await res.json();
+        return data.largeCrowdfundingEnabled === true;
+    } catch {
+        return false;
+    }
+}
+
+/**
  * GET /api/v1/comme/crowdfunding/id=:merchantId（列表摘要）
  * @param {string} merchantId
  * @returns {Promise<Array<object>>}

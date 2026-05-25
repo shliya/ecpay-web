@@ -5,6 +5,7 @@ import checkTotpBinding, {
 import {
     deleteCrowdfundingPage,
     fetchCrowdfundingList,
+    fetchLargeCrowdfundingEnabled,
 } from './js/crowdfunding-settings-api.js';
 
 let merchantId = '';
@@ -229,6 +230,13 @@ async function init() {
 
     const totpOk = await checkTotpBinding(merchantId);
     if (!totpOk) {
+        return;
+    }
+
+    const enabled = await fetchLargeCrowdfundingEnabled(merchantId);
+    if (!enabled) {
+        window.location.href =
+            'index.html?merchantId=' + encodeURIComponent(merchantId);
         return;
     }
 

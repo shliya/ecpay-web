@@ -26,6 +26,8 @@ function toPublicConfig(config) {
         youtubeDonationEnabled: config.youtubeDonationEnabled === true,
         youtubeDonationAmount,
         youtubeDonationMaxPlaySec,
+        largeCrowdfundingEnabled:
+            config.largeCrowdfundingEnabled === true,
     };
 }
 

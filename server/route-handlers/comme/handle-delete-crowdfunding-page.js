@@ -1,6 +1,9 @@
 const { deletePage } = require('../../service/large-crowdfunding-page');
 const { normalizePageKey } = require('../../lib/large-crowdfunding');
 const { getSafeApiErrorMessage } = require('../../lib/safe-error-message');
+const {
+    rejectIfLargeCrowdfundingDisabled,
+} = require('../../lib/large-crowdfunding-feature');
 
 module.exports = async (req, res) => {
     try {
@@ -10,8 +13,12 @@ module.exports = async (req, res) => {
             res.status(400).json({ error: 'merchantId 或 pageKey 無效' });
             return;
         }
+        const mid = merchantId.trim();
+        if (!(await rejectIfLargeCrowdfundingDisabled(res, mid))) {
+            return;
+        }
 
-        const result = await deletePage(merchantId.trim(), key);
+        const result = await deletePage(mid, key);
         if (result.status === 'not_found') {
             res.status(404).json({ error: '找不到專案' });
             return;

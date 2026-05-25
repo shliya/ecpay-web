@@ -21,7 +21,7 @@ module.exports = async (req, res) => {
             });
         }
 
-        const orderInfo = getPaymentOrder(MerchantTradeNo);
+        const orderInfo = await getPaymentOrder(MerchantTradeNo);
 
         if (!orderInfo) {
             res.status(200).send('1|OK');
@@ -73,7 +73,7 @@ module.exports = async (req, res) => {
             }
         }
 
-        deletePaymentOrder(MerchantTradeNo);
+        await deletePaymentOrder(MerchantTradeNo);
         res.status(200).send('1|OK');
     } catch (error) {
         console.error('[ecpay-failed] 處理錯誤:', error);

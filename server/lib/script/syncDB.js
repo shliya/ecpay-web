@@ -6,6 +6,7 @@ const IchibanCardModel = require('../../model/ichiban-card');
 const IchibanPrizeModel = require('../../model/ichiban-prize');
 const LargeCrowdfundingPageModel = require('../../model/large-crowdfunding-page');
 const LargeCrowdfundingDonationModel = require('../../model/large-crowdfunding-donation');
+const PaymentPendingOrderModel = require('../../model/payment-pending-order');
 
 (async () => {
     try {
@@ -17,6 +18,7 @@ const LargeCrowdfundingDonationModel = require('../../model/large-crowdfunding-d
         await IchibanPrizeModel.sequelize.sync();
         await LargeCrowdfundingPageModel.sequelize.sync();
         await LargeCrowdfundingDonationModel.sequelize.sync();
+        await PaymentPendingOrderModel.sequelize.sync();
     } catch (error) {
         console.error('同步資料庫時發生錯誤:', error);
     }

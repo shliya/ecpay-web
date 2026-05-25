@@ -48,6 +48,11 @@ const LargeCrowdfundingDonation = sequelize.define(
             field: 'sourceDonationId',
             references: { model: 'donations', key: 'id' },
         },
+        paymentTradeNo: {
+            type: DataTypes.STRING(50),
+            allowNull: true,
+            field: 'payment_trade_no',
+        },
         created_at: {
             type: DataTypes.DATE,
             allowNull: false,
@@ -70,6 +75,11 @@ const LargeCrowdfundingDonation = sequelize.define(
             {
                 name: 'idx_lcf_donations_page_key_created',
                 fields: ['pageKey', 'created_at'],
+            },
+            {
+                name: 'uq_lcf_donations_payment_trade_no',
+                unique: true,
+                fields: ['paymentTradeNo'],
             },
         ],
     }

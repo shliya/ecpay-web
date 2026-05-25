@@ -109,12 +109,16 @@ function apiJsonToPageRow(body, merchantId, pageKey) {
 }
 
 /**
+ * 建單當下：須已發布、進行中、在募資期間內
  * @param {object} page plain page row
  * @returns {{ ok: boolean, reason?: string }}
  */
-function assertPageAcceptsDonations(page) {
+function assertPageAcceptsDonationsAtOrderTime(page) {
     if (!page) {
         return { ok: false, reason: '找不到大型募資活動' };
+    }
+    if (!page.publishedAt) {
+        return { ok: false, reason: '募資頁尚未發布' };
     }
     if (!isPageActiveStatus(page.status)) {
         return { ok: false, reason: '募資活動已結束或已刪除' };
@@ -136,6 +140,31 @@ function assertPageAcceptsDonations(page) {
         return { ok: false, reason: '募資活動已結束' };
     }
     return { ok: true };
+}
+
+/**
+ * 付款回調（有 DB 建單紀錄）：僅確認頁面存在、商家一致、未軟刪除
+ * @param {object} page
+ * @param {string} merchantId
+ * @returns {{ ok: boolean, reason?: string }}
+ */
+function assertPageAcceptsPaymentCallback(page, merchantId) {
+    if (!page) {
+        return { ok: false, reason: '找不到大型募資活動' };
+    }
+    const mid = String(merchantId || '').trim();
+    if (mid && String(page.merchantId || '').trim() !== mid) {
+        return { ok: false, reason: '商家與募資頁不符' };
+    }
+    if (normalizePageStatus(page.status) === LCF_PAGE_STATUS.DELETED) {
+        return { ok: false, reason: '募資活動已刪除' };
+    }
+    return { ok: true };
+}
+
+/** @deprecated 請用 assertPageAcceptsDonationsAtOrderTime */
+function assertPageAcceptsDonations(page) {
+    return assertPageAcceptsDonationsAtOrderTime(page);
 }
 
 /**
@@ -233,6 +262,8 @@ module.exports = {
     pageRowToSummaryJson,
     apiJsonToPageRow,
     assertPageAcceptsDonations,
+    assertPageAcceptsDonationsAtOrderTime,
+    assertPageAcceptsPaymentCallback,
     computeProgressPercent,
     parseLargeCrowdfundingPageId,
 };

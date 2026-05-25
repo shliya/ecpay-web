@@ -123,6 +123,13 @@ const EcpayConfig = sequelize.define(
             defaultValue: 30,
             field: 'youtubeDonationMaxPlaySec',
         },
+        /** 大型募資後台／建單功能（手動開啟，預設關閉） */
+        largeCrowdfundingEnabled: {
+            type: DataTypes.BOOLEAN,
+            allowNull: true,
+            defaultValue: false,
+            field: 'largeCrowdfundingEnabled',
+        },
     },
     {
         tableName: 'ecpay_config',

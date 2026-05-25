@@ -3,8 +3,31 @@ const LargeCrowdfundingDonation = require('../model/schema/large-crowdfunding-do
 
 const DEFAULT_RECENT_LIMIT = 50;
 
+async function findByPaymentTradeNo(paymentTradeNo) {
+    const tradeNo = String(paymentTradeNo || '').trim();
+    if (!tradeNo) {
+        return null;
+    }
+    return LargeCrowdfundingDonation.findOne({
+        where: { paymentTradeNo: tradeNo },
+    });
+}
+
+/**
+ * @returns {Promise<{ row: object }|{ duplicate: true }>}
+ */
 async function createDonation(row, { transaction } = {}) {
-    return LargeCrowdfundingDonation.create(row, { transaction });
+    try {
+        const created = await LargeCrowdfundingDonation.create(row, {
+            transaction,
+        });
+        return { row: created };
+    } catch (err) {
+        if (err && err.name === 'SequelizeUniqueConstraintError') {
+            return { duplicate: true };
+        }
+        throw err;
+    }
 }
 
 /**
@@ -70,6 +93,7 @@ async function isDuplicateWithinWindow(
 
 module.exports = {
     DEFAULT_RECENT_LIMIT,
+    findByPaymentTradeNo,
     createDonation,
     listRecentByPageId,
     listRecentByPageKey,

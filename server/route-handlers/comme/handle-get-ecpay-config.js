@@ -34,6 +34,8 @@ module.exports = async (req, res) => {
             ecpayEnabled: config.ecpayEnabled !== false,
             payuniEnabled: config.payuniEnabled !== false,
             youtubeDonationEnabled: config.youtubeDonationEnabled === true,
+            largeCrowdfundingEnabled:
+                config.largeCrowdfundingEnabled === true,
         });
     } catch (error) {
         console.error('[get-ecpay-config]', error);
