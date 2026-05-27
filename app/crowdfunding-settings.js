@@ -10,7 +10,6 @@ import {
     loadCrowdfundingPage,
     publishCrowdfundingPage,
     saveCrowdfundingPage,
-    stashCrowdfundingPreview,
 } from './js/crowdfunding-settings-api.js';
 import {
     collectContentBlocks,
@@ -34,8 +33,6 @@ let merchantId = '';
 let pageKeyFromUrl = '';
 let isNewProject = false;
 let loadSource = 'api';
-let previewDebounce = null;
-
 function getMerchantId() {
     const p = new URLSearchParams(window.location.search);
     return (
@@ -308,41 +305,11 @@ function getPublicPageFullUrl(pageKey) {
     return url.toString();
 }
 
-function getPreviewUrl(pageKey) {
-    const path = window.location.pathname.replace(/[^/]*$/, '');
-    const url = new URL(
-        window.location.origin + path + 'crowdfunding-page.html'
-    );
-    url.searchParams.set('name', pageKey);
-    url.searchParams.set('preview', '1');
-    return url.toString();
-}
-
 function updatePublicUrl(pageKey) {
     const input = document.getElementById('publicPageUrl');
     if (input) {
         input.value = getPublicPageFullUrl(pageKey);
     }
-}
-
-function refreshPreviewIframe(pageKey, data) {
-    stashCrowdfundingPreview(pageKey, data);
-    const frame = document.getElementById('previewFrame');
-    if (frame) {
-        frame.src = getPreviewUrl(pageKey) + '&_=' + Date.now();
-    }
-}
-
-function schedulePreviewRefresh() {
-    clearTimeout(previewDebounce);
-    previewDebounce = setTimeout(function () {
-        try {
-            const data = collectFormData();
-            refreshPreviewIframe(data.pageKey, data);
-        } catch {
-            /* 表單未完成時略過 */
-        }
-    }, 600);
 }
 
 function renderThemeColorInputs() {
@@ -371,13 +338,11 @@ function renderThemeColorInputs() {
 
         color.addEventListener('input', function () {
             text.value = color.value;
-            schedulePreviewRefresh();
         });
         text.addEventListener('input', function () {
             if (/^#[0-9a-f]{6}$/i.test(text.value.trim())) {
                 color.value = text.value.trim();
             }
-            schedulePreviewRefresh();
         });
 
         inputs.appendChild(color);
@@ -425,7 +390,6 @@ async function loadPage(preferDraft) {
         loadSource = result.source;
         fillForm(result.data);
         updateSourceHint();
-        refreshPreviewIframe(result.data.pageKey || key, result.data);
         showMessage('已載入設定', 'ok');
     } catch {
         showMessage('載入失敗', 'error');
@@ -451,7 +415,6 @@ async function handleSave(isRetry) {
         loadSource = result.source === 'api' ? 'api' : 'localDraft';
         updateSourceHint();
         updateStatusPanel(data);
-        refreshPreviewIframe(data.pageKey, data);
         const hint =
             result.source === 'api'
                 ? '已儲存至伺服器'
@@ -484,7 +447,6 @@ async function handlePublish(isRetry) {
         loadSource = result.source === 'api' ? 'api' : loadSource;
         updateSourceHint();
         updateStatusPanel(data);
-        refreshPreviewIframe(data.pageKey, data);
         const hint =
             result.source === 'api'
                 ? '已發布，公開募資頁可正常載入'
@@ -498,23 +460,8 @@ async function handlePublish(isRetry) {
     }
 }
 
-function handlePreview() {
-    try {
-        const data = collectFormData();
-        stashCrowdfundingPreview(data.pageKey, data);
-        window.open(getPreviewUrl(data.pageKey), '_blank', 'noopener');
-        refreshPreviewIframe(data.pageKey, data);
-        showMessage('已開啟預覽分頁', 'ok');
-    } catch (e) {
-        showMessage(e.message || '預覽失敗', 'error');
-    }
-}
-
 function bindEvents() {
     document.getElementById('btnSave').addEventListener('click', handleSave);
-    document
-        .getElementById('btnPreview')
-        .addEventListener('click', handlePreview);
     document
         .getElementById('btnPublish')
         .addEventListener('click', handlePublish);
@@ -547,7 +494,6 @@ function bindEvents() {
         } catch {
             /* ignore */
         }
-        schedulePreviewRefresh();
     });
 
     const back = document.getElementById('btnBackList');
@@ -555,10 +501,6 @@ function bindEvents() {
         back.href = getListPageUrl();
     }
 
-    const form = document.getElementById('cfsForm');
-    if (form) {
-        form.addEventListener('input', schedulePreviewRefresh);
-    }
 }
 
 async function init() {
@@ -607,7 +549,7 @@ async function init() {
     }
 
     renderThemeColorInputs();
-    initCrowdfundingListEditors({ onChange: schedulePreviewRefresh });
+    initCrowdfundingListEditors();
     bindEvents();
     await loadPage(false);
 }

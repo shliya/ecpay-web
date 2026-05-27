@@ -26,85 +26,74 @@
             <div class="cf-bg" id="cfBg" aria-hidden="true"></div>
 
             <div class="cf-main-cluster">
-            <div class="cf-sidebar-column">
-                <a
-                    id="sponsorCta"
-                    class="cf-sponsor-cta"
-                    href="#"
-                    data-placeholder="true"
-                >
-                    我要贊助
-                </a>
-                <div class="cf-leaderboards-row">
-                    <aside
-                        id="donorListSidebar"
-                        class="cf-sidebar cf-sidebar--donors-main"
-                        aria-label="近期斗內（榜十大哥）"
-                    >
-                        <div
-                            id="mainDonorListTitle"
-                            class="cf-leaderboard-title"
-                            hidden
-                        ></div>
-                        <ul id="donorList" class="cf-donor-list"></ul>
-                    </aside>
-                    <aside
-                        id="specialThemeRankingSidebar"
-                        class="cf-sidebar cf-sidebar--theme-ranking"
-                        aria-label="特殊主題榜單"
+                <div class="cf-sidebar-column">
+                    <a
+                        id="sponsorCta"
+                        class="cf-sponsor-cta"
+                        href="#"
                         data-placeholder="true"
                     >
-                        <div
-                            id="specialThemeRankingTitle"
-                            class="cf-leaderboard-title"
-                            hidden
-                        ></div>
-                        <ul
-                            id="specialThemeDonorList"
-                            class="cf-donor-list"
-                            hidden
-                        ></ul>
-                        <div
-                            id="specialThemePlaceholder"
-                            class="cf-theme-ranking-placeholder"
+                        我要贊助
+                    </a>
+                    <div class="cf-leaderboards-row">
+                        <aside
+                            id="donorListSidebar"
+                            class="cf-sidebar cf-sidebar--donors-main"
+                            aria-label="近期斗內（榜十大哥）"
                         >
-                            <span class="cf-theme-ranking-placeholder__label">
-                                特殊主題榜單
-                            </span>
-                            <span class="cf-theme-ranking-placeholder__hint">
-                                （最多 4 人，設定功能稍後開放）
-                            </span>
-                        </div>
-                    </aside>
-                </div>
-            </div>
-
-            <section class="cf-hero-wrap" aria-label="主視覺">
-                <div id="heroFrame" class="cf-hero-frame">
-                    <img id="heroImg" class="cf-hero-img" alt="" />
-                    <div id="heroPlaceholder" class="cf-hero-placeholder">
-                        主視覺圖尚未設定
+                            <div
+                                id="mainDonorListTitle"
+                                class="cf-leaderboard-title"
+                                hidden
+                            ></div>
+                            <ul id="donorList" class="cf-donor-list"></ul>
+                        </aside>
+                        <aside
+                            id="specialThemeRankingSidebar"
+                            class="cf-sidebar cf-sidebar--theme-ranking"
+                            aria-label="特殊主題榜單"
+                            data-placeholder="true"
+                        >
+                            <div
+                                id="specialThemeRankingTitle"
+                                class="cf-leaderboard-title"
+                                hidden
+                            ></div>
+                            <ul
+                                id="specialThemeDonorList"
+                                class="cf-donor-list"
+                                hidden
+                            ></ul>
+                        </aside>
                     </div>
                 </div>
-            </section>
 
-            <section class="cf-panel" aria-label="募資說明">
-                <div class="cf-panel-inner">
-                    <header class="cf-panel-header">
-                        <nav
-                            id="anchorNav"
-                            class="cf-anchor-nav"
-                            aria-label="內容錨點"
-                            hidden
-                        ></nav>
-                    </header>
-                    <div id="contentScroll" class="cf-content-scroll">
-                        <div id="contentEmpty" class="cf-content-empty">
-                            尚未新增說明內容
+                <section class="cf-hero-wrap" aria-label="主視覺">
+                    <div id="heroFrame" class="cf-hero-frame">
+                        <img id="heroImg" class="cf-hero-img" alt="" />
+                        <div id="heroPlaceholder" class="cf-hero-placeholder">
+                            主視覺圖尚未設定
                         </div>
                     </div>
-                </div>
-            </section>
+                </section>
+
+                <section class="cf-panel" aria-label="募資說明">
+                    <div class="cf-panel-inner">
+                        <header class="cf-panel-header">
+                            <nav
+                                id="anchorNav"
+                                class="cf-anchor-nav"
+                                aria-label="內容錨點"
+                                hidden
+                            ></nav>
+                        </header>
+                        <div id="contentScroll" class="cf-content-scroll">
+                            <div id="contentEmpty" class="cf-content-empty">
+                                尚未新增說明內容
+                            </div>
+                        </div>
+                    </div>
+                </section>
             </div>
 
             <footer class="cf-footer">
@@ -125,25 +114,29 @@
                             title="查看全部斗內列表"
                         >
                             <div class="cf-timeline-wrap">
-                            <div id="timelineTrack" class="cf-timeline" hidden>
-                                <div class="cf-timeline-rail">
-                                    <div
-                                        id="timelineFill"
-                                        class="cf-timeline-fill"
-                                    >
-                                        <span
-                                            class="cf-progress-label cf-progress-label--in-bar"
-                                            >募資進度</span
+                                <div
+                                    id="timelineTrack"
+                                    class="cf-timeline"
+                                    hidden
+                                >
+                                    <div class="cf-timeline-rail">
+                                        <div
+                                            id="timelineFill"
+                                            class="cf-timeline-fill"
                                         >
-                                        <span
-                                            id="timelinePercent"
-                                            class="cf-timeline-percent"
-                                            aria-hidden="true"
-                                            >0 %</span
-                                        >
+                                            <span
+                                                class="cf-progress-label cf-progress-label--in-bar"
+                                                >募資進度</span
+                                            >
+                                            <span
+                                                id="timelinePercent"
+                                                class="cf-timeline-percent"
+                                                aria-hidden="true"
+                                                >0 %</span
+                                            >
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
                             </div>
                         </a>
                     </div>

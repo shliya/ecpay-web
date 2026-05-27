@@ -94,6 +94,16 @@ async function listDonorsTenForApi(pageKey) {
 }
 
 /**
+ * 特殊主題榜：累計達 21210 且依達標時間最快的前 4 名
+ * @param {string} pageKey
+ * @returns {Promise<{ donors: Array }>}
+ */
+async function listSpecialDonorsForApi(pageKey) {
+    const rows = await DonationStore.listSpecialDonationsByPageKey(pageKey);
+    return { donors: mapDonorRows(rows) };
+}
+
+/**
  * @deprecated 請改用 listDonorsPagedForApi；保留相容
  */
 async function listRecentDonorsForApi(pageKey, opts = {}) {
@@ -235,6 +245,7 @@ async function completeDonationFromPayment(row, orderInfo, query) {
 module.exports = {
     listDonorsPagedForApi,
     listDonorsTenForApi,
+    listSpecialDonorsForApi,
     listRecentDonorsForApi,
     recordDonationFromPayment,
     completeDonationFromPayment,

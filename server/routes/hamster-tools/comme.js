@@ -28,6 +28,7 @@ const {
     handleDeleteCrowdfundingPageRequest,
     handleGetCrowdfundingDonorsRequest,
     handleGetCrowdfundingDonorsTenRequest,
+    handleGetCrowdfundingDonorsSpecialRequest,
 } = require('../../route-handlers/comme');
 
 //綠界notify回調
@@ -108,6 +109,10 @@ router.get(
 router.get(
     '/crowdfunding/donors/pageKey=:pageKey/ten',
     handleGetCrowdfundingDonorsTenRequest
+);
+router.get(
+    '/crowdfunding/donors/pageKey=:pageKey/special',
+    handleGetCrowdfundingDonorsSpecialRequest
 );
 router.get('/crowdfunding/id=:merchantId', handleListCrowdfundingPagesRequest);
 router.get(

@@ -16,6 +16,47 @@ export function clearHeroDisplaySize(img) {
     img.style.removeProperty('height');
 }
 
+function sidebarHeroOverlapPx(sidebar) {
+    if (!sidebar) {
+        return 0;
+    }
+    const marginRight = parseFloat(getComputedStyle(sidebar).marginRight);
+    return Number.isFinite(marginRight) && marginRight < 0
+        ? Math.abs(marginRight)
+        : 0;
+}
+
+function resolveHeroFitMaxWidth(wrap, wrapStyle) {
+    let maxW = parseFloat(wrapStyle.maxWidth);
+    if (!Number.isFinite(maxW) || maxW <= 0) {
+        maxW = wrap.clientWidth || 800;
+    }
+
+    const cluster = wrap.closest('.cf-main-cluster');
+    if (!cluster || cluster.clientWidth < 320) {
+        return maxW;
+    }
+
+    const sidebar = cluster.querySelector('.cf-sidebar-column');
+    const panel = cluster.querySelector('.cf-panel');
+    const clusterStyle = getComputedStyle(cluster);
+    const columnGap = parseFloat(clusterStyle.columnGap) || 0;
+    const reserved =
+        (sidebar ? sidebar.offsetWidth : 0) +
+        (panel ? panel.offsetWidth : 0) +
+        columnGap * 2;
+    const overlap = sidebarHeroOverlapPx(sidebar);
+    const available = cluster.clientWidth - reserved + overlap;
+
+    if (available > maxW) {
+        return maxW;
+    }
+    if (available > 48) {
+        return available;
+    }
+    return maxW;
+}
+
 export function fitHeroImageToAvailableSlot(img) {
     if (isCfMobileLayout()) {
         clearHeroDisplaySize(img);
@@ -36,10 +77,7 @@ export function fitHeroImageToAvailableSlot(img) {
     }
 
     const wrapStyle = getComputedStyle(wrap);
-    let maxW = parseFloat(wrapStyle.maxWidth);
-    if (!Number.isFinite(maxW) || maxW <= 0) {
-        maxW = wrap.clientWidth || 800;
-    }
+    const maxW = resolveHeroFitMaxWidth(wrap, wrapStyle);
 
     const scale = Math.min(
         maxW / img.naturalWidth,

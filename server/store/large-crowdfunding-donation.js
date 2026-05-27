@@ -1,8 +1,13 @@
-const { Op, fn, col } = require('sequelize');
+const { Op, fn, col, QueryTypes } = require('sequelize');
 const LargeCrowdfundingDonation = require('../model/schema/large-crowdfunding-donation');
 
 const DEFAULT_RECENT_LIMIT = 50;
 const MAX_PAGE_LIMIT = 200;
+
+/** 特殊主題榜：累計達標門檻（元） */
+const SPECIAL_THEME_THRESHOLD_AMOUNT = 21210;
+/** 特殊主題榜：最快達標名額 */
+const SPECIAL_THEME_LEADERBOARD_LIMIT = 4;
 
 function normalizeListOpts(opts = {}) {
     const limit = Math.min(
@@ -85,6 +90,80 @@ async function listRecentByPageKey(pageKey, opts = {}) {
     });
 }
 
+/**
+ * 特殊主題榜：同名累計達門檻後，依「達標當下」created_at 取最快的前 N 名。
+ * 第 5 名以後達標者不列入（即使後來金額更高）。
+ * @param {string} pageKey
+ * @param {{ thresholdAmount?: number, limit?: number }} [opts]
+ * @returns {Promise<Array<{ donorName: string, amount: number, created_at: Date }>>}
+ */
+async function listSpecialDonationsByPageKey(pageKey, opts = {}) {
+    const threshold =
+        Number(opts.thresholdAmount) > 0 ?
+            Math.floor(Number(opts.thresholdAmount))
+        :   SPECIAL_THEME_THRESHOLD_AMOUNT;
+    const limit = Math.min(
+        Math.max(
+            Math.floor(Number(opts.limit)) || SPECIAL_THEME_LEADERBOARD_LIMIT,
+            1
+        ),
+        SPECIAL_THEME_LEADERBOARD_LIMIT
+    );
+
+    const rows = await LargeCrowdfundingDonation.sequelize.query(
+        `
+        WITH donations AS (
+            SELECT
+                id,
+                "donorName",
+                amount,
+                created_at
+            FROM large_crowdfunding_donations
+            WHERE "pageKey" = :pageKey
+        ),
+        running AS (
+            SELECT
+                id,
+                "donorName",
+                amount,
+                created_at,
+                SUM(amount) OVER (
+                    PARTITION BY "donorName"
+                    ORDER BY created_at ASC, id ASC
+                ) AS running_total
+            FROM donations
+        ),
+        first_reached AS (
+            SELECT DISTINCT ON ("donorName")
+                "donorName",
+                created_at AS reached_at
+            FROM running
+            WHERE running_total >= :threshold
+            ORDER BY "donorName", created_at ASC, id ASC
+        ),
+        totals AS (
+            SELECT "donorName", SUM(amount)::int AS amount
+            FROM donations
+            GROUP BY "donorName"
+        )
+        SELECT
+            fr."donorName",
+            t.amount,
+            fr.reached_at AS created_at
+        FROM first_reached fr
+        INNER JOIN totals t ON t."donorName" = fr."donorName"
+        ORDER BY fr.reached_at ASC
+        LIMIT :limit
+        `,
+        {
+            replacements: { pageKey, threshold, limit },
+            type: QueryTypes.SELECT,
+        }
+    );
+
+    return rows;
+}
+
 /** 榜單上的「人數」（不重複 donorName） */
 async function countByPageKey(pageKey) {
     return LargeCrowdfundingDonation.count({
@@ -124,10 +203,13 @@ async function isDuplicateWithinWindow(
 module.exports = {
     DEFAULT_RECENT_LIMIT,
     MAX_PAGE_LIMIT,
+    SPECIAL_THEME_THRESHOLD_AMOUNT,
+    SPECIAL_THEME_LEADERBOARD_LIMIT,
     findByPaymentTradeNo,
     createDonation,
     listRecentByPageId,
     listRecentByPageKey,
+    listSpecialDonationsByPageKey,
     countByPageKey,
     sumAmountByPageId,
     isDuplicateWithinWindow,

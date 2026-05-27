@@ -4,7 +4,9 @@ import {
     getCrowdfundingActivityStatus,
     readCrowdfundingPreview,
     resolveRecentDonors,
+    fetchDonorsSpecial,
     CROWDFUNDING_MAIN_DONOR_LIMIT,
+    CROWDFUNDING_SPECIAL_THEME_DONOR_LIMIT,
 } from './js/crowdfunding-settings-api.js';
 import {
     formatMoney,
@@ -311,8 +313,6 @@ function renderDonors(pageData, donors) {
     renderDonorList(list, pageData, donorList);
 }
 
-const CROWDFUNDING_SPECIAL_THEME_DONOR_LIMIT = 4;
-
 function renderSpecialThemeRanking(pageData, donors) {
     const sidebar = document.getElementById('specialThemeRankingSidebar');
     const placeholder = document.getElementById('specialThemePlaceholder');
@@ -402,7 +402,7 @@ function bindContentAnchorNav() {
         const target = document.getElementById(id);
         if (!scroll || !target || !scroll.contains(target)) return;
         e.preventDefault();
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        scrollContentBlockIntoView(target);
         history.replaceState(null, '', '#' + id);
         nav.querySelectorAll('a[href^="#"]').forEach(function (link) {
             link.classList.toggle(
@@ -411,6 +411,24 @@ function bindContentAnchorNav() {
             );
         });
     });
+}
+
+function scrollContentBlockIntoView(target) {
+    if (!target) {
+        return;
+    }
+    if (isCfMobileLayout()) {
+        const top =
+            target.getBoundingClientRect().top +
+            window.scrollY -
+            72;
+        window.scrollTo({
+            top: Math.max(0, top),
+            behavior: 'smooth',
+        });
+        return;
+    }
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function updateAnchorSlideHeight() {
@@ -477,7 +495,7 @@ function syncContentAnchorScroll(applyHashScroll) {
         const target = document.getElementById(hash);
         if (target && scroll.contains(target)) {
             requestAnimationFrame(function () {
-                target.scrollIntoView({ block: 'start' });
+                scrollContentBlockIntoView(target);
             });
             links.forEach(function (link) {
                 link.classList.toggle(
@@ -666,9 +684,12 @@ async function renderPage(data, pageKey) {
     applyTheme(data.theme || {});
     renderBackground(data);
     renderSponsorCta(data);
-    const donors = await resolveRecentDonors(key);
+    const [donors, specialDonors] = await Promise.all([
+        resolveRecentDonors(key),
+        fetchDonorsSpecial(key),
+    ]);
     renderDonors(data, donors);
-    renderSpecialThemeRanking(data, []);
+    renderSpecialThemeRanking(data, specialDonors);
     renderCrowdfundingHero(data);
     renderPanelHeader(data);
     renderContentBlocks(data);

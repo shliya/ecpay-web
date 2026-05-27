@@ -132,7 +132,7 @@
         min-height: 200px;
         height: auto;
         max-height: none;
-        overflow: hidden;
+        overflow: visible;
         width: 100%;
         max-width: 100%;
         justify-self: stretch;

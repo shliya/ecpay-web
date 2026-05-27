@@ -442,11 +442,3 @@ body {
     color: #eceff1;
     font-size: 13px;
 }
-
-.cfs-preview-frame {
-    width: 100%;
-    height: min(72vh, 640px);
-    border: 1px solid #546e7a;
-    border-radius: 8px;
-    background: #263238;
-}

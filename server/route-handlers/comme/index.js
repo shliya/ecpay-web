@@ -23,4 +23,5 @@ module.exports = {
     handleDeleteCrowdfundingPageRequest: require('./handle-delete-crowdfunding-page'),
     handleGetCrowdfundingDonorsRequest: require('./handle-get-crowdfunding-donors'),
     handleGetCrowdfundingDonorsTenRequest: require('./handle-get-crowdfunding-donors-ten'),
+    handleGetCrowdfundingDonorsSpecialRequest: require('./handle-get-crowdfunding-donors-special'),
 };

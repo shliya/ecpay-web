@@ -7,6 +7,7 @@ const IchibanPrizeModel = require('../../model/ichiban-prize');
 const LargeCrowdfundingPageModel = require('../../model/large-crowdfunding-page');
 const LargeCrowdfundingDonationModel = require('../../model/large-crowdfunding-donation');
 const PaymentPendingOrderModel = require('../../model/payment-pending-order');
+const { seedLocalTestData } = require('./seedLocalTestData');
 
 (async () => {
     try {
@@ -19,7 +20,16 @@ const PaymentPendingOrderModel = require('../../model/payment-pending-order');
         await LargeCrowdfundingPageModel.sequelize.sync();
         await LargeCrowdfundingDonationModel.sequelize.sync();
         await PaymentPendingOrderModel.sequelize.sync();
+
+        console.log('資料表同步完成');
+
+        if (process.env.NODE_ENV === 'local') {
+            await seedLocalTestData();
+        }
+
+        process.exit(0);
     } catch (error) {
         console.error('同步資料庫時發生錯誤:', error);
+        process.exit(1);
     }
 })();

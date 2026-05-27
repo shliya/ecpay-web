@@ -111,6 +111,9 @@ export const CROWDFUNDING_MAIN_DONOR_LIMIT = 10;
 /** 全部斗內頁每頁筆數 */
 export const CROWDFUNDING_ALL_DONORS_PAGE_SIZE = 10;
 
+/** 特殊主題榜名額 */
+export const CROWDFUNDING_SPECIAL_THEME_DONOR_LIMIT = 4;
+
 /**
  * GET /api/v1/comme/crowdfunding/donors/pageKey=:pageKey/ten
  * 榜十大哥固定前 10 名。
@@ -163,6 +166,29 @@ export async function fetchRecentDonors(pageKey) {
 
 export async function resolveRecentDonors(pageKey) {
     return fetchRecentDonors(pageKey);
+}
+
+/**
+ * GET /api/v1/comme/crowdfunding/donors/pageKey=:pageKey/special
+ * 累計達 21210、依達標時間最快的前 4 名。
+ */
+export async function fetchDonorsSpecial(pageKey) {
+    const key = String(pageKey || 'default').trim() || 'default';
+    const url =
+        '/api/v1/comme/crowdfunding/donors/pageKey=' +
+        encodeURIComponent(key) +
+        '/special';
+
+    try {
+        const res = await fetch(url, { cache: 'no-store' });
+        if (!res.ok) {
+            return [];
+        }
+        const body = await res.json();
+        return parseDonorsFromBody(body);
+    } catch {
+        return [];
+    }
 }
 
 /**
