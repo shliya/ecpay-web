@@ -13,7 +13,11 @@ const {
  * @param {object} context
  */
 function logLcfDonationResult(result, context) {
-    if (!result || result.status === 'recorded' || result.status === 'duplicate') {
+    if (
+        !result ||
+        result.status === 'recorded' ||
+        result.status === 'duplicate'
+    ) {
         return;
     }
     console.error('[large-crowdfunding-donation]', result.status, {
@@ -22,13 +26,7 @@ function logLcfDonationResult(result, context) {
     });
 }
 
-/**
- * 近期榜單（公開 API）
- * @param {string} pageKey
- * @returns {Promise<Array<{ name: string, amount: number }>>}
- */
-async function listRecentDonorsForApi(pageKey) {
-    const rows = await DonationStore.listRecentByPageKey(pageKey);
+function mapDonorRows(rows) {
     return rows.map(r => {
         const plain = typeof r.get === 'function' ? r.get({ plain: true }) : r;
         return {
@@ -36,6 +34,74 @@ async function listRecentDonorsForApi(pageKey) {
             amount: Number(plain.amount) || 0,
         };
     });
+}
+
+/**
+ * 斗內榜單分頁（公開 API）
+ * @param {string} pageKey
+ * @param {{ page?: number, limit?: number }} [opts]
+ * @returns {Promise<{ donors: Array, page: number, limit: number, totalCount: number, totalPages: number }>}
+ */
+async function listDonorsPagedForApi(pageKey, opts = {}) {
+    const page = Math.max(1, Math.floor(Number(opts.page)) || 1);
+    const limit = Math.min(
+        Math.max(
+            Math.floor(Number(opts.limit)) ||
+                DonationStore.DEFAULT_RECENT_LIMIT,
+            1
+        ),
+        DonationStore.MAX_PAGE_LIMIT
+    );
+    const offset = (page - 1) * limit;
+
+    const [rows, totalCount] = await Promise.all([
+        DonationStore.listRecentByPageKey(pageKey, { limit, offset }),
+        DonationStore.countByPageKey(pageKey),
+    ]);
+
+    const total = Number(totalCount) || 0;
+    const totalPages = total > 0 ? Math.ceil(total / limit) : 0;
+
+    return {
+        donors: mapDonorRows(rows),
+        page,
+        limit,
+        totalCount: total,
+        totalPages,
+    };
+}
+
+/**
+ * 榜十大哥：固定前 10 名（公開 API）
+ * @param {string} pageKey
+ * @returns {Promise<{ donors: Array, page: number, limit: number, totalCount: number, totalPages: number }>}
+ */
+async function listDonorsTenForApi(pageKey) {
+    const limit = 10;
+    const [rows, totalCount] = await Promise.all([
+        DonationStore.listRecentByPageKey(pageKey, { limit, offset: 0 }),
+        DonationStore.countByPageKey(pageKey),
+    ]);
+    const total = Number(totalCount) || 0;
+
+    return {
+        donors: mapDonorRows(rows),
+        page: 1,
+        limit,
+        totalCount: total,
+        totalPages: total > 0 ? Math.ceil(total / limit) : 0,
+    };
+}
+
+/**
+ * @deprecated 請改用 listDonorsPagedForApi；保留相容
+ */
+async function listRecentDonorsForApi(pageKey, opts = {}) {
+    const result = await listDonorsPagedForApi(pageKey, {
+        page: 1,
+        limit: opts.limit,
+    });
+    return result.donors;
 }
 
 /**
@@ -167,6 +233,8 @@ async function completeDonationFromPayment(row, orderInfo, query) {
 }
 
 module.exports = {
+    listDonorsPagedForApi,
+    listDonorsTenForApi,
     listRecentDonorsForApi,
     recordDonationFromPayment,
     completeDonationFromPayment,

@@ -10,19 +10,22 @@ let indexState = {
     currentPage: 'home',
     viewerDonateUrl: '',
     viewerDonateYoutubeUrl: '',
-    selectedDonationTypes: [1, 2, 3],
+    selectedDonationTypes: [1, 2, 3, 4],
+    largeCrowdfundingEnabled: false,
 };
 
 const DONATION_TYPE = {
     ECPAY: 1,
     YOUTUBE_SUPER_CHAT: 2,
     PAYUNI: 3,
+    OPAY: 4,
 };
 
 const DONATION_TYPE_OPTIONS = [
     { type: DONATION_TYPE.ECPAY, label: '綠界' },
     { type: DONATION_TYPE.YOUTUBE_SUPER_CHAT, label: 'YT' },
     { type: DONATION_TYPE.PAYUNI, label: 'PAYUNI' },
+    { type: DONATION_TYPE.OPAY, label: '歐付寶' },
 ];
 
 const PAGE_CONFIG = {
@@ -103,7 +106,7 @@ async function initializeIndex() {
     localStorage.setItem('merchantId', merchantId);
 
     displayMerchantId(merchantId);
-    loadViewerDonateUrls(merchantId);
+    await loadViewerDonateUrls(merchantId);
     bindEventListeners();
 }
 
@@ -143,6 +146,12 @@ async function loadViewerDonateUrls(merchantId) {
         const baseUrl = getViewerDonateBaseUrl();
         const ytBaseUrl = getViewerDonateYoutubeBaseUrl();
 
+        indexState.largeCrowdfundingEnabled =
+            data.largeCrowdfundingEnabled === true;
+        applyLargeCrowdfundingNavVisibility(
+            indexState.largeCrowdfundingEnabled
+        );
+
         if (res.ok && data.displayName) {
             const q = '?name=' + encodeURIComponent(data.displayName);
             const url = baseUrl + q;
@@ -168,8 +177,30 @@ async function loadViewerDonateUrls(merchantId) {
     } catch {
         indexState.viewerDonateUrl = '';
         indexState.viewerDonateYoutubeUrl = '';
+        indexState.largeCrowdfundingEnabled = false;
+        applyLargeCrowdfundingNavVisibility(false);
         setDonateLinkPlaceholder(inputEl);
         setDonateLinkPlaceholder(ytInputEl);
+    }
+}
+
+function applyLargeCrowdfundingNavVisibility(enabled) {
+    const nav = document.getElementById('navCrowdfundingSettings');
+    if (!nav) {
+        return;
+    }
+    if (enabled) {
+        nav.hidden = false;
+        nav.style.display = '';
+    } else {
+        nav.hidden = true;
+        nav.style.display = 'none';
+        if (
+            indexState.currentPage === 'crowdfunding-list' ||
+            indexState.currentPage === 'crowdfunding-settings'
+        ) {
+            navigateTo('home');
+        }
     }
 }
 
@@ -213,6 +244,14 @@ function bindElement(id, event, handler) {
 
 function navigateTo(page) {
     if (indexState.currentPage === page) {
+        return;
+    }
+
+    if (
+        (page === 'crowdfunding-list' || page === 'crowdfunding-settings') &&
+        !indexState.largeCrowdfundingEnabled
+    ) {
+        showError('此商店未開放大型募資功能');
         return;
     }
 

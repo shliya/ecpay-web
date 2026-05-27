@@ -1,0 +1,7 @@
+Release Note
+Version 1.400
+．修正權利主體為 LY Corporation
+．修正在 MacOS 字體簿分類，現可正確歸類到「繁體中文」類別
+．修正 palt, halt 的位置偏右問題
+．改善在 Notepad @Windows11 下，OTF Thin 使用小字號筆畫會斷線問題
+．改善在 MacOS 字體簿字重顯示，現在顯示為中文：特粗體／粗體／標準體／纖細體

@@ -28,11 +28,15 @@ async function handlePaymentTimeoutWorker(taskName) {
                 continue;
             }
 
-            if (orderInfo.kind === 'ecpay-donation') {
+            if (
+                orderInfo.kind === 'ecpay-donation' ||
+                orderInfo.kind === 'opay-donation' ||
+                orderInfo.kind === 'payuni-donation'
+            ) {
                 await deletePaymentOrder(merchantTradeNo);
                 staleOrderClearedCount++;
                 console.log(
-                    `[${taskName}] 綠界斗內預存訂單逾時已清除: ${merchantTradeNo}`
+                    `[${taskName}] ${orderInfo.kind} 預存訂單逾時已清除: ${merchantTradeNo}`
                 );
                 continue;
             }

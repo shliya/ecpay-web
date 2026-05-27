@@ -1,0 +1,39 @@
+/* LINE Seed TW（斗內暱稱／金額） */
+@font-face {
+    font-family: 'LINE Seed TW';
+    src: url('../assest/LINE Seed TW_ver02/WOFF2/LINESeedTW_OTF_Rg.woff2')
+        format('woff2');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'LINE Seed TW';
+    src: url('../assest/LINE Seed TW_ver02/WOFF2/LINESeedTW_OTF_Bd.woff2')
+        format('woff2');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+:root {
+    --cf-donor-font-family:
+        'LINE Seed TW', 'PMingLiU', 'Microsoft JhengHei', sans-serif;
+}
+
+/* 主頁榜單（10）／特殊主題榜（4）／全部斗內列表 */
+.cf-donor-name,
+.cf-donor-amount,
+.cf-sidebar--theme-ranking .cf-donor-name,
+.cf-sidebar--theme-ranking .cf-donor-amount {
+    font-family: var(--cf-donor-font-family);
+}
+
+.cf-donor-name {
+    font-weight: 400;
+}
+
+.cf-donor-amount {
+    font-weight: 700;
+}

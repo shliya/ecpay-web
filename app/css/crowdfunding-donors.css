@@ -1,0 +1,368 @@
+@import './crowdfunding-hero.css';
+@import './crowdfunding-line-seed-font.css';
+
+:root {
+    --cf-page-bg: #d4c4a8;
+    --cf-accent: #8b2323;
+    --cf-accent-muted: #8b2323;
+    --cf-muted-text: #6b5348;
+    --cf-font-family:
+        'Noto Serif TC', 'PMingLiU', 'MingLiU', 'Songti TC', serif;
+    --cf-milestone-text-shadow:
+        -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff,
+        0 0 4px rgba(255, 255, 255, 0.85);
+    --cf-total-bar-text: #8b2323;
+    --cf-total-value-size: 1.15rem;
+    /* 感謝贊助：與主頁累積金額同色系＋白邊，字級放大 */
+    --cfd-list-title-size: clamp(1.65rem, 3.2vw, 2.35rem);
+    --cf-page-text: #2a2218;
+    --cf-placeholder-bg: rgba(90, 75, 60, 0.15);
+    --cf-hero-ratio: 4 / 5;
+    --cf-page-inset-bottom: 50px;
+    --cf-footer-bar-block-h: min(14vh, 112px);
+    --cf-footer-h: calc(
+        var(--cf-footer-bar-block-h) + var(--cf-page-inset-bottom)
+    );
+    --cf-main-top-pad: 3.25rem;
+    --cf-main-block-h: calc(
+        100vh - var(--cf-footer-h) - var(--cf-main-top-pad) - 0.35rem
+    );
+    /* 與主頁主視覺相同上限 */
+    --cf-hero-max-w: min(63vw, 800px);
+    --cfd-list-box-bg: #fdfbe4;
+    --cfd-list-box-border: #2d2d2d;
+    --cfd-page-inset: clamp(1rem, 3vw, 2.5rem);
+    --cfd-stage-max-w: min(1080px, 96vw);
+    --cfd-hero-overlap: 10px;
+    /* 主視覺獨立高度（與主頁區塊同級）；列表依內容縮放 */
+    --cfd-hero-slot-h: var(--cf-main-block-h);
+    --cfd-list-scroll-max-h: min(40vh, 360px);
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html,
+body.cfd-body {
+    margin: 0;
+    min-height: 100%;
+    font-family: var(--cf-font-family);
+    font-optical-sizing: auto;
+    font-style: normal;
+    color: var(--cf-page-text);
+    background: var(--cf-page-bg);
+}
+
+.cfd-load-error {
+    margin: 2rem auto;
+    max-width: 36rem;
+    padding: 1rem 1.25rem;
+    text-align: center;
+    font-family: var(--cf-font-family);
+    color: #5c1a1a;
+    background: rgba(255, 252, 245, 0.92);
+    border: 1px solid rgba(139, 35, 35, 0.35);
+    border-radius: 8px;
+}
+
+.cfd-page {
+    position: relative;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+.cfd-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background-color: var(--cf-page-bg);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.cfd-bg.is-empty {
+    background-image: none;
+}
+
+.cfd-layout {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: var(--cfd-page-inset);
+}
+
+/* 左：主視覺（在背景上）　右：米色列表框；主視覺僅壓框左緣約 10px */
+.cfd-stage {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 0;
+    width: var(--cfd-stage-max-w);
+    max-width: 100%;
+}
+
+.cfd-hero-col {
+    position: relative;
+    z-index: 2;
+    grid-column: 1;
+    display: flex;
+    align-items: stretch;
+    justify-content: flex-end;
+    align-self: center;
+    margin-right: calc(-1 * var(--cfd-hero-overlap));
+    pointer-events: none;
+}
+
+.cfd-hero-col .cf-hero-wrap {
+    grid-area: unset;
+    pointer-events: auto;
+    width: max-content;
+    max-width: min(54vw, 580px);
+    height: var(--cfd-hero-slot-h);
+    max-height: calc(100vh - var(--cfd-page-inset) * 2 - 1rem);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+}
+
+.cfd-hero-col .cf-hero-frame.has-hero {
+    max-height: 100%;
+}
+
+.cfd-hero-col .cf-hero-frame.has-hero .cf-hero-img {
+    max-height: 100%;
+}
+
+.cfd-list-box {
+    grid-column: 2;
+    position: relative;
+    z-index: 1;
+    min-width: 0;
+    width: 100%;
+    height: auto;
+    align-self: center;
+    display: flex;
+    flex-direction: column;
+    background: var(--cfd-list-box-bg);
+    border: 2px solid var(--cfd-list-box-border);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.cfd-list-content {
+    display: flex;
+    flex-direction: column;
+    padding: 0 clamp(0.85rem, 2vw, 1.35rem);
+}
+
+.cfd-list-header {
+    flex-shrink: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    align-items: end;
+    gap: 0.35rem 1rem;
+    padding: 1rem 0 0.65rem;
+}
+
+.cfd-update-hint {
+    margin: 0;
+    grid-column: 1;
+    grid-row: 1;
+    align-self: end;
+    font-family: var(--cf-font-family);
+    font-size: calc(var(--cf-total-value-size) * 0.82);
+    font-weight: 600;
+    color: var(--cf-total-bar-text);
+    letter-spacing: 0.02em;
+    line-height: 1.35;
+}
+
+.cfd-list-title {
+    margin: 0;
+    grid-column: 2;
+    grid-row: 1;
+    text-align: right;
+    font-family: var(--cf-font-family);
+    font-size: var(--cfd-list-title-size);
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: 0.04em;
+    color: var(--cf-total-bar-text);
+    text-shadow: var(--cf-milestone-text-shadow);
+    white-space: nowrap;
+}
+
+.cfd-list-header-line {
+    display: block;
+    grid-column: 1 / -1;
+    grid-row: 2;
+    margin: 0;
+    height: 2px;
+    background: var(--cfd-list-box-border);
+}
+
+.cfd-donor-list {
+    flex: 0 1 auto;
+    margin: 0;
+    padding: 0.1rem 0 0.35rem;
+    list-style: none;
+    max-height: var(--cfd-list-scroll-max-h);
+    overflow-y: auto;
+    scrollbar-width: thin;
+}
+
+.cfd-donor-list .cf-donor-item {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.45rem;
+    width: 100%;
+    padding: 0.45rem 0.1rem;
+    font-family: inherit;
+    font-size: var(--cf-total-value-size);
+    border-bottom: 1px solid rgba(45, 45, 45, 0.1);
+    box-sizing: border-box;
+}
+
+.cfd-donor-list .cf-donor-tier {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cfd-donor-list .cf-donor-tier--fallback {
+    background: var(--cf-accent-muted);
+}
+
+.cfd-donor-list .cf-donor-tier-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.cfd-donor-list .cf-donor-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: var(--cf-donor-font-family);
+    font-weight: 400;
+    color: var(--cf-page-text);
+}
+
+.cfd-donor-list .cf-donor-amount {
+    flex-shrink: 0;
+    font-family: var(--cf-donor-font-family);
+    font-weight: 700;
+    color: var(--cf-accent);
+    text-align: right;
+    min-width: 4.25rem;
+}
+
+.cfd-donor-list .cf-donor-empty {
+    padding: 2rem 0.5rem;
+    text-align: center;
+    font-style: italic;
+    color: var(--cf-muted-text);
+}
+
+.cfd-pagination {
+    flex-shrink: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.5rem 0.75rem;
+    padding: 0.55rem 0 0.85rem;
+    margin-top: 0;
+    border-top: 1px solid rgba(45, 45, 45, 0.1);
+    font-family: var(--cf-font-family);
+}
+
+.cfd-pagination__info {
+    margin: 0;
+    font-size: calc(var(--cf-total-value-size) * 0.88);
+    font-weight: 700;
+    color: var(--cf-page-text);
+    white-space: nowrap;
+}
+
+.cfd-pagination__btn {
+    font-family: var(--cf-font-family);
+    font-size: calc(var(--cf-total-value-size) * 0.88);
+    font-weight: 700;
+    color: var(--cf-total-bar-text);
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid var(--cfd-list-box-border);
+    border-radius: 999px;
+    padding: 0.3rem 0.9rem;
+    cursor: pointer;
+    text-shadow: var(--cf-milestone-text-shadow);
+}
+
+.cfd-pagination__btn:hover:not(:disabled) {
+    background: #fff;
+}
+
+.cfd-pagination__btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+@media (max-width: 900px) {
+    :root {
+        --cf-total-value-size: 1.05rem;
+        --cfd-list-title-size: 1.5rem;
+        --cf-hero-max-w: min(88vw, 360px);
+    }
+
+    .cfd-layout {
+        align-items: flex-start;
+        padding: 1rem 0.75rem 1.25rem;
+    }
+
+    .cfd-stage {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr;
+        width: 100%;
+    }
+
+    .cfd-hero-col {
+        grid-column: 1;
+        grid-row: 1;
+        justify-content: center;
+        margin-right: 0;
+        margin-bottom: 0.5rem;
+    }
+
+    .cfd-hero-col .cf-hero-wrap {
+        max-width: min(88vw, 360px);
+        height: auto;
+        min-height: 0;
+        max-height: none;
+    }
+
+    .cfd-list-box {
+        grid-column: 1;
+        grid-row: 2;
+    }
+
+    .cfd-pagination {
+        justify-content: center;
+    }
+}

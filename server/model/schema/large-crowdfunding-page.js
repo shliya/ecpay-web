@@ -37,12 +37,6 @@ const LargeCrowdfundingPage = sequelize.define(
             defaultValue: '',
             field: 'sponsorLabel',
         },
-        periodLabel: {
-            type: DataTypes.STRING(500),
-            allowNull: false,
-            defaultValue: '',
-            field: 'periodLabel',
-        },
         fundraisingStartsAt: {
             type: DataTypes.DATE,
             allowNull: true,
@@ -71,23 +65,38 @@ const LargeCrowdfundingPage = sequelize.define(
             defaultValue: '',
             field: 'heroImageUrl',
         },
-        logoImageUrl: {
-            type: DataTypes.TEXT,
-            allowNull: false,
-            defaultValue: '',
-            field: 'logoImageUrl',
-        },
         donorListBackgroundImageUrl: {
             type: DataTypes.TEXT,
             allowNull: false,
             defaultValue: '',
             field: 'donorListBackgroundImageUrl',
         },
+        /** 榜十大哥標題：文字或圖片網址 */
+        mainDonorListTitle: {
+            type: DataTypes.TEXT,
+            allowNull: false,
+            defaultValue: '',
+            field: 'mainDonorListTitle',
+        },
+        /** 特殊主題榜標題：文字或圖片網址 */
+        specialThemeRankingTitle: {
+            type: DataTypes.TEXT,
+            allowNull: false,
+            defaultValue: '',
+            field: 'specialThemeRankingTitle',
+        },
         donorTierIcons: {
             type: DataTypes.JSONB,
             allowNull: false,
             defaultValue: {},
             field: 'donorTierIcons',
+        },
+        /** 特殊主題榜：全名次共用一張圖示 */
+        specialThemeTierIconUrl: {
+            type: DataTypes.TEXT,
+            allowNull: false,
+            defaultValue: '',
+            field: 'specialThemeTierIconUrl',
         },
         theme: {
             type: DataTypes.JSONB,

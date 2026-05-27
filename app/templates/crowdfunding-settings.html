@@ -59,14 +59,6 @@
                                 <span>前台頁面標題</span>
                                 <input type="text" id="title" name="title" />
                             </label>
-                            <label class="cfs-field cfs-field--wide">
-                                <span>募資期間說明（一行文字）</span>
-                                <input
-                                    type="text"
-                                    id="periodLabel"
-                                    name="periodLabel"
-                                />
-                            </label>
                             <label class="cfs-field">
                                 <span>募資開始時間</span>
                                 <input
@@ -114,19 +106,27 @@
                                 />
                             </label>
                             <label class="cfs-field cfs-field--wide">
-                                <span>Logo 圖網址</span>
-                                <input
-                                    type="url"
-                                    id="logoImageUrl"
-                                    name="logoImageUrl"
-                                />
-                            </label>
-                            <label class="cfs-field cfs-field--wide">
                                 <span>左側榜單底圖網址</span>
                                 <input
                                     type="url"
                                     id="donorListBackgroundImageUrl"
                                     name="donorListBackgroundImageUrl"
+                                />
+                            </label>
+                            <label class="cfs-field cfs-field--wide">
+                                <span>榜十大哥標題（文字或圖片網址）</span>
+                                <input
+                                    type="text"
+                                    id="mainDonorListTitle"
+                                    name="mainDonorListTitle"
+                                />
+                            </label>
+                            <label class="cfs-field cfs-field--wide">
+                                <span>特殊主題榜標題（文字或圖片網址）</span>
+                                <input
+                                    type="text"
+                                    id="specialThemeRankingTitle"
+                                    name="specialThemeRankingTitle"
                                 />
                             </label>
                             <label class="cfs-field">
@@ -151,7 +151,7 @@
                     </fieldset>
 
                     <fieldset class="cfs-fieldset">
-                        <legend>榜單名次圖示</legend>
+                        <legend>榜十大哥名次圖示</legend>
                         <div class="cfs-grid">
                             <label class="cfs-field cfs-field--wide">
                                 <span>榜一 rank1</span>
@@ -172,11 +172,28 @@
                         </div>
                     </fieldset>
 
+                    <fieldset class="cfs-fieldset">
+                        <legend>特殊主題榜圖示</legend>
+                        <p class="cfs-field-hint">
+                            全榜單共用一張圖示（與榜十大哥的分名次圖不同）。
+                        </p>
+                        <div class="cfs-grid">
+                            <label class="cfs-field cfs-field--wide">
+                                <span>圖示網址</span>
+                                <input
+                                    type="url"
+                                    id="specialThemeTierIconUrl"
+                                    name="specialThemeTierIconUrl"
+                                />
+                            </label>
+                        </div>
+                    </fieldset>
+
                     <div class="cfs-info-panel">
                         <strong>左側贊助榜單</strong>
                         <p>
-                            不需在此設定。榜單與排名將由資料庫依實際斗內紀錄即時提供（API
-                            上線後自動顯示）。
+                            榜單標題可於上方填文字或圖片網址；名次與金額由資料庫依實際斗內紀錄即時顯示。特殊主題榜單名單（最多
+                            4 人）設定功能稍後開放。
                         </p>
                     </div>
 

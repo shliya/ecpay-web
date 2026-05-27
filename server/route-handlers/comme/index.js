@@ -14,6 +14,7 @@ module.exports = {
     handleGetPayuniNotifyRequest: require('./handle-get-payuni-notify'),
     handleCreateDonatePayuniRequest: require('./handle-create-donate-payuni'),
     handleCreatePayuniSettingRequest: require('./handle-create-payuni-setting'),
+    handleCreateDonateOpayRequest: require('./handle-create-donate-opay'),
     handleListCrowdfundingPagesRequest: require('./handle-list-crowdfunding-pages'),
     handleGetCrowdfundingPageRequest: require('./handle-get-crowdfunding-page'),
     handleGetCrowdfundingPagePublicRequest: require('./handle-get-crowdfunding-page-public'),
@@ -21,4 +22,5 @@ module.exports = {
     handlePublishCrowdfundingPageRequest: require('./handle-publish-crowdfunding-page'),
     handleDeleteCrowdfundingPageRequest: require('./handle-delete-crowdfunding-page'),
     handleGetCrowdfundingDonorsRequest: require('./handle-get-crowdfunding-donors'),
+    handleGetCrowdfundingDonorsTenRequest: require('./handle-get-crowdfunding-donors-ten'),
 };

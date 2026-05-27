@@ -15,6 +15,12 @@ async function getEcpayConfigByMerchantId(merchantId) {
             raw: true,
         });
     }
+    if (!config) {
+        config = await EcpayConfigModel.findOne({
+            where: { opayMerchantId: trimmed },
+            raw: true,
+        });
+    }
     return config;
 }
 
@@ -93,6 +99,17 @@ async function getPayuniConfigByPayuniMerchantId(
     });
 }
 
+async function getOpayConfigByOpayMerchantId(
+    opayMerchantId,
+    { properties }
+) {
+    return EcpayConfigModel.findOne({
+        where: { opayMerchantId },
+        attributes: properties,
+        raw: true,
+    });
+}
+
 module.exports = {
     getEcpayConfigByMerchantId,
     getEcpayConfigByDisplayName,
@@ -103,4 +120,5 @@ module.exports = {
     getTransaction,
     getPayuniConfigByPayuniMerchantId,
     getPayuniMerchantIdByMerchantId,
+    getOpayConfigByOpayMerchantId,
 };

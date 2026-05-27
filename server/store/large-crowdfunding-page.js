@@ -40,7 +40,6 @@ const LIST_SUMMARY_ATTRIBUTES = [
     'pageKey',
     'largeFundraisingName',
     'title',
-    'periodLabel',
     'fundraisingStartsAt',
     'fundraisingEndsAt',
     'manuallyClosed',

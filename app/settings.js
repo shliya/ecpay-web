@@ -104,6 +104,10 @@ import { requireTotpVerification, getTotpToken } from './js/totp-guard.js';
         if (payuniEnabledEl) {
             payuniEnabledEl.checked = config.payuniEnabled !== false;
         }
+        const opayEnabledEl = document.getElementById('opayEnabled');
+        if (opayEnabledEl) {
+            opayEnabledEl.checked = config.opayEnabled !== false;
+        }
         const youtubeDonationEnabledEl = document.getElementById(
             'youtubeDonationEnabled'
         );
@@ -156,6 +160,15 @@ import { requireTotpVerification, getTotpToken } from './js/totp-guard.js';
 
         const payuniHashIVEl = document.getElementById('payuniHashIV');
         if (payuniHashIVEl) payuniHashIVEl.value = config.payuniHashIV || '';
+
+        const opayMerchantIdEl = document.getElementById('opayMerchantId');
+        if (opayMerchantIdEl)
+            opayMerchantIdEl.value = config.opayMerchantId || '';
+        const opayHashKeyEl = document.getElementById('opayHashKey');
+        if (opayHashKeyEl) opayHashKeyEl.value = config.opayHashKey || '';
+        const opayHashIVEl = document.getElementById('opayHashIV');
+        if (opayHashIVEl) opayHashIVEl.value = config.opayHashIV || '';
+
         const ytDonAmt = document.getElementById('youtubeDonationAmount');
         if (ytDonAmt) {
             const v =
@@ -511,6 +524,48 @@ import { requireTotpVerification, getTotpToken } from './js/totp-guard.js';
         }
     }
 
+    async function saveOpaySettings(e) {
+        e.preventDefault();
+        const opayMerchantId = document
+            .getElementById('opayMerchantId')
+            .value.trim();
+        const opayHashKey = document.getElementById('opayHashKey').value;
+        const opayHashIV = document.getElementById('opayHashIV').value;
+
+        try {
+            const response = await fetch(
+                `/api/v1/comme/ecpay/config/id=${encodeURIComponent(merchantId)}`,
+                {
+                    method: 'PATCH',
+                    headers: buildAuthHeaders({
+                        'Content-Type': 'application/json',
+                    }),
+                    body: JSON.stringify({
+                        opayMerchantId,
+                        opayHashKey,
+                        opayHashIV,
+                        opayEnabled:
+                            document.getElementById('opayEnabled')?.checked ??
+                            true,
+                    }),
+                }
+            );
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.error || '儲存失敗');
+            }
+
+            showMessage('歐付寶設定已儲存', 'success');
+            currentConfig = result;
+            setPaymentToggleFromConfig(result);
+        } catch (error) {
+            console.error('儲存歐付寶設定錯誤:', error);
+            showMessage('儲存失敗: ' + error.message, 'error');
+        }
+    }
+
     async function savePayuniSettings(e) {
         e.preventDefault();
         const payuniMerchantId = document
@@ -587,6 +642,9 @@ import { requireTotpVerification, getTotpToken } from './js/totp-guard.js';
         document
             .getElementById('payuniForm')
             .addEventListener('submit', savePayuniSettings);
+        document
+            .getElementById('opayForm')
+            ?.addEventListener('submit', saveOpaySettings);
     }
 
     if (document.readyState === 'loading') {

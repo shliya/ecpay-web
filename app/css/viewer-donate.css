@@ -145,6 +145,22 @@ body {
     opacity: 1;
 }
 
+.alt-links .btn-opay {
+    margin-top: 8px;
+    padding: 10px 0;
+    background: var(--donate-opay-bg, #2d7a5e);
+    color: var(--donate-opay-text, #fff);
+    border: 3px solid var(--donate-opay-border, #1d5a43);
+    border-radius: 8px;
+    font-size: 14px;
+    text-decoration: none;
+}
+
+.alt-links .btn-opay:hover {
+    background: var(--donate-opay-hover-bg, #256b52);
+    opacity: 1;
+}
+
 .alt-links .coming-soon {
     color: var(--donate-link-muted);
     cursor: not-allowed;

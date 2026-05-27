@@ -36,6 +36,24 @@ function statusClass(key) {
     return 'cfl-status is-' + String(key || 'active').replace(/_/g, '-');
 }
 
+function formatCrowdfundingPeriod(page) {
+    if (!page) {
+        return '—';
+    }
+    const start = page.fundraisingStartsAt;
+    const end = page.fundraisingEndsAt;
+    if (start && end) {
+        return String(start) + '－' + String(end);
+    }
+    if (start) {
+        return '自 ' + String(start);
+    }
+    if (end) {
+        return '至 ' + String(end);
+    }
+    return '—';
+}
+
 function getSettingsUrl(pageKey) {
     const path = window.location.pathname.replace(/[^/]*$/, '');
     const url = new URL(
@@ -99,7 +117,7 @@ function createCard(page) {
                     <span class="cfl-publish ${page.isPublished ? 'is-live' : ''}">${page.isPublished ? '已發布' : '未發布'}</span>
                 </div>
             </div>
-            <p class="cfl-meta">${escapeHtml(page.periodLabel || '—')}</p>
+            <p class="cfl-meta">${escapeHtml(formatCrowdfundingPeriod(page))}</p>
             ${progressHtml}
             <div class="cfl-card-actions">
                 <button type="button" class="cfl-btn-delete" data-page-key="${escapeHtml(page.pageKey)}" data-page-name="${escapeHtml(name)}">

@@ -152,10 +152,6 @@ function buildThemeFromForm() {
             theme[key] = el.value.trim();
         }
     });
-    const base = document.getElementById('theme_fontFamily');
-    if (base && base.value.trim()) {
-        theme.fontFamily = base.value.trim();
-    }
     return theme;
 }
 
@@ -174,7 +170,6 @@ function collectFormData() {
             .value.trim(),
         title: document.getElementById('title').value.trim(),
         sponsorLabel: document.getElementById('sponsorLabel').value.trim(),
-        periodLabel: document.getElementById('periodLabel').value.trim(),
         fundraisingStartsAt: fromDatetimeLocalValue(
             document.getElementById('fundraisingStartsAt').value
         ),
@@ -186,9 +181,14 @@ function collectFormData() {
             .getElementById('backgroundImageUrl')
             .value.trim(),
         heroImageUrl: document.getElementById('heroImageUrl').value.trim(),
-        logoImageUrl: document.getElementById('logoImageUrl').value.trim(),
         donorListBackgroundImageUrl: document
             .getElementById('donorListBackgroundImageUrl')
+            .value.trim(),
+        mainDonorListTitle: document
+            .getElementById('mainDonorListTitle')
+            .value.trim(),
+        specialThemeRankingTitle: document
+            .getElementById('specialThemeRankingTitle')
             .value.trim(),
         currentTotal:
             Number(document.getElementById('currentTotal').value) || 0,
@@ -198,6 +198,9 @@ function collectFormData() {
             rank3: document.getElementById('tierRank3').value.trim(),
             other: document.getElementById('tierOther').value.trim(),
         },
+        specialThemeTierIconUrl: document
+            .getElementById('specialThemeTierIconUrl')
+            .value.trim(),
         theme: buildThemeFromForm(),
         contentBlocks: collectContentBlocks(),
         milestones: collectMilestones(),
@@ -217,10 +220,6 @@ function fillThemeFields(theme) {
             picker.value = val;
         }
     });
-    const fontEl = document.getElementById('theme_fontFamily');
-    if (fontEl) {
-        fontEl.value = t.fontFamily || '';
-    }
 }
 
 function fillForm(data) {
@@ -230,7 +229,6 @@ function fillForm(data) {
         d.largeFundraisingName || '';
     document.getElementById('title').value = d.title || '';
     document.getElementById('sponsorLabel').value = d.sponsorLabel || '';
-    document.getElementById('periodLabel').value = d.periodLabel || '';
     document.getElementById('fundraisingStartsAt').value = toDatetimeLocalValue(
         d.fundraisingStartsAt
     );
@@ -241,9 +239,12 @@ function fillForm(data) {
     document.getElementById('backgroundImageUrl').value =
         d.backgroundImageUrl || '';
     document.getElementById('heroImageUrl').value = d.heroImageUrl || '';
-    document.getElementById('logoImageUrl').value = d.logoImageUrl || '';
     document.getElementById('donorListBackgroundImageUrl').value =
         d.donorListBackgroundImageUrl || '';
+    document.getElementById('mainDonorListTitle').value =
+        d.mainDonorListTitle || '';
+    document.getElementById('specialThemeRankingTitle').value =
+        d.specialThemeRankingTitle || '';
     document.getElementById('currentTotal').value =
         d.currentTotal != null ? String(d.currentTotal) : '0';
 
@@ -252,6 +253,9 @@ function fillForm(data) {
     document.getElementById('tierRank2').value = icons.rank2 || '';
     document.getElementById('tierRank3').value = icons.rank3 || '';
     document.getElementById('tierOther').value = icons.other || '';
+
+    document.getElementById('specialThemeTierIconUrl').value =
+        d.specialThemeTierIconUrl || '';
 
     fillThemeFields(d.theme);
     fillAllListEditors(d);
@@ -383,15 +387,6 @@ function renderThemeColorInputs() {
         container.appendChild(row);
     });
 
-    const fontRow = document.createElement('label');
-    fontRow.className = 'cfs-field cfs-field--wide';
-    fontRow.innerHTML =
-        '<span>字型 fontFamily</span><input type="text" id="theme_fontFamily" />';
-    container.appendChild(fontRow);
-    const fontInput = document.getElementById('theme_fontFamily');
-    if (fontInput) {
-        fontInput.addEventListener('input', schedulePreviewRefresh);
-    }
 }
 
 function loadNewProjectForm() {

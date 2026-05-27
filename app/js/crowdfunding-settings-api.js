@@ -46,35 +46,109 @@ export function prepareCrowdfundingPageConfig(data) {
     return out;
 }
 
+function parseDonorsFromBody(body) {
+    if (Array.isArray(body)) {
+        return body;
+    }
+    if (body && Array.isArray(body.recentDonors)) {
+        return body.recentDonors;
+    }
+    if (body && Array.isArray(body.donors)) {
+        return body.donors;
+    }
+    return [];
+}
+
 /**
- * GET /api/v1/comme/crowdfunding/donors/pageKey=:pageKey
- * 由資料庫讀取近期斗內榜單（依金額排序）。
- * @param {string} pageKey
- * @returns {Promise<Array<{ name: string, amount: number }>>}
+ * GET /api/v1/comme/crowdfunding/donors/pageKey=:pageKey?page=&limit=
+ * @returns {Promise<{ donors: Array, page: number, limit: number, totalCount: number, totalPages: number }>}
  */
-export async function fetchRecentDonors(pageKey) {
+export async function fetchDonorsPaged(pageKey, opts) {
     const key = String(pageKey || 'default').trim() || 'default';
+    const options = opts || {};
+    const params = new URLSearchParams();
+    const page = Math.max(1, Math.floor(Number(options.page)) || 1);
+    const limit = Math.max(1, Math.floor(Number(options.limit)) || 20);
+    params.set('page', String(page));
+    params.set('limit', String(limit));
+
     const url =
         '/api/v1/comme/crowdfunding/donors/pageKey=' +
-        encodeURIComponent(key);
+        encodeURIComponent(key) +
+        '?' +
+        params.toString();
+
+    const empty = {
+        donors: [],
+        page,
+        limit,
+        totalCount: 0,
+        totalPages: 0,
+    };
+
     try {
         const res = await fetch(url, { cache: 'no-store' });
         if (!res.ok) {
-            return [];
+            return empty;
         }
         const body = await res.json();
-        if (Array.isArray(body)) {
-            return body;
-        }
-        if (Array.isArray(body.recentDonors)) {
-            return body.recentDonors;
-        }
-        if (Array.isArray(body.donors)) {
-            return body.donors;
-        }
-        return [];
+        const donors = parseDonorsFromBody(body);
+        return {
+            donors,
+            page: Number(body.page) > 0 ? Number(body.page) : page,
+            limit: Number(body.limit) > 0 ? Number(body.limit) : limit,
+            totalCount: Math.max(0, Number(body.totalCount) || 0),
+            totalPages: Math.max(0, Number(body.totalPages) || 0),
+        };
     } catch {
-        return [];
+        return empty;
+    }
+}
+
+/** 主頁榜單顯示筆數 */
+export const CROWDFUNDING_MAIN_DONOR_LIMIT = 10;
+
+/** 全部斗內頁每頁筆數 */
+export const CROWDFUNDING_ALL_DONORS_PAGE_SIZE = 10;
+
+/**
+ * GET /api/v1/comme/crowdfunding/donors/pageKey=:pageKey/ten
+ * 榜十大哥固定前 10 名。
+ */
+export async function fetchDonorsTen(pageKey) {
+    const key = String(pageKey || 'default').trim() || 'default';
+    const url =
+        '/api/v1/comme/crowdfunding/donors/pageKey=' +
+        encodeURIComponent(key) +
+        '/ten';
+
+    const empty = {
+        donors: [],
+        page: 1,
+        limit: CROWDFUNDING_MAIN_DONOR_LIMIT,
+        totalCount: 0,
+        totalPages: 0,
+    };
+
+    try {
+        const res = await fetch(url, { cache: 'no-store' });
+        if (!res.ok) {
+            return empty;
+        }
+        const body = await res.json();
+        const donors = parseDonorsFromBody(body);
+        return {
+            donors,
+            page: Number(body.page) > 0 ? Number(body.page) : 1,
+            limit:
+                Number(body.limit) > 0 ?
+                    Number(body.limit)
+                :   CROWDFUNDING_MAIN_DONOR_LIMIT,
+            totalCount: Math.max(0, Number(body.totalCount) || 0),
+            totalPages: Math.max(0, Number(body.totalPages) || 0),
+        };
+    } catch {
+        return empty;
     }
 }
 
@@ -82,6 +156,11 @@ export async function fetchRecentDonors(pageKey) {
  * @param {string} pageKey
  * @returns {Promise<Array<{ name: string, amount: number }>>}
  */
+export async function fetchRecentDonors(pageKey) {
+    const result = await fetchDonorsTen(pageKey);
+    return result.donors;
+}
+
 export async function resolveRecentDonors(pageKey) {
     return fetchRecentDonors(pageKey);
 }

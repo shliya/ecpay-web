@@ -20,12 +20,14 @@ const DONATION_TYPE = {
     ECPAY: 1,
     YOUTUBE_SUPER_CHAT: 2,
     PAYUNI: 3,
+    OPAY: 4,
 };
 
 function formatDonationTypeLabel(type) {
     const n = Number(type);
     if (n === DONATION_TYPE.YOUTUBE_SUPER_CHAT) return 'YouTube';
     if (n === DONATION_TYPE.PAYUNI) return 'PAYUNi';
+    if (n === DONATION_TYPE.OPAY) return '歐付寶';
     if (n === DONATION_TYPE.ECPAY) return '綠界';
     return '—';
 }

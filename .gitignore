@@ -16,6 +16,7 @@
 !server/config/*.example.json
 
 node_modules
+vendor/Payment_Node
 .prettierignore
 .prettierrc
 tep-custom-web

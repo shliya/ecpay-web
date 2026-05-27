@@ -219,12 +219,38 @@ import './css/viewer-donate.css';
         });
     }
 
+    function applyYoutubePaymentVisibility(cfg) {
+        cfg = cfg || {};
+        var ecpayOk = cfg.ecpayEnabled !== false;
+        var payuniOk = cfg.payuniEnabled !== false;
+        var opayOk =
+            cfg.opayEnabled !== false && cfg.opayConfigured === true;
+        var btnEcpay = document.getElementById('btnEcpay');
+        var altLinks = document.querySelector('.alt-links');
+        var linkPayuniEl = document.getElementById('linkPayuni');
+        var linkOpayEl = document.getElementById('linkOpay');
+        if (btnEcpay) {
+            btnEcpay.style.display = ecpayOk ? '' : 'none';
+        }
+        if (altLinks) {
+            altLinks.style.display =
+                payuniOk || opayOk ? '' : 'none';
+        }
+        if (linkPayuniEl) {
+            linkPayuniEl.style.display = payuniOk ? '' : 'none';
+        }
+        if (linkOpayEl) {
+            linkOpayEl.style.display = opayOk ? '' : 'none';
+        }
+    }
+
     function runPage(merchantId) {
         var pricing = {
             pricePerSec: 30,
             maxPlaySec: 30,
             youtubeDonationEnabled: false,
         };
+        var publicPaymentCfg = {};
 
         fetch(
             '/api/v1/comme/ecpay/config/public/id=' +
@@ -238,6 +264,7 @@ import './css/viewer-donate.css';
                 }
             })
             .then(function (data) {
+                publicPaymentCfg = data || {};
                 if (data.themeColors) applyTheme(data.themeColors);
                 if (data.youtubeDonationEnabled === true) {
                     pricing.youtubeDonationEnabled = true;
@@ -257,16 +284,22 @@ import './css/viewer-donate.css';
             })
             .catch(function () {})
             .finally(function () {
-                mountYoutubeDonatePage(merchantId, pricing);
+                mountYoutubeDonatePage(
+                    merchantId,
+                    pricing,
+                    publicPaymentCfg
+                );
             });
     }
 
-    function mountYoutubeDonatePage(merchantId, pricing) {
+    function mountYoutubeDonatePage(merchantId, pricing, cfg) {
+        cfg = cfg || {};
         const amountInput = document.getElementById('amount');
         const youtubeInput = document.getElementById('youtubeUrl');
         const quickBtns = document.querySelectorAll('.quick button');
         const btnEcpay = document.getElementById('btnEcpay');
         const linkPayuni = document.getElementById('linkPayuni');
+        const linkOpay = document.getElementById('linkOpay');
         const altLinks = document.querySelector('.alt-links');
 
         if (pricing.youtubeDonationEnabled !== true) {
@@ -279,6 +312,8 @@ import './css/viewer-donate.css';
             showError('影音斗內已關閉');
             return;
         }
+
+        applyYoutubePaymentVisibility(cfg);
 
         var minPay = Math.max(1, pricing.pricePerSec || 30);
 
@@ -487,6 +522,69 @@ import './css/viewer-donate.css';
                             showDonationAnimation(
                                 name.trim() || '匿名',
                                 amount
+                            );
+                            setTimeout(function () {
+                                submitToEcpay(data.paymentUrl, data.params);
+                            }, 500);
+                            return;
+                        }
+
+                        showError('伺服器回傳格式錯誤');
+                    });
+            });
+        }
+
+        if (linkOpay) {
+            linkOpay.addEventListener('click', function (e) {
+                e.preventDefault();
+                showError('');
+                if (!validateBeforePay()) {
+                    return;
+                }
+
+                const body = buildDonateBody();
+
+                linkOpay.style.pointerEvents = 'none';
+                var originalTextOpay = linkOpay.textContent;
+                linkOpay.textContent = '處理中…';
+
+                fetch('/api/v1/comme/donate/opay', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body),
+                })
+                    .then(async function (res) {
+                        const data = await res.json();
+                        return { res: res, data: data };
+                    })
+                    .catch(function () {
+                        return { res: { ok: false }, data: {} };
+                    })
+                    .then(function (result) {
+                        var res = result.res;
+                        var data = result.data;
+
+                        linkOpay.style.pointerEvents = '';
+                        linkOpay.textContent = originalTextOpay;
+
+                        if (!res.ok) {
+                            showError(data.error || '建立斗內訂單失敗');
+                            return;
+                        }
+
+                        if (data.paymentUrl && data.params) {
+                            const nameOpay =
+                                (document.getElementById('nickname') &&
+                                    document.getElementById('nickname')
+                                        .value) ||
+                                '';
+                            const amountOpay =
+                                amountInput && amountInput.value
+                                    ? parseInt(amountInput.value, 10)
+                                    : 0;
+                            showDonationAnimation(
+                                nameOpay.trim() || '匿名',
+                                amountOpay
                             );
                             setTimeout(function () {
                                 submitToEcpay(data.paymentUrl, data.params);

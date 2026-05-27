@@ -177,13 +177,24 @@ import './css/viewer-donate.css';
         cfg = cfg || {};
         var ecpayOk = cfg.ecpayEnabled !== false;
         var payuniOk = cfg.payuniEnabled !== false;
+        var opayOk =
+            cfg.opayEnabled !== false && cfg.opayConfigured === true;
         var btnEcpay = document.getElementById('btnEcpay');
         var altLinks = document.querySelector('.alt-links');
+        var linkPayuni = document.getElementById('linkPayuni');
+        var linkOpay = document.getElementById('linkOpay');
         if (btnEcpay) {
             btnEcpay.style.display = ecpayOk ? '' : 'none';
         }
         if (altLinks) {
-            altLinks.style.display = payuniOk ? '' : 'none';
+            altLinks.style.display =
+                payuniOk || opayOk ? '' : 'none';
+        }
+        if (linkPayuni) {
+            linkPayuni.style.display = payuniOk ? '' : 'none';
+        }
+        if (linkOpay) {
+            linkOpay.style.display = opayOk ? '' : 'none';
         }
     }
 
@@ -215,6 +226,7 @@ import './css/viewer-donate.css';
         const quickBtns = document.querySelectorAll('.quick button');
         const btnEcpay = document.getElementById('btnEcpay');
         const linkPayuni = document.getElementById('linkPayuni');
+        const linkOpay = document.getElementById('linkOpay');
 
         if (amountInput) {
             amountInput.addEventListener('input', function (e) {
@@ -340,6 +352,82 @@ import './css/viewer-donate.css';
 
                         linkPayuni.style.pointerEvents = '';
                         linkPayuni.textContent = originalText;
+
+                        if (!res.ok) {
+                            showError(data.error || '建立斗內訂單失敗');
+                            return;
+                        }
+
+                        if (data.paymentUrl && data.params) {
+                            showDonationAnimation(
+                                name.trim() || '匿名',
+                                amount
+                            );
+                            setTimeout(function () {
+                                submitToEcpay(data.paymentUrl, data.params);
+                            }, 500);
+                            return;
+                        }
+
+                        showError('伺服器回傳格式錯誤');
+                    });
+            });
+        }
+
+        if (linkOpay) {
+            linkOpay.addEventListener('click', function (e) {
+                e.preventDefault();
+                showError('');
+                const name =
+                    (document.getElementById('nickname') &&
+                        document.getElementById('nickname').value) ||
+                    '';
+                const amount =
+                    amountInput && amountInput.value
+                        ? parseInt(amountInput.value, 10)
+                        : 0;
+                const message =
+                    (document.getElementById('message') &&
+                        document.getElementById('message').value) ||
+                    '';
+
+                if (!amount || isNaN(amount) || amount < 30) {
+                    showError('請輸入有效金額（至少 30 元）');
+                    return;
+                }
+
+                linkOpay.style.pointerEvents = 'none';
+                var originalTextOpay = linkOpay.textContent;
+                linkOpay.textContent = '處理中…';
+
+                var opayBody = {
+                    merchantId: merchantId,
+                    amount: amount,
+                    name: name.trim() || undefined,
+                    message: message.trim() || undefined,
+                };
+                if (largeCrowdfundingPageId) {
+                    opayBody.largeCrowdfundingPageId =
+                        largeCrowdfundingPageId;
+                }
+                fetch('/api/v1/comme/donate/opay', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(opayBody),
+                })
+                    .then(async function (res) {
+                        const data = await res.json();
+                        return { res: res, data: data };
+                    })
+                    .catch(function () {
+                        return { res: { ok: false }, data: {} };
+                    })
+                    .then(function (result) {
+                        var res = result.res;
+                        var data = result.data;
+
+                        linkOpay.style.pointerEvents = '';
+                        linkOpay.textContent = originalTextOpay;
 
                         if (!res.ok) {
                             showError(data.error || '建立斗內訂單失敗');

@@ -1,0 +1,164 @@
+/* 大型募資主視覺（主頁與全部斗內頁共用） */
+
+.cf-hero-wrap {
+    grid-area: hero;
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    min-height: 0;
+    height: var(--cf-main-block-h);
+    max-height: var(--cf-main-block-h);
+    padding: 0;
+    width: max-content;
+    max-width: var(--cf-hero-max-w);
+}
+
+.cf-hero-frame {
+    position: relative;
+    border: none;
+    box-shadow: none;
+    background: transparent;
+    overflow: visible;
+    line-height: 0;
+}
+
+.cf-hero-frame.has-hero {
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: var(--cf-hero-max-w);
+    max-height: var(--cf-main-block-h);
+    aspect-ratio: var(--cf-hero-ratio);
+}
+
+.cf-hero-frame:not(.has-hero) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: min(100%, var(--cf-hero-max-w));
+    max-height: var(--cf-main-block-h);
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+}
+
+.cf-hero-frame.has-hero .cf-hero-placeholder {
+    display: none !important;
+}
+
+.cf-hero-frame:not(.has-hero) .cf-hero-img {
+    display: none !important;
+}
+
+@keyframes cf-hero-float {
+    0%,
+    100% {
+        transform: translate(0, 0);
+    }
+    18% {
+        transform: translate(5px, -6px);
+    }
+    36% {
+        transform: translate(-6px, 4px);
+    }
+    54% {
+        transform: translate(4px, 7px);
+    }
+    72% {
+        transform: translate(-5px, -4px);
+    }
+    86% {
+        transform: translate(3px, 2px);
+    }
+}
+
+@keyframes cf-hero-float-mobile {
+    0%,
+    100% {
+        transform: translate(0, 0);
+    }
+    25% {
+        transform: translate(2px, -3px);
+    }
+    50% {
+        transform: translate(-3px, 2px);
+    }
+    75% {
+        transform: translate(2px, 3px);
+    }
+}
+
+.cf-hero-frame.has-hero .cf-hero-img {
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: var(--cf-hero-max-w);
+    max-height: var(--cf-main-block-h);
+    object-fit: contain;
+    object-position: top center;
+}
+
+.cf-hero-frame.has-hero .cf-hero-img.is-floating {
+    animation: cf-hero-float var(--cf-hero-float-dur, 7s) ease-in-out infinite;
+    animation-delay: var(--cf-hero-float-delay, 0s);
+    will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cf-hero-frame.has-hero .cf-hero-img.is-floating {
+        animation: none;
+    }
+}
+
+.cf-hero-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    min-height: inherit;
+    padding: 1rem;
+    text-align: center;
+    font-size: 0.95rem;
+    color: var(--cf-muted-text);
+    background: var(--cf-placeholder-bg);
+    font-style: italic;
+}
+
+@media (max-width: 900px) {
+    .cf-hero-wrap {
+        padding: 0 0.35rem 0.5rem;
+        min-height: 200px;
+        height: auto;
+        max-height: none;
+        overflow: hidden;
+        width: 100%;
+        max-width: 100%;
+        justify-self: stretch;
+        box-sizing: border-box;
+    }
+
+    .cf-hero-frame {
+        width: 100%;
+        height: auto;
+        max-width: calc(100vw - 1.3rem);
+        margin: 0 auto;
+        max-height: none;
+    }
+
+    .cf-hero-frame.has-hero {
+        max-width: calc(100vw - 1.3rem);
+    }
+
+    .cf-hero-frame.has-hero .cf-hero-img {
+        width: 100%;
+        max-width: 100%;
+        height: auto;
+        max-height: min(68vh, 560px);
+    }
+
+    .cf-hero-frame.has-hero .cf-hero-img.is-floating {
+        animation-name: cf-hero-float-mobile;
+    }
+}

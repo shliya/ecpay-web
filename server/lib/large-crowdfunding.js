@@ -20,6 +20,16 @@ function normalizePageKey(raw) {
 }
 
 /**
+ * @param {*} raw
+ * @returns {object}
+ */
+function normalizeCrowdfundingTheme(raw) {
+    const t = raw && typeof raw === 'object' ? { ...raw } : {};
+    delete t.fontFamily;
+    return t;
+}
+
+/**
  * @param {object} row Sequelize instance or plain
  * @returns {object}
  */
@@ -35,16 +45,17 @@ function pageRowToApiJson(row) {
         largeFundraisingName: d.largeFundraisingName || '',
         title: d.title || '',
         sponsorLabel: d.sponsorLabel || '',
-        periodLabel: d.periodLabel || '',
         fundraisingStartsAt: d.fundraisingStartsAt || null,
         fundraisingEndsAt: d.fundraisingEndsAt || null,
         manuallyClosed: !!d.manuallyClosed,
         backgroundImageUrl: d.backgroundImageUrl || '',
         heroImageUrl: d.heroImageUrl || '',
-        logoImageUrl: d.logoImageUrl || '',
         donorListBackgroundImageUrl: d.donorListBackgroundImageUrl || '',
+        mainDonorListTitle: d.mainDonorListTitle || '',
+        specialThemeRankingTitle: d.specialThemeRankingTitle || '',
         donorTierIcons: d.donorTierIcons || {},
-        theme: d.theme || {},
+        specialThemeTierIconUrl: d.specialThemeTierIconUrl || '',
+        theme: normalizeCrowdfundingTheme(d.theme),
         contentBlocks: Array.isArray(d.contentBlocks) ? d.contentBlocks : [],
         milestones: Array.isArray(d.milestones) ? d.milestones : [],
         currentTotal: Number(d.currentTotal) || 0,
@@ -88,21 +99,22 @@ function apiJsonToPageRow(body, merchantId, pageKey) {
         ).slice(0, 200),
         title: String(b.title ?? '').slice(0, 200),
         sponsorLabel: String(b.sponsorLabel ?? ''),
-        periodLabel: String(b.periodLabel ?? '').slice(0, 500),
         fundraisingStartsAt: b.fundraisingStartsAt || null,
         fundraisingEndsAt: b.fundraisingEndsAt || null,
         manuallyClosed: !!b.manuallyClosed,
         backgroundImageUrl: String(b.backgroundImageUrl ?? ''),
         heroImageUrl: String(b.heroImageUrl ?? ''),
-        logoImageUrl: String(b.logoImageUrl ?? ''),
         donorListBackgroundImageUrl: String(
             b.donorListBackgroundImageUrl ?? ''
         ),
+        mainDonorListTitle: String(b.mainDonorListTitle ?? ''),
+        specialThemeRankingTitle: String(b.specialThemeRankingTitle ?? ''),
         donorTierIcons:
             b.donorTierIcons && typeof b.donorTierIcons === 'object'
                 ? b.donorTierIcons
                 : {},
-        theme: b.theme && typeof b.theme === 'object' ? b.theme : {},
+        specialThemeTierIconUrl: String(b.specialThemeTierIconUrl ?? ''),
+        theme: normalizeCrowdfundingTheme(b.theme),
         contentBlocks: Array.isArray(b.contentBlocks) ? b.contentBlocks : [],
         milestones: Array.isArray(b.milestones) ? b.milestones : [],
     };
@@ -206,7 +218,6 @@ function pageRowToSummaryJson(row) {
         pageKey: d.pageKey,
         largeFundraisingName: d.largeFundraisingName || '',
         title: d.title || '',
-        periodLabel: d.periodLabel || '',
         fundraisingStartsAt: d.fundraisingStartsAt || null,
         fundraisingEndsAt: d.fundraisingEndsAt || null,
         manuallyClosed: !!d.manuallyClosed,

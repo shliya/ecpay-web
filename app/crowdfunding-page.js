@@ -4,7 +4,22 @@ import {
     getCrowdfundingActivityStatus,
     readCrowdfundingPreview,
     resolveRecentDonors,
+    CROWDFUNDING_MAIN_DONOR_LIMIT,
 } from './js/crowdfunding-settings-api.js';
+import {
+    formatMoney,
+    renderDonorList,
+    isNonEmptyString,
+} from './js/crowdfunding-donor-ui.js';
+import {
+    buildCrowdfundingDonorsAllUrl,
+    getCrowdfundingQueryParams,
+} from './js/crowdfunding-page-url.js';
+import {
+    renderCrowdfundingHero,
+    bindCrowdfundingHeroResize,
+    isCfMobileLayout,
+} from './js/crowdfunding-hero.js';
 
 const PAGE_KEY_RE = /^[a-z0-9_-]{1,80}$/i;
 const DEFAULT_KEY = 'default';
@@ -56,10 +71,6 @@ async function fetchPageData(pageKey) {
     throw new Error('load_failed');
 }
 
-function isNonEmptyString(v) {
-    return typeof v === 'string' && v.trim().length > 0;
-}
-
 const SPONSOR_IMAGE_EXT_RE = /\.(png|jpe?g|gif|webp|svg|bmp|avif)(\?|#|$)/i;
 
 /** sponsorLabel 為圖片 URL 時顯示圖，否則顯示文字 */
@@ -73,12 +84,6 @@ function isSponsorLabelImageUrl(v) {
     return SPONSOR_IMAGE_EXT_RE.test(path) || /imagekit\.io/i.test(s);
 }
 
-function formatMoney(n) {
-    const num = Number(n);
-    if (!Number.isFinite(num) || num < 0) return '$0';
-    return '$' + Math.floor(num).toLocaleString('zh-TW');
-}
-
 function applyTheme(theme) {
     const root = document.documentElement;
     const map = {
@@ -88,7 +93,6 @@ function applyTheme(theme) {
         accent: '--cf-accent',
         accentMuted: '--cf-accent-muted',
         mutedText: '--cf-muted-text',
-        fontFamily: '--cf-font-family',
         milestoneTextShadow: '--cf-milestone-text-shadow',
         nodeColor: '--cf-node-color',
         nodeBorderColor: '--cf-node-border',
@@ -147,8 +151,14 @@ function showEndedScreen(data) {
     }
 
     if (period) {
-        const label =
-            data && isNonEmptyString(data.periodLabel) ? data.periodLabel : '';
+        let label = '';
+        if (data && data.fundraisingStartsAt && data.fundraisingEndsAt) {
+            label =
+                '募資時間：' +
+                data.fundraisingStartsAt +
+                '－' +
+                data.fundraisingEndsAt;
+        }
         if (label) {
             period.textContent = label;
             period.hidden = false;
@@ -171,19 +181,6 @@ function renderBackground(data) {
         bg.style.backgroundImage = '';
         bg.classList.add('is-empty');
     }
-}
-
-function resolveDonorTierIconUrl(icons, listIndex) {
-    if (!icons || typeof icons !== 'object') {
-        return null;
-    }
-    const rank = listIndex + 1;
-    let key = 'other';
-    if (rank === 1) key = 'rank1';
-    else if (rank === 2) key = 'rank2';
-    else if (rank === 3) key = 'rank3';
-    const url = icons[key];
-    return isNonEmptyString(url) ? url.trim() : null;
 }
 
 function buildViewerDonateUrl(data) {
@@ -246,8 +243,41 @@ function renderSponsorCta(data) {
     cta.textContent = value;
 }
 
+/** 榜單標題：圖片 URL 顯示圖，否則顯示文字（與贊助按鈕相同規則） */
+function renderLeaderboardTitle(host, labelValue, imageAlt) {
+    if (!host) {
+        return;
+    }
+    host.innerHTML = '';
+    host.hidden = true;
+    host.classList.remove('is-image');
+
+    if (!isNonEmptyString(labelValue)) {
+        return;
+    }
+
+    const value = labelValue.trim();
+    host.hidden = false;
+
+    if (isSponsorLabelImageUrl(value)) {
+        const img = document.createElement('img');
+        img.className = 'cf-leaderboard-title__img';
+        img.src = value;
+        img.alt = isNonEmptyString(imageAlt) ? imageAlt.trim() : '榜單標題';
+        img.loading = 'lazy';
+        host.appendChild(img);
+        host.classList.add('is-image');
+        return;
+    }
+
+    const text = document.createElement('span');
+    text.className = 'cf-leaderboard-title__text';
+    text.textContent = value;
+    host.appendChild(text);
+}
+
 function renderDonorListBackground(data) {
-    const sidebar = document.querySelector('.cf-sidebar');
+    const sidebar = document.getElementById('donorListSidebar');
     if (!sidebar) return;
 
     if (isNonEmptyString(data.donorListBackgroundImageUrl)) {
@@ -268,183 +298,86 @@ function renderDonorListBackground(data) {
 
 function renderDonors(pageData, donors) {
     renderDonorListBackground(pageData);
-
+    renderLeaderboardTitle(
+        document.getElementById('mainDonorListTitle'),
+        pageData.mainDonorListTitle,
+        '榜十大哥'
+    );
     const list = document.getElementById('donorList');
-    if (!list) return;
-    list.innerHTML = '';
-    const donorList = Array.isArray(donors) ? donors : [];
-    if (donorList.length === 0) {
-        const li = document.createElement('li');
-        li.className = 'cf-donor-empty';
-        li.textContent = '尚無斗內紀錄';
-        list.appendChild(li);
-        return;
-    }
-    const tierIcons = pageData.donorTierIcons;
+    const donorList = (Array.isArray(donors) ? donors : []).slice(
+        0,
+        CROWDFUNDING_MAIN_DONOR_LIMIT
+    );
+    renderDonorList(list, pageData, donorList);
+}
 
-    donorList.forEach(function (d, index) {
-        const li = document.createElement('li');
-        li.className = 'cf-donor-item';
-        const tier = document.createElement('span');
-        tier.className = 'cf-donor-tier';
-        tier.setAttribute('aria-hidden', 'true');
+const CROWDFUNDING_SPECIAL_THEME_DONOR_LIMIT = 4;
 
-        const iconUrl = resolveDonorTierIconUrl(tierIcons, index);
-        if (iconUrl) {
-            const img = document.createElement('img');
-            img.className = 'cf-donor-tier-img';
-            img.src = iconUrl;
-            img.alt = '';
-            img.loading = 'lazy';
-            tier.appendChild(img);
-            tier.classList.add('has-image');
+function renderSpecialThemeRanking(pageData, donors) {
+    const sidebar = document.getElementById('specialThemeRankingSidebar');
+    const placeholder = document.getElementById('specialThemePlaceholder');
+    const list = document.getElementById('specialThemeDonorList');
+    const hasTitle = isNonEmptyString(pageData.specialThemeRankingTitle);
+
+    renderLeaderboardTitle(
+        document.getElementById('specialThemeRankingTitle'),
+        pageData.specialThemeRankingTitle,
+        '特殊主題榜單'
+    );
+
+    const donorList = (Array.isArray(donors) ? donors : []).slice(
+        0,
+        CROWDFUNDING_SPECIAL_THEME_DONOR_LIMIT
+    );
+    const hasDonors = donorList.length > 0;
+
+    if (list) {
+        list.hidden = !hasDonors;
+        if (hasDonors) {
+            renderDonorList(list, pageData, donorList, {
+                tierIconUrl: pageData.specialThemeTierIconUrl,
+            });
         } else {
-            tier.classList.add('cf-donor-tier--fallback');
+            list.innerHTML = '';
         }
-
-        const name = document.createElement('span');
-        name.className = 'cf-donor-name';
-        name.textContent =
-            isNonEmptyString(d.name) ? d.name.trim() : '匿名';
-        const amount = document.createElement('span');
-        amount.className = 'cf-donor-amount';
-        amount.textContent = formatMoney(d.amount);
-        li.appendChild(tier);
-        li.appendChild(name);
-        li.appendChild(amount);
-        list.appendChild(li);
-    });
-}
-
-function setHeroFrameState(frame, hasHero) {
-    if (!frame) return;
-    frame.classList.toggle('has-hero', hasHero);
-}
-
-function applyHeroFloatAnimation(img) {
-    if (!img) return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        img.classList.remove('is-floating');
-        img.style.removeProperty('--cf-hero-float-dur');
-        img.style.removeProperty('--cf-hero-float-delay');
-        return;
-    }
-    const dur = (5.5 + Math.random() * 4).toFixed(2) + 's';
-    const delay = (Math.random() * 2.5).toFixed(2) + 's';
-    img.style.setProperty('--cf-hero-float-dur', dur);
-    img.style.setProperty('--cf-hero-float-delay', delay);
-    img.classList.add('is-floating');
-}
-
-function clearHeroFloatAnimation(img) {
-    if (!img) return;
-    img.classList.remove('is-floating');
-    img.style.removeProperty('--cf-hero-float-dur');
-    img.style.removeProperty('--cf-hero-float-delay');
-}
-
-function renderHero(data) {
-    const frame = document.getElementById('heroFrame');
-    const img = document.getElementById('heroImg');
-    const ph = document.getElementById('heroPlaceholder');
-    if (!frame || !img || !ph) return;
-
-    img.onload = null;
-    img.onerror = null;
-
-    if (!isNonEmptyString(data.heroImageUrl)) {
-        img.removeAttribute('src');
-        img.alt = '';
-        frame.style.removeProperty('--cf-hero-ratio');
-        clearHeroFloatAnimation(img);
-        if (ph) ph.textContent = '主視覺圖尚未設定';
-        setHeroFrameState(frame, false);
-        return;
     }
 
-    const url = data.heroImageUrl.trim();
-    if (ph) ph.textContent = '主視覺圖尚未設定';
-    img.alt = isNonEmptyString(data.title) ? data.title.trim() : '主視覺';
-    setHeroFrameState(frame, false);
+    if (placeholder) {
+        placeholder.hidden = hasTitle || hasDonors;
+    }
 
-    img.onload = function () {
-        if (img.naturalWidth > 0 && img.naturalHeight > 0) {
-            frame.style.setProperty(
-                '--cf-hero-ratio',
-                img.naturalWidth + ' / ' + img.naturalHeight
-            );
+    if (sidebar) {
+        if (hasTitle || hasDonors) {
+            sidebar.removeAttribute('data-placeholder');
+        } else {
+            sidebar.setAttribute('data-placeholder', 'true');
         }
-        setHeroFrameState(frame, true);
-        applyHeroFloatAnimation(img);
-    };
-    img.onerror = function () {
-        img.removeAttribute('src');
-        frame.style.removeProperty('--cf-hero-ratio');
-        clearHeroFloatAnimation(img);
-        setHeroFrameState(frame, false);
-        if (ph) {
-            ph.textContent = '主視覺圖載入失敗';
-        }
-    };
+    }
+}
 
-    if (img.src === url && img.complete && img.naturalWidth > 0) {
-        img.onload();
+function updateFundingProgressLink(pageKey, showLink) {
+    const link = document.getElementById('fundingProgressLink');
+    if (!link) {
+        return;
+    }
+    if (showLink && pageKey) {
+        const { merchantId, preview } = getCrowdfundingQueryParams();
+        link.href = buildCrowdfundingDonorsAllUrl(pageKey, {
+            merchantId,
+            preview,
+        });
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.hidden = false;
     } else {
-        img.src = url;
+        link.hidden = true;
+        link.removeAttribute('href');
+        link.removeAttribute('target');
+        link.removeAttribute('rel');
     }
 }
 
 function renderPanelHeader(data) {
-    const logoImg = document.getElementById('logoImg');
-    const logoPh = document.getElementById('logoPlaceholder');
-    const titleEl = document.getElementById('pageTitle');
-    const periodEl = document.getElementById('periodLabel');
-
-    if (logoImg && logoPh) {
-        if (isNonEmptyString(data.logoImageUrl)) {
-            logoImg.src = data.logoImageUrl.trim();
-            logoImg.alt = isNonEmptyString(data.largeFundraisingName)
-                ? data.largeFundraisingName.trim()
-                : 'Logo';
-            logoImg.hidden = false;
-            logoPh.hidden = true;
-        } else {
-            logoImg.removeAttribute('src');
-            logoImg.hidden = true;
-            logoPh.hidden = false;
-        }
-    }
-
-    if (titleEl) {
-        if (isNonEmptyString(data.title)) {
-            titleEl.textContent = data.title.trim();
-            titleEl.classList.remove('is-placeholder');
-        } else {
-            titleEl.textContent = '募資標題尚未設定';
-            titleEl.classList.add('is-placeholder');
-        }
-    }
-
-    if (periodEl) {
-        let period = '';
-        if (isNonEmptyString(data.periodLabel)) {
-            period = data.periodLabel.trim();
-        } else if (data.fundraisingStartsAt && data.fundraisingEndsAt) {
-            period =
-                '募資時間：' +
-                data.fundraisingStartsAt +
-                '－' +
-                data.fundraisingEndsAt;
-        }
-        if (period) {
-            periodEl.textContent = period;
-            periodEl.classList.remove('is-placeholder');
-        } else {
-            periodEl.textContent = '募資期間尚未設定';
-            periodEl.classList.add('is-placeholder');
-        }
-    }
-
     document.title = isNonEmptyString(data.title)
         ? data.title.trim()
         : isNonEmptyString(data.largeFundraisingName)
@@ -455,12 +388,6 @@ function renderPanelHeader(data) {
 let contentAnchorObserver = null;
 let anchorNavClickBound = false;
 let cfResizeTimer = null;
-
-const CF_MOBILE_MQ = '(max-width: 900px)';
-
-function isCfMobileLayout() {
-    return window.matchMedia(CF_MOBILE_MQ).matches;
-}
 
 function bindContentAnchorNav() {
     const nav = document.getElementById('anchorNav');
@@ -656,18 +583,55 @@ function renderContentBlocks(data) {
     syncContentAnchorScroll();
 }
 
-function renderTotal(data) {
-    const el = document.getElementById('totalAmount');
-    if (el) {
-        el.textContent = formatMoney(data.currentTotal ?? 0);
+function updateTimelinePercentMarker(percentEl, fillPct) {
+    if (!percentEl) {
+        return;
+    }
+    const pctRounded = Math.round(Math.min(100, Math.max(0, fillPct)));
+    percentEl.textContent = pctRounded + ' %';
+}
+
+function getFundingTargetAmount(data) {
+    const milestones = Array.isArray(data.milestones) ? data.milestones : [];
+    if (milestones.length === 0) {
+        return 0;
+    }
+    const thresholds = milestones.map(function (m) {
+        return Number(m.thresholdAmount) || 0;
+    });
+    return Math.max(...thresholds, 0);
+}
+
+function renderFundingSummary(data) {
+    const el = document.getElementById('fundingSummary');
+    if (!el) {
+        return;
+    }
+    const currentTotal = Number(data.currentTotal) || 0;
+    const target = getFundingTargetAmount(data);
+    el.classList.toggle('is-no-target', target <= 0);
+    if (target > 0) {
+        el.textContent =
+            '目前累積' +
+            formatMoney(currentTotal) +
+            ' / 達標金額' +
+            formatMoney(target);
+    } else {
+        el.textContent = '目前累積' + formatMoney(currentTotal);
     }
 }
 
-function renderFundingProgress(data) {
+function renderFundingProgress(data, pageKey) {
     const empty = document.getElementById('timelineEmpty');
     const track = document.getElementById('timelineTrack');
     const fill = document.getElementById('timelineFill');
-    if (!empty || !track || !fill) return;
+    const percentEl = document.getElementById('timelinePercent');
+    if (!empty || !track || !fill) {
+        return;
+    }
+
+    renderFundingSummary(data);
+    const key = pageKey || data.pageKey || DEFAULT_KEY;
 
     const milestones = Array.isArray(data.milestones)
         ? [...data.milestones].sort(
@@ -680,18 +644,21 @@ function renderFundingProgress(data) {
         empty.hidden = false;
         track.hidden = true;
         fill.style.width = '0%';
+        fill.classList.add('is-zero');
+        updateTimelinePercentMarker(percentEl, 0);
+        updateFundingProgressLink(key, false);
         return;
     }
 
     empty.hidden = true;
     track.hidden = false;
 
-    const thresholds = milestones.map(function (m) {
-        return Number(m.thresholdAmount) || 0;
-    });
-    const maxThreshold = Math.max(...thresholds, 1);
+    const maxThreshold = Math.max(getFundingTargetAmount(data), 1);
     const fillPct = Math.min(100, (currentTotal / maxThreshold) * 100);
     fill.style.width = fillPct + '%';
+    fill.classList.toggle('is-zero', fillPct <= 0);
+    updateTimelinePercentMarker(percentEl, fillPct);
+    updateFundingProgressLink(key, true);
 }
 
 async function renderPage(data, pageKey) {
@@ -701,15 +668,16 @@ async function renderPage(data, pageKey) {
     renderSponsorCta(data);
     const donors = await resolveRecentDonors(key);
     renderDonors(data, donors);
-    renderHero(data);
+    renderSpecialThemeRanking(data, []);
+    renderCrowdfundingHero(data);
     renderPanelHeader(data);
     renderContentBlocks(data);
-    renderTotal(data);
-    renderFundingProgress(data);
+    renderFundingProgress(data, key);
 }
 
 async function init() {
     bindContentAnchorNav();
+    bindCrowdfundingHeroResize();
     window.addEventListener('resize', function () {
         clearTimeout(cfResizeTimer);
         cfResizeTimer = setTimeout(function () {

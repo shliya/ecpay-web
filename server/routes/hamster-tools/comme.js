@@ -17,6 +17,7 @@ const {
     handleResolveDisplayNameRequest,
     handleGetPayuniNotifyRequest,
     handleCreateDonatePayuniRequest,
+    handleCreateDonateOpayRequest,
     handleCreatePayuniSettingRequest,
     handlePatchEcpayThemeRequest,
     handleListCrowdfundingPagesRequest,
@@ -26,6 +27,7 @@ const {
     handlePublishCrowdfundingPageRequest,
     handleDeleteCrowdfundingPageRequest,
     handleGetCrowdfundingDonorsRequest,
+    handleGetCrowdfundingDonorsTenRequest,
 } = require('../../route-handlers/comme');
 
 //綠界notify回調
@@ -82,6 +84,7 @@ router.post(
     loginRateLimiter,
     handleCreateDonatePayuniRequest
 );
+router.post('/donate/opay', loginRateLimiter, handleCreateDonateOpayRequest);
 
 router.get('/resolve-name', handleResolveDisplayNameRequest);
 
@@ -103,9 +106,10 @@ router.get(
     handleGetCrowdfundingDonorsRequest
 );
 router.get(
-    '/crowdfunding/id=:merchantId',
-    handleListCrowdfundingPagesRequest
+    '/crowdfunding/donors/pageKey=:pageKey/ten',
+    handleGetCrowdfundingDonorsTenRequest
 );
+router.get('/crowdfunding/id=:merchantId', handleListCrowdfundingPagesRequest);
 router.get(
     '/crowdfunding/id=:merchantId/pageKey=:pageKey',
     requireTotp,

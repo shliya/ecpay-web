@@ -1,7 +1,17 @@
-const { Op } = require('sequelize');
+const { Op, fn, col } = require('sequelize');
 const LargeCrowdfundingDonation = require('../model/schema/large-crowdfunding-donation');
 
 const DEFAULT_RECENT_LIMIT = 50;
+const MAX_PAGE_LIMIT = 200;
+
+function normalizeListOpts(opts = {}) {
+    const limit = Math.min(
+        Math.max(Number(opts.limit) || DEFAULT_RECENT_LIMIT, 1),
+        MAX_PAGE_LIMIT
+    );
+    const offset = Math.max(Number(opts.offset) || 0, 0);
+    return { limit, offset };
+}
 
 async function findByPaymentTradeNo(paymentTradeNo) {
     const tradeNo = String(paymentTradeNo || '').trim();
@@ -35,7 +45,7 @@ async function createDonation(row, { transaction } = {}) {
  * @param {{ limit?: number }} [opts]
  */
 async function listRecentByPageId(pageId, opts = {}) {
-    const limit = Math.min(Math.max(Number(opts.limit) || DEFAULT_RECENT_LIMIT, 1), 200);
+    const { limit, offset } = normalizeListOpts(opts);
     return LargeCrowdfundingDonation.findAll({
         where: { largeCrowdfundingPageId: pageId },
         order: [
@@ -43,24 +53,44 @@ async function listRecentByPageId(pageId, opts = {}) {
             ['created_at', 'DESC'],
         ],
         limit,
+        offset,
         attributes: ['donorName', 'amount', 'created_at'],
     });
 }
 
 /**
+ * 依 donorName 合併：同名加總 amount，依加總金額排序（榜單顯示用）。
+ * 資料庫仍保留每筆斗內紀錄。
  * @param {string} pageKey
- * @param {{ limit?: number }} [opts]
+ * @param {{ limit?: number, offset?: number }} [opts]
  */
 async function listRecentByPageKey(pageKey, opts = {}) {
-    const limit = Math.min(Math.max(Number(opts.limit) || DEFAULT_RECENT_LIMIT, 1), 200);
+    const { limit, offset } = normalizeListOpts(opts);
     return LargeCrowdfundingDonation.findAll({
         where: { pageKey },
+        attributes: [
+            'donorName',
+            [fn('SUM', col('amount')), 'amount'],
+            [fn('MAX', col('created_at')), 'created_at'],
+        ],
+        group: ['donorName'],
         order: [
-            ['amount', 'DESC'],
-            ['created_at', 'DESC'],
+            [fn('SUM', col('amount')), 'DESC'],
+            [fn('MAX', col('created_at')), 'DESC'],
         ],
         limit,
-        attributes: ['donorName', 'amount', 'created_at'],
+        offset,
+        subQuery: false,
+        raw: true,
+    });
+}
+
+/** 榜單上的「人數」（不重複 donorName） */
+async function countByPageKey(pageKey) {
+    return LargeCrowdfundingDonation.count({
+        where: { pageKey },
+        distinct: true,
+        col: 'donorName',
     });
 }
 
@@ -93,10 +123,12 @@ async function isDuplicateWithinWindow(
 
 module.exports = {
     DEFAULT_RECENT_LIMIT,
+    MAX_PAGE_LIMIT,
     findByPaymentTradeNo,
     createDonation,
     listRecentByPageId,
     listRecentByPageKey,
+    countByPageKey,
     sumAmountByPageId,
     isDuplicateWithinWindow,
 };

@@ -42,6 +42,7 @@ function normalizeUpdateField(field, value) {
     if (
         field === 'ecpayEnabled' ||
         field === 'payuniEnabled' ||
+        field === 'opayEnabled' ||
         field === 'youtubeDonationEnabled'
     ) {
         if (value === true || value === false) return value;
@@ -88,6 +89,9 @@ async function updateEcpayConfig(merchantId, updates) {
         'payuniMerchantId',
         'payuniHashKey',
         'payuniHashIV',
+        'opayMerchantId',
+        'opayHashKey',
+        'opayHashIV',
         'youtubeChannelHandle',
         'youtubeChannelId',
         'youtubeDonationAmount',
@@ -97,6 +101,7 @@ async function updateEcpayConfig(merchantId, updates) {
         'ecpayEnabled',
         'payuniEnabled',
         'youtubeDonationEnabled',
+        'opayEnabled',
     ];
     const updateData = {};
 
@@ -113,6 +118,7 @@ async function updateEcpayConfig(merchantId, updates) {
             if (
                 (field === 'ecpayEnabled' ||
                     field === 'payuniEnabled' ||
+                    field === 'opayEnabled' ||
                     field === 'youtubeDonationEnabled') &&
                 normalized === null
             ) {
@@ -149,6 +155,8 @@ module.exports = {
         ecpayConfigStore.getPayuniMerchantIdByMerchantId,
     getPayuniConfigByPayuniMerchantId:
         ecpayConfigStore.getPayuniConfigByPayuniMerchantId,
+    getOpayConfigByOpayMerchantId:
+        ecpayConfigStore.getOpayConfigByOpayMerchantId,
     getEcpayConfigByMerchantId: ecpayConfigStore.getEcpayConfigByMerchantId,
     getEcpayConfigByDisplayName: ecpayConfigStore.getEcpayConfigByDisplayName,
 };

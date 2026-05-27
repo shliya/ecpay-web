@@ -22,12 +22,14 @@ const DONATION_TYPE = {
     ECPAY: 1,
     YOUTUBE_SUPER_CHAT: 2,
     PAYUNI: 3,
+    OPAY: 4,
 };
 
 const donationTypeFilterState = {
     [DONATION_TYPE.ECPAY]: true,
     [DONATION_TYPE.YOUTUBE_SUPER_CHAT]: true,
     [DONATION_TYPE.PAYUNI]: true,
+    [DONATION_TYPE.OPAY]: true,
 };
 
 async function initializeApp() {

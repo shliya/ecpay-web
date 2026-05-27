@@ -23,6 +23,13 @@ function toPublicConfig(config) {
         themeColors: config.themeColors || null,
         ecpayEnabled: config.ecpayEnabled !== false,
         payuniEnabled: config.payuniEnabled !== false,
+        opayEnabled: config.opayEnabled !== false,
+        opayConfigured: Boolean(
+            config.opayMerchantId &&
+                String(config.opayMerchantId).trim() &&
+                config.opayHashKey &&
+                config.opayHashIV
+        ),
         youtubeDonationEnabled: config.youtubeDonationEnabled === true,
         youtubeDonationAmount,
         youtubeDonationMaxPlaySec,
