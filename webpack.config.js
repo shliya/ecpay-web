@@ -33,6 +33,7 @@ module.exports = {
             'app/youtube-donation-settings.js'
         ),
         crowdfundingPage: path.resolve(__dirname, 'app/crowdfunding-page.js'),
+        crowdfundingDonors: path.resolve(__dirname, 'app/crowdfunding-donors.js'),
         crowdfundingList: path.resolve(__dirname, 'app/crowdfunding-list.js'),
         crowdfundingSettings: path.resolve(
             __dirname,
@@ -60,6 +61,13 @@ module.exports = {
                 type: 'asset/resource',
                 generator: {
                     filename: 'assets/[name].[contenthash][ext]',
+                },
+            },
+            {
+                test: /\.(woff2?|otf|ttf|eot)$/i,
+                type: 'asset/resource',
+                generator: {
+                    filename: 'assets/fonts/[name].[contenthash][ext]',
                 },
             },
         ],
@@ -292,6 +300,21 @@ module.exports = {
             ),
             filename: 'crowdfunding-page.html',
             chunks: ['crowdfundingPage'],
+            inject: true,
+            scriptLoading: 'defer',
+            minify: {
+                removeComments: true,
+                collapseWhitespace: true,
+            },
+            cache: false,
+        }),
+        new HtmlWebpackPlugin({
+            template: path.resolve(
+                __dirname,
+                'app/templates/crowdfunding-donors.html'
+            ),
+            filename: 'crowdfunding-donors.html',
+            chunks: ['crowdfundingDonors'],
             inject: true,
             scriptLoading: 'defer',
             minify: {
