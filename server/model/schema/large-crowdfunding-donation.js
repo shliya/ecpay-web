@@ -19,6 +19,12 @@ const LargeCrowdfundingDonation = sequelize.define(
                 key: 'id',
             },
         },
+        ecpayConfigId: {
+            type: DataTypes.BIGINT,
+            allowNull: false,
+            field: 'ecpayConfigId',
+            references: { model: 'ecpay_config', key: 'id' },
+        },
         merchantId: {
             type: DataTypes.STRING(50),
             allowNull: false,

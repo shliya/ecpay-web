@@ -10,6 +10,12 @@ const LargeCrowdfundingPage = sequelize.define(
             autoIncrement: true,
             allowNull: false,
         },
+        ecpayConfigId: {
+            type: DataTypes.BIGINT,
+            allowNull: false,
+            field: 'ecpayConfigId',
+            references: { model: 'ecpay_config', key: 'id' },
+        },
         merchantId: {
             type: DataTypes.STRING(50),
             allowNull: false,
@@ -149,9 +155,9 @@ const LargeCrowdfundingPage = sequelize.define(
         timestamps: false,
         indexes: [
             {
-                name: 'uq_large_crowdfunding_pages_merchant_page',
+                name: 'uq_large_crowdfunding_pages_config_page',
                 unique: true,
-                fields: ['merchantId', 'pageKey'],
+                fields: ['ecpayConfigId', 'pageKey'],
             },
             {
                 name: 'idx_large_crowdfunding_pages_page_key',

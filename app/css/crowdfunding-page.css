@@ -29,12 +29,13 @@
     --cf-page-h: 100vh;
     --cf-hero-ratio: 4 / 5;
     --cf-node-size: 26px;
-    --cf-footer-bar-block-h: min(14vh, 112px);
+    --cf-footer-bar-block-h: min(11vh, 88px);
     --cf-footer-h: calc(
         var(--cf-footer-bar-block-h) + var(--cf-page-inset-bottom)
     );
-    --cf-total-value-size: 1.15rem;
-    --cf-progress-label-size: calc(var(--cf-total-value-size) * 0.88);
+    --cf-total-value-size: clamp(1.12rem, 1.55vw, 1.38rem);
+    --cf-progress-label-size: calc(var(--cf-total-value-size) * 0.86);
+    --cf-funding-summary-inset: clamp(0.35rem, 1.15vw, 0.85rem);
     --cf-stat-box-bg: rgba(255, 252, 245, 0.92);
     --cf-stat-box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
     /* 右側錨點一頁高度（JS 會設成可捲動區 clientHeight，一屏一圖） */
@@ -42,7 +43,7 @@
     --cf-anchor-slide-gap: 0;
     /* 滿版背景 + 內容往中間聚集；inset 略縮以換取主視覺／右欄空間 */
     --cf-page-inset: clamp(3.5rem, 5.5vw, 5.5rem);
-    --cf-page-inset-bottom: 50px;
+    --cf-page-inset-bottom: clamp(22px, 2.8vh, 34px);
     --cf-cluster-max-w: min(1920px, 100%);
     /* 雙榜等寬（各約 180–200px） */
     --cf-leaderboards-gap: 0.5rem;
@@ -51,13 +52,36 @@
         2 * var(--cf-leaderboard-col-w) + var(--cf-leaderboards-gap)
     );
     --cf-leaderboard-w-ratio: 1;
+    /* 榜單標題／列文字（對齊設計稿 fig.2） */
+    --cf-leaderboard-title-size: clamp(0.9rem, 1.38vw, 1.18rem);
+    --cf-leaderboard-theme-title-size: clamp(0.88rem, 1.32vw, 1.12rem);
+    --cf-donor-name-font-size: clamp(0.9rem, 1.32vw, 1.08rem);
+    --cf-donor-amount-font-size: clamp(0.72rem, 1.02vw, 0.86rem);
+    --cf-donor-tier-size: clamp(24px, 3.4vw, 30px);
+    --cf-donor-row-divider: rgba(72, 58, 48, 0.2);
+    --cf-donor-row-pad-y: clamp(0.26rem, 0.48vh, 0.36rem);
+    --cf-donor-detail-gap: clamp(0.1rem, 0.22vh, 0.15rem);
+    --cf-donor-row-min-h: clamp(2.45rem, 4.8vh, 2.75rem);
+    /* 主榜底圖：列表區 padding（底留白過大會把 10 列擠在一起） */
+    --cf-donor-list-pad-top: 7%;
+    --cf-donor-list-pad-x: 9%;
+    --cf-donor-list-pad-bottom: 34%;
+    --cf-leaderboard-tabs-gap: 10px;
     /* 榜單貼近主視覺：overlap 越大欄距越小（設計稿雙欄幾乎相貼） */
     --cf-sidebar-shift-x: clamp(0.5rem, 1.5vw, 1.25rem);
     --cf-sidebar-hero-overlap: clamp(6rem, 14vw, 12.5rem);
+    --cf-hero-panel-pull: clamp(1rem, 3vw, 2.75rem);
     --cf-cluster-gap: 0.15rem;
     --cf-main-top-pad: 3.25rem;
     --cf-timeline-inset: 0;
-    --cf-timeline-bar-h: 28px;
+    --cf-timeline-bar-h: 36px;
+    --cf-footer-content-max-w: min(
+        var(--cf-cluster-max-w),
+        calc(
+            var(--cf-sidebar-col-w) + var(--cf-hero-max-w) + var(--cf-panel-w) -
+                var(--cf-sidebar-hero-overlap) + var(--cf-cluster-gap) * 2
+        )
+    );
     /* 主視覺／右欄：自贊助鈕頂緣起算到 footer 上方的主要高度 */
     --cf-main-block-h: calc(
         100vh - var(--cf-footer-h) - var(--cf-main-top-pad) - 0.35rem
@@ -75,16 +99,30 @@
 @media (min-width: 1800px) and (max-width: 2200px) and (min-height: 1000px) and (max-height: 1200px) {
     :root {
         --cf-page-inset: 60px;
-        --cf-page-inset-bottom: 48px;
-        --cf-main-top-pad: 3rem;
-        --cf-footer-bar-block-h: 112px;
+        --cf-page-inset-bottom: 24px;
+        --cf-main-top-pad: 2.75rem;
+        --cf-footer-bar-block-h: 76px;
+        --cf-timeline-bar-h: 40px;
+        --cf-total-value-size: 1.34rem;
+        --cf-funding-summary-inset: 0.65rem;
         --cf-leaderboard-col-w: 196px;
         --cf-leaderboards-gap: 8px;
         --cf-sidebar-shift-x: 8px;
-        --cf-sidebar-hero-overlap: 240px;
+        --cf-sidebar-hero-overlap: 268px;
+        --cf-hero-panel-pull: 3rem;
         --cf-cluster-gap: 0;
         --cf-hero-max-w: 740px;
         --cf-panel-w: 828px;
+        --cf-leaderboard-title-size: 1.12rem;
+        --cf-leaderboard-theme-title-size: 1.08rem;
+        --cf-donor-name-font-size: 1.05rem;
+        --cf-donor-amount-font-size: 0.84rem;
+        --cf-donor-tier-size: 28px;
+        --cf-donor-row-pad-y: 0.3rem;
+        --cf-donor-detail-gap: 0.12rem;
+        --cf-donor-row-min-h: 2.62rem;
+        --cf-donor-list-pad-top: 6.5%;
+        --cf-donor-list-pad-bottom: 31%;
     }
 }
 
@@ -199,10 +237,11 @@ body {
     width: 100%;
     max-width: var(--cf-cluster-max-w);
     margin: 0 auto;
-    padding: var(--cf-main-top-pad) var(--cf-page-inset) 0.25rem;
+    padding: var(--cf-main-top-pad) var(--cf-page-inset) 0.1rem;
     box-sizing: border-box;
     min-height: 0;
     max-height: 100%;
+    align-self: end;
     grid-template-columns: auto auto auto;
     grid-template-areas: 'sidebar-col hero panel';
     column-gap: var(--cf-cluster-gap);
@@ -250,16 +289,164 @@ body {
 
 /* 雙榜：等寬、在贊助鈕正下方 */
 .cf-leaderboards-row {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, var(--cf-leaderboard-col-w)));
+    display: flex;
+    flex-direction: column;
     align-items: stretch;
-    gap: var(--cf-leaderboards-gap);
+    gap: 0.35rem;
     width: 100%;
     max-width: calc(2 * var(--cf-leaderboard-col-w) + var(--cf-leaderboards-gap));
     flex: 1 1 auto;
     min-height: 0;
     max-height: 100%;
     box-sizing: border-box;
+}
+
+.cf-leaderboard-tabs {
+    display: none;
+    position: relative;
+    z-index: 6;
+    width: 100%;
+    gap: 0.35rem;
+    margin: 0 0 0.12rem;
+    pointer-events: auto;
+}
+
+.cf-leaderboard-tabs.is-visible {
+    display: flex;
+}
+
+.cf-leaderboard-tabs[hidden] {
+    display: none !important;
+}
+
+.cf-leaderboard-tab {
+    flex: 1;
+    min-width: 0;
+    padding: 0.4rem 0.45rem;
+    font-family: var(--cf-font-family);
+    font-size: clamp(0.72rem, 1.05vw, 0.9rem);
+    font-weight: 700;
+    line-height: 1.28;
+    color: var(--cf-total-bar-text);
+    text-shadow: var(--cf-milestone-text-shadow);
+    white-space: pre-line;
+    text-align: center;
+    background: rgba(255, 252, 245, 0.72);
+    border: 2px solid rgba(45, 45, 45, 0.22);
+    border-radius: 6px;
+    cursor: pointer;
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.cf-leaderboard-tab.is-active {
+    background: var(--cfd-list-box-bg, #fdfbe4);
+    border-color: var(--cf-accent);
+}
+
+.cf-leaderboard-tab:focus-visible {
+    outline: 2px solid var(--cf-accent);
+    outline-offset: 2px;
+}
+
+.cf-leaderboard-panels {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, var(--cf-leaderboard-col-w)));
+    align-items: stretch;
+    gap: var(--cf-leaderboards-gap);
+    width: 100%;
+    max-width: calc(2 * var(--cf-leaderboard-col-w) + var(--cf-leaderboards-gap));
+    min-height: 0;
+}
+
+.cf-leaderboards-row.is-tabbed .cf-leaderboard-panels
+    > .cf-sidebar:not(.is-leaderboard-panel-active) {
+    display: none !important;
+}
+
+/* 有雙榜時改為分頁：單欄全寬（約等於原雙欄總寬） */
+.cf-leaderboards-row.is-tabbed {
+    gap: 0;
+    max-width: var(--cf-sidebar-col-w);
+}
+
+.cf-leaderboards-row.is-tabbed .cf-leaderboard-panels {
+    display: block;
+    width: 100%;
+    max-width: var(--cf-sidebar-col-w);
+}
+
+/* 分頁在榜單框內、列表上方 */
+.cf-leaderboards-row.is-tabbed .cf-leaderboard-tabs.is-visible {
+    position: static;
+    flex: 0 0 auto;
+    box-sizing: border-box;
+    width: 100%;
+    margin: 0 0 var(--cf-leaderboard-tabs-gap);
+    padding: 5.5% 7.5% 0;
+    gap: 0.35rem;
+    pointer-events: auto;
+}
+
+.cf-leaderboards-row.is-tabbed .cf-sidebar.cf-sidebar--donors-main,
+.cf-leaderboards-row.is-tabbed .cf-sidebar.cf-sidebar--theme-ranking {
+    width: 100%;
+    max-width: none;
+}
+
+.cf-leaderboards-row.is-tabbed .cf-sidebar--theme-ranking {
+    grid-column: auto;
+}
+
+/* 分頁標題已顯示在 tab，榜內標題省略以縮短高度 */
+.cf-leaderboards-row.is-tabbed .cf-leaderboard-title {
+    display: none;
+}
+
+/* 分頁模式：框高隨最後一列收合（手機／桌面共用） */
+.cf-leaderboards-row.is-tabbed .cf-sidebar--donors-main,
+.cf-leaderboards-row.is-tabbed .cf-sidebar--theme-ranking {
+    height: fit-content;
+    max-height: none;
+    align-self: start;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.cf-leaderboards-row.is-tabbed .cf-sidebar.has-bg-image {
+    aspect-ratio: unset;
+    height: fit-content;
+    display: flex;
+    flex-direction: column;
+    background-size: 100% 100%;
+}
+
+.cf-leaderboards-row.is-tabbed .cf-sidebar.has-bg-image .cf-donor-list {
+    flex: 0 0 auto;
+    height: auto;
+    min-height: 0;
+    overflow: hidden;
+    padding: 0 var(--cf-donor-list-pad-x) clamp(0.35rem, 0.5vw, 0.55rem);
+}
+
+.cf-leaderboards-row.is-tabbed
+    .cf-sidebar--donors-main.has-bg-image
+    .cf-donor-list:has(> .cf-donor-item:nth-child(10):last-child) {
+    display: grid;
+    align-content: start;
+    grid-auto-rows: minmax(var(--cf-donor-row-min-h), auto);
+    grid-template-rows: none;
+}
+
+.cf-leaderboards-row.is-tabbed .cf-sidebar--theme-ranking.has-bg-image .cf-donor-list {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+.cf-sidebar--theme-ranking[data-placeholder='true'] {
+    display: none;
 }
 
 .cf-sponsor-cta {
@@ -356,6 +543,10 @@ body {
     padding: 0.4rem 0.45rem;
 }
 
+.cf-sidebar--theme-ranking.has-bg-image {
+    padding: 0;
+}
+
 .cf-theme-ranking-placeholder {
     flex: 0 0 auto;
     display: flex;
@@ -390,7 +581,8 @@ body {
 }
 
 .cf-sidebar.has-bg-image {
-    background-color: var(--cf-sidebar-bg);
+    background-color: transparent;
+    backdrop-filter: none;
     padding: 0;
 }
 
@@ -410,7 +602,7 @@ body {
     display: block;
     font-family: var(--cf-font-family);
     font-weight: 700;
-    font-size: clamp(0.72rem, 1.05vw, 0.95rem);
+    font-size: var(--cf-leaderboard-title-size);
     line-height: 1.35;
     color: var(--cf-total-bar-text);
     text-shadow: var(--cf-milestone-text-shadow);
@@ -432,8 +624,13 @@ body {
 }
 
 .cf-sidebar--theme-ranking .cf-leaderboard-title__text {
-    font-size: clamp(0.62rem, 0.92vw, 0.82rem);
-    line-height: 1.3;
+    font-size: var(--cf-leaderboard-theme-title-size);
+    line-height: 1.32;
+}
+
+.cf-sidebar--theme-ranking .cf-donor-item {
+    min-height: 2.35rem;
+    padding: var(--cf-donor-row-pad-y) 0.28rem;
 }
 
 .cf-donor-list {
@@ -454,7 +651,8 @@ body {
 .cf-sidebar.has-bg-image .cf-donor-list {
     height: 100%;
     box-sizing: border-box;
-    padding: 10% 9% 54% 9%;
+    padding: var(--cf-donor-list-pad-top) var(--cf-donor-list-pad-x)
+        var(--cf-donor-list-pad-bottom);
     overflow-x: hidden;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
@@ -471,25 +669,48 @@ body {
     align-items: center;
     gap: 0.4rem;
     width: 100%;
-    padding: 0.4rem 0.35rem;
-    font-size: 0.8rem;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    padding: 0.42rem 0.35rem;
+    font-size: var(--cf-donor-name-font-size);
+    border-bottom: none;
     box-sizing: border-box;
 }
 
-.cf-sidebar.has-bg-image .cf-donor-item {
-    flex: 0 0 auto;
-    min-height: 1.65rem;
+/* 榜單列間分隔線（主榜／主題榜一致；最後一列不加線） */
+.cf-sidebar .cf-donor-item:not(:last-child) {
+    border-bottom: 1px solid var(--cf-donor-row-divider);
+}
+
+/* 主榜：固定最小列高，滿 10 人時在列表區內均分剩餘高度（不壓扁文字） */
+.cf-sidebar--donors-main.has-bg-image .cf-donor-list {
+    display: grid;
+    align-content: start;
+    grid-auto-rows: minmax(var(--cf-donor-row-min-h), auto);
+}
+
+.cf-sidebar--donors-main.has-bg-image
+    .cf-donor-list:has(> .cf-donor-item:nth-child(10):last-child) {
+    align-content: stretch;
+    grid-template-rows: repeat(10, minmax(var(--cf-donor-row-min-h), 1fr));
+}
+
+.cf-sidebar--donors-main.has-bg-image .cf-donor-item {
+    flex: none;
+    min-height: var(--cf-donor-row-min-h);
     margin: 0;
-    padding: 0.12rem 0.2rem;
-    border-bottom: none;
+    padding: var(--cf-donor-row-pad-y) 0.22rem;
     justify-content: flex-start;
+    align-items: center;
+    gap: 0.32rem;
+}
+
+.cf-sidebar.has-bg-image .cf-donor-detail {
+    gap: var(--cf-donor-detail-gap);
 }
 
 .cf-donor-tier {
     flex-shrink: 0;
-    width: 26px;
-    height: 26px;
+    width: 22px;
+    height: 22px;
     border-radius: 50%;
     overflow: hidden;
     display: inline-flex;
@@ -498,8 +719,8 @@ body {
 }
 
 .cf-sidebar.has-bg-image .cf-donor-tier {
-    width: clamp(28px, 4.2vw, 36px);
-    height: clamp(28px, 4.2vw, 36px);
+    width: var(--cf-donor-tier-size);
+    height: var(--cf-donor-tier-size);
 }
 
 .cf-donor-tier--fallback {
@@ -515,17 +736,24 @@ body {
 
 .cf-donor-amount {
     flex-shrink: 0;
-    margin-right: 2px;
+    margin-right: 0;
+    font-size: var(--cf-donor-amount-font-size);
     font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
     color: var(--cf-accent);
-    line-height: 1;
-    display: flex;
-    align-items: center;
+    line-height: 1.15;
+    display: block;
 }
 
-.cf-sidebar.has-bg-image .cf-donor-name,
+.cf-sidebar.has-bg-image .cf-donor-name {
+    font-size: var(--cf-donor-name-font-size);
+    line-height: 1.28;
+}
+
 .cf-sidebar.has-bg-image .cf-donor-amount {
-    font-size: clamp(0.72rem, 1.05vw, 0.82rem);
+    font-size: var(--cf-donor-amount-font-size);
+    line-height: 1.25;
 }
 
 .cf-donor-empty {
@@ -543,6 +771,7 @@ body {
 .cf-panel {
     grid-area: panel;
     position: relative;
+    margin-left: calc(-1 * var(--cf-hero-panel-pull));
     padding: 0 0.15rem 0.25rem;
     min-height: 0;
     height: var(--cf-main-block-h);
@@ -651,8 +880,8 @@ body {
     overflow-y: auto;
     overflow-x: hidden;
     padding: 0;
-    scroll-behavior: smooth;
-    scroll-snap-type: y mandatory;
+    scroll-behavior: auto;
+    scroll-snap-type: y proximity;
     overscroll-behavior-y: contain;
     scrollbar-width: none;
 }
@@ -663,7 +892,7 @@ body {
 
 .cf-content-block {
     scroll-snap-align: start;
-    scroll-snap-stop: always;
+    scroll-snap-stop: normal;
     height: var(--cf-anchor-slide-h);
     min-height: var(--cf-anchor-slide-h);
     max-height: var(--cf-anchor-slide-h);
@@ -790,16 +1019,18 @@ body {
 
 .cf-footer-funding {
     width: 100%;
+    max-width: var(--cf-footer-content-max-w);
+    margin-inline: auto;
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    gap: 0.25rem;
+    gap: 0.1rem;
 }
 
-/* 目前累積$ / 達標金額$（樣式沿用原累積金額區） */
+/* 目前累積$ / 達標金額$（與進度條同寬、右緣內推對齊） */
 .cf-funding-summary {
     margin: 0;
-    padding: 0 0 0.15rem;
+    padding: 0 var(--cf-funding-summary-inset) 0.05rem 0;
     align-self: flex-end;
     text-align: right;
     font-size: var(--cf-total-value-size);
@@ -861,8 +1092,33 @@ a.cf-funding-progress--link:focus-visible {
     min-width: 0;
     width: 100%;
     min-height: 0;
-    padding: 0.35rem 0;
+    padding: 0.12rem 0;
     overflow: visible;
+}
+
+/* 募資進度列上方：查榜單提示（隨進度條連結可點，本身不攔截點擊） */
+.cf-funding-leaderboard-hint {
+    position: absolute;
+    left: max(0.35rem, var(--cf-timeline-inset));
+    bottom: calc(100% - 0.1rem);
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.05rem;
+    pointer-events: none;
+    font-family: var(--cf-font-family);
+    font-weight: 700;
+    font-size: clamp(0.78rem, 1.12vw, 0.98rem);
+    line-height: 1.15;
+    color: var(--cf-timeline-text);
+    text-shadow: var(--cf-timeline-text-shadow);
+    white-space: nowrap;
+}
+
+.cf-funding-leaderboard-hint__arrow {
+    font-size: 1.2em;
+    line-height: 1;
 }
 
 /* 外凸小標籤（已改為置入進度條內；保留類名供相容） */
@@ -954,6 +1210,11 @@ a.cf-funding-progress--link:focus-visible {
     :root {
         --cf-page-inset: clamp(0.65rem, 3.5vw, 1rem);
         --cf-page-inset-bottom: clamp(0.75rem, 4vw, 1.25rem);
+        /* 手機：框高隨列數收合，僅保留底圖內建邊距 */
+        --cf-donor-list-pad-top: 6%;
+        --cf-donor-list-pad-x: 8%;
+        --cf-donor-list-pad-bottom: clamp(0.35rem, 1.8vw, 0.55rem);
+        --cf-donor-row-min-h: 2.05rem;
         --cf-anchor-slide-h: auto;
         --cf-main-block-h: none;
         --cf-total-value-size: 1.05rem;
@@ -1015,10 +1276,19 @@ a.cf-funding-progress--link:focus-visible {
             'panel'
             'sidebar-col';
         justify-content: stretch;
+        align-self: stretch;
         max-width: 100%;
         min-height: 0;
         max-height: none;
         padding: 4.5rem var(--cf-page-inset) 1rem;
+    }
+
+    .cf-panel {
+        margin-left: 0;
+    }
+
+    .cf-footer-funding {
+        max-width: 100%;
     }
 
     .cf-main-cluster > * {
@@ -1028,7 +1298,12 @@ a.cf-funding-progress--link:focus-visible {
 
     .cf-sidebar-column {
         --cf-leaderboard-col-w: minmax(0, 1fr);
-        --cf-sidebar-col-w: min(100%, calc(100vw - 2 * var(--cf-page-inset)));
+        --cf-sidebar-col-w: min(
+            100%,
+            calc(
+                100vw - var(--cf-page-inset) - var(--cf-node-size) - 1.35rem
+            )
+        );
         width: 100%;
         min-width: 0;
         max-width: 100%;
@@ -1038,21 +1313,35 @@ a.cf-funding-progress--link:focus-visible {
         z-index: 2;
     }
 
+    .cf-leaderboard-tab {
+        font-size: clamp(0.78rem, 3.4vw, 0.92rem);
+        padding: 0.45rem 0.5rem;
+    }
+
+    .cf-leaderboards-row.is-tabbed .cf-leaderboard-tabs.is-visible {
+        padding: 5% 7% 0;
+        margin-bottom: var(--cf-leaderboard-tabs-gap);
+    }
+
     .cf-leaderboards-row {
         width: 100%;
         max-width: 100%;
         margin: 0 auto;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.35rem;
+    }
+
+    .cf-leaderboards-row.is-tabbed {
+        max-width: 100%;
+    }
+
+    .cf-leaderboards-row.is-tabbed .cf-leaderboard-panels {
+        max-width: 100%;
     }
 
     .cf-sidebar.cf-sidebar--donors-main,
     .cf-sidebar.cf-sidebar--theme-ranking {
         width: 100%;
         max-width: none;
-    }
-
-    .cf-sidebar.cf-sidebar--theme-ranking {
-        align-self: flex-end;
     }
 
     .cf-sponsor-cta {
@@ -1071,36 +1360,74 @@ a.cf-funding-progress--link:focus-visible {
     }
 
     .cf-sidebar.has-bg-image {
-        aspect-ratio: auto;
-        height: auto;
+        aspect-ratio: unset;
+        height: fit-content;
         width: 100%;
         max-width: 100%;
-        background-size: 100% auto;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        align-self: start;
+        background-size: 100% 100%;
         background-repeat: no-repeat;
         background-position: center top;
     }
 
     .cf-sidebar.has-bg-image .cf-donor-list {
+        flex: 0 0 auto;
         height: auto;
+        min-height: 0;
         max-height: none;
-        overflow: visible;
-        padding: 12% 8% 14% 8%;
+        overflow: hidden;
+        box-sizing: border-box;
+        padding: var(--cf-donor-list-pad-top) var(--cf-donor-list-pad-x)
+            var(--cf-donor-list-pad-bottom);
+    }
+
+    .cf-sidebar--donors-main.has-bg-image .cf-donor-list,
+    .cf-sidebar--theme-ranking.has-bg-image .cf-donor-list {
+        display: flex;
+        flex-direction: column;
+        align-content: start;
+        justify-content: flex-start;
+        gap: 0;
+    }
+
+    .cf-sidebar--donors-main.has-bg-image
+        .cf-donor-list:has(> .cf-donor-item:nth-child(10):last-child) {
+        display: grid;
+        align-content: start;
+        grid-auto-rows: minmax(var(--cf-donor-row-min-h), auto);
+        grid-template-rows: none;
+    }
+
+    .cf-sidebar--donors-main.has-bg-image .cf-donor-item,
+    .cf-sidebar--theme-ranking.has-bg-image .cf-donor-item {
+        flex: none;
+        min-height: var(--cf-donor-row-min-h);
+        margin: 0;
+        padding: var(--cf-donor-row-pad-y) 0.28rem;
     }
 
     .cf-donor-list {
-        overflow: visible;
+        overflow: hidden;
         max-height: none;
     }
 
-    .cf-sidebar.has-bg-image .cf-donor-item {
-        flex: 0 0 auto;
-        min-height: 1.75rem;
-        padding: 0.15rem 0.35rem;
+    .cf-sidebar.has-bg-image .cf-donor-name {
+        font-size: clamp(0.82rem, 3.6vw, 0.95rem);
     }
 
-    .cf-sidebar.has-bg-image .cf-donor-name,
     .cf-sidebar.has-bg-image .cf-donor-amount {
-        font-size: clamp(0.68rem, 3.2vw, 0.8rem);
+        font-size: clamp(0.7rem, 3vw, 0.82rem);
+    }
+
+    .cf-leaderboard-title__text {
+        font-size: clamp(0.88rem, 4vw, 1.05rem);
+    }
+
+    .cf-sidebar--theme-ranking .cf-leaderboard-title__text {
+        font-size: clamp(0.85rem, 3.8vw, 1rem);
     }
 
     .cf-sidebar:not(.has-bg-image) .cf-donor-list {
@@ -1231,6 +1558,20 @@ a.cf-funding-progress--link:focus-visible {
     /* 直式進度條內文字會隨 transform 旋轉，改為隱藏並用 ::after 標示 */
     .cf-progress-label--in-bar {
         display: none !important;
+    }
+
+    .cf-funding-leaderboard-hint {
+        position: fixed;
+        z-index: 32;
+        left: calc(
+            100% - var(--cf-mobile-timeline-right) -
+                var(--cf-mobile-timeline-bar-thickness) / 2
+        );
+        right: auto;
+        bottom: auto;
+        top: calc(var(--cf-mobile-timeline-bar-bottom) - 1.85rem);
+        transform: translateX(-50%);
+        font-size: clamp(0.72rem, 3.2vw, 0.88rem);
     }
 
     .cf-timeline-wrap::after {

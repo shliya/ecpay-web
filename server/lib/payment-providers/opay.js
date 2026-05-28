@@ -8,6 +8,7 @@ const crypto = require('crypto');
 const qs = require('qs');
 const dayjs = require('dayjs');
 const { ENUM_DONATION_TYPE } = require('../enum');
+const { getOpayDonationPaymentFields } = require('../payment-donation-methods');
 
 require('dotenv').config({ path: path.resolve(__dirname, '../../../.env') });
 
@@ -169,7 +170,7 @@ function createPayment(opayMerchantId, orderData, credentials) {
         TradeDesc: orderData.description || '觀眾贊助',
         ItemName: orderData.itemName || '贊助',
         ReturnURL: `${returnBase}/api/v1/payment/opay-success`,
-        ChoosePayment: 'ALL',
+        ...getOpayDonationPaymentFields(),
         EncryptType: 1,
         ClientBackURL: returnBase || undefined,
     };

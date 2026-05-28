@@ -36,35 +36,67 @@
                         我要贊助
                     </a>
                     <div class="cf-leaderboards-row">
-                        <aside
-                            id="donorListSidebar"
-                            class="cf-sidebar cf-sidebar--donors-main"
-                            aria-label="近期斗內（榜十大哥）"
-                        >
-                            <div
-                                id="mainDonorListTitle"
-                                class="cf-leaderboard-title"
-                                hidden
-                            ></div>
-                            <ul id="donorList" class="cf-donor-list"></ul>
-                        </aside>
-                        <aside
-                            id="specialThemeRankingSidebar"
-                            class="cf-sidebar cf-sidebar--theme-ranking"
-                            aria-label="特殊主題榜單"
-                            data-placeholder="true"
-                        >
-                            <div
-                                id="specialThemeRankingTitle"
-                                class="cf-leaderboard-title"
-                                hidden
-                            ></div>
-                            <ul
-                                id="specialThemeDonorList"
-                                class="cf-donor-list"
-                                hidden
-                            ></ul>
-                        </aside>
+                        <div class="cf-leaderboard-panels">
+                            <aside
+                                id="donorListSidebar"
+                                class="cf-sidebar cf-sidebar--donors-main"
+                                aria-label="近期斗內（榜十大哥）"
+                            >
+                                <div
+                                    id="cfLeaderboardTabs"
+                                    class="cf-leaderboard-tabs"
+                                    role="tablist"
+                                    aria-label="榜單切換"
+                                    hidden
+                                >
+                                    <button
+                                        type="button"
+                                        id="cfLeaderboardTabMain"
+                                        class="cf-leaderboard-tab"
+                                        role="tab"
+                                        aria-selected="true"
+                                        aria-controls="donorListSidebar"
+                                        tabindex="0"
+                                    >
+                                        榜十大哥
+                                    </button>
+                                    <button
+                                        type="button"
+                                        id="cfLeaderboardTabTheme"
+                                        class="cf-leaderboard-tab"
+                                        role="tab"
+                                        aria-selected="false"
+                                        aria-controls="specialThemeRankingSidebar"
+                                        tabindex="-1"
+                                    >
+                                        特殊主題榜
+                                    </button>
+                                </div>
+                                <div
+                                    id="mainDonorListTitle"
+                                    class="cf-leaderboard-title"
+                                    hidden
+                                ></div>
+                                <ul id="donorList" class="cf-donor-list"></ul>
+                            </aside>
+                            <aside
+                                id="specialThemeRankingSidebar"
+                                class="cf-sidebar cf-sidebar--theme-ranking"
+                                aria-label="特殊主題榜單"
+                                data-placeholder="true"
+                            >
+                                <div
+                                    id="specialThemeRankingTitle"
+                                    class="cf-leaderboard-title"
+                                    hidden
+                                ></div>
+                                <ul
+                                    id="specialThemeDonorList"
+                                    class="cf-donor-list"
+                                    hidden
+                                ></ul>
+                            </aside>
+                        </div>
                     </div>
                 </div>
 
@@ -110,10 +142,21 @@
                             class="cf-funding-progress cf-funding-progress--link"
                             href="#"
                             hidden
-                            aria-label="查看全部斗內列表"
-                            title="查看全部斗內列表"
+                            aria-label="點我查榜單，查看全部斗內列表"
+                            title="點我查榜單，查看全部斗內列表"
                         >
                             <div class="cf-timeline-wrap">
+                                <span
+                                    class="cf-funding-leaderboard-hint"
+                                    aria-hidden="true"
+                                >
+                                    <span class="cf-funding-leaderboard-hint__line"
+                                        >點我查榜單</span
+                                    >
+                                    <span class="cf-funding-leaderboard-hint__arrow"
+                                        >↓</span
+                                    >
+                                </span>
                                 <div
                                     id="timelineTrack"
                                     class="cf-timeline"

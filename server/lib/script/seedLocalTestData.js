@@ -4,6 +4,7 @@ const { Op } = require('sequelize');
 const LargeCrowdfundingPage = require('../../model/schema/large-crowdfunding-page');
 const LargeCrowdfundingDonation = require('../../model/schema/large-crowdfunding-donation');
 const PageStore = require('../../store/large-crowdfunding-page');
+const { getEcpayConfigByMerchantId } = require('../../store/ecpay-config');
 const { apiJsonToPageRow, LCF_PAGE_STATUS } = require('../large-crowdfunding');
 
 const TEST_DATA_DIR = path.join(__dirname, '../../db/test-data');
@@ -34,11 +35,28 @@ async function seedLargeCrowdfundingFixture(fixture) {
         return;
     }
 
+    const config = await getEcpayConfigByMerchantId(merchantId);
+    if (!config || config.id == null) {
+        console.warn(
+            `[seed] 略過 ${merchantId}/${pageKey}：ecpay_config 不存在`
+        );
+        return;
+    }
+    const ecpayConfigId = Number(config.id);
+
     const pageBody = fixture.page && typeof fixture.page === 'object' ? fixture.page : {};
     const donations = Array.isArray(fixture.donations) ? fixture.donations : [];
-    const row = apiJsonToPageRow(pageBody, merchantId, pageKey);
+    const row = apiJsonToPageRow(
+        pageBody,
+        ecpayConfigId,
+        merchantId,
+        pageKey
+    );
 
-    let page = await PageStore.findByMerchantIdAndPageKey(merchantId, pageKey);
+    let page = await PageStore.findByEcpayConfigIdAndPageKey(
+        ecpayConfigId,
+        pageKey
+    );
     const now = new Date();
     if (page) {
         await page.update({
@@ -80,6 +98,7 @@ async function seedLargeCrowdfundingFixture(fixture) {
         const createdAt = d.created_at ? new Date(d.created_at) : new Date(now.getTime() + index * 60_000);
         return {
             largeCrowdfundingPageId: pageId,
+            ecpayConfigId,
             merchantId,
             pageKey,
             donorName: String(d.donorName ?? d.name ?? '匿名').slice(0, 100),

@@ -12,6 +12,7 @@ import {
     formatMoney,
     renderDonorList,
     isNonEmptyString,
+    setupDonorListNameScroll,
 } from './js/crowdfunding-donor-ui.js';
 import {
     buildCrowdfundingDonorsAllUrl,
@@ -245,6 +246,21 @@ function renderSponsorCta(data) {
     cta.textContent = value;
 }
 
+/**
+ * 榜單標題文字：支援真實換行，以及設定欄輸入的字面 \\n
+ * @param {string} raw
+ * @returns {string}
+ */
+function normalizeLeaderboardTitleLabel(raw) {
+    if (typeof raw !== 'string') {
+        return '';
+    }
+    return raw
+        .replace(/\r\n/g, '\n')
+        .replace(/\\n/g, '\n')
+        .trim();
+}
+
 /** 榜單標題：圖片 URL 顯示圖，否則顯示文字（與贊助按鈕相同規則） */
 function renderLeaderboardTitle(host, labelValue, imageAlt) {
     if (!host) {
@@ -258,7 +274,10 @@ function renderLeaderboardTitle(host, labelValue, imageAlt) {
         return;
     }
 
-    const value = labelValue.trim();
+    const value = normalizeLeaderboardTitleLabel(labelValue);
+    if (!value) {
+        return;
+    }
     host.hidden = false;
 
     if (isSponsorLabelImageUrl(value)) {
@@ -278,12 +297,13 @@ function renderLeaderboardTitle(host, labelValue, imageAlt) {
     host.appendChild(text);
 }
 
-function renderDonorListBackground(data) {
-    const sidebar = document.getElementById('donorListSidebar');
-    if (!sidebar) return;
+function applyLeaderboardPanelBackground(sidebar, imageUrl) {
+    if (!sidebar) {
+        return;
+    }
 
-    if (isNonEmptyString(data.donorListBackgroundImageUrl)) {
-        const url = data.donorListBackgroundImageUrl.trim();
+    if (isNonEmptyString(imageUrl)) {
+        const url = imageUrl.trim();
         sidebar.style.backgroundImage = `url("${url}")`;
         sidebar.style.backgroundSize = '100% 100%';
         sidebar.style.backgroundPosition = 'center top';
@@ -298,8 +318,20 @@ function renderDonorListBackground(data) {
     }
 }
 
+/** 主榜／特殊主題榜共用同一張底圖框 */
+function renderLeaderboardBackgrounds(data) {
+    const imageUrl = data.donorListBackgroundImageUrl;
+    applyLeaderboardPanelBackground(
+        document.getElementById('donorListSidebar'),
+        imageUrl
+    );
+    applyLeaderboardPanelBackground(
+        document.getElementById('specialThemeRankingSidebar'),
+        imageUrl
+    );
+}
+
 function renderDonors(pageData, donors) {
-    renderDonorListBackground(pageData);
     renderLeaderboardTitle(
         document.getElementById('mainDonorListTitle'),
         pageData.mainDonorListTitle,
@@ -355,6 +387,129 @@ function renderSpecialThemeRanking(pageData, donors) {
     }
 }
 
+function isSpecialThemeRankingAvailable(pageData, specialDonors) {
+    const hasTitle = isNonEmptyString(pageData.specialThemeRankingTitle);
+    const hasDonors =
+        Array.isArray(specialDonors) && specialDonors.length > 0;
+    return hasTitle || hasDonors;
+}
+
+function leaderboardTabLabel(raw, fallback) {
+    const value = normalizeLeaderboardTitleLabel(raw);
+    return value || fallback;
+}
+
+function placeLeaderboardTabsInSidebar(tabsRoot, sidebar) {
+    if (!tabsRoot || !sidebar) {
+        return;
+    }
+    const list = sidebar.querySelector('.cf-donor-list');
+    if (!list) {
+        return;
+    }
+    if (tabsRoot.parentElement !== sidebar) {
+        sidebar.insertBefore(tabsRoot, list);
+        return;
+    }
+    if (tabsRoot.nextElementSibling !== list) {
+        sidebar.insertBefore(tabsRoot, list);
+    }
+}
+
+function setupLeaderboardTabs(pageData, specialDonors) {
+    const tabsRoot = document.getElementById('cfLeaderboardTabs');
+    const tabMain = document.getElementById('cfLeaderboardTabMain');
+    const tabTheme = document.getElementById('cfLeaderboardTabTheme');
+    const mainSidebar = document.getElementById('donorListSidebar');
+    const themeSidebar = document.getElementById('specialThemeRankingSidebar');
+    const leaderboardsRow = tabsRoot && tabsRoot.closest('.cf-leaderboards-row');
+
+    if (
+        !tabsRoot ||
+        !tabMain ||
+        !tabTheme ||
+        !mainSidebar ||
+        !themeSidebar
+    ) {
+        return;
+    }
+
+    const themeAvailable = isSpecialThemeRankingAvailable(
+        pageData,
+        specialDonors
+    );
+
+    tabMain.textContent = leaderboardTabLabel(
+        pageData.mainDonorListTitle,
+        '榜十大哥'
+    );
+    tabTheme.textContent = leaderboardTabLabel(
+        pageData.specialThemeRankingTitle,
+        '特殊主題榜'
+    );
+
+    const applyLeaderboardTabs = function () {
+        const useTabs = themeAvailable;
+
+        tabsRoot.hidden = !useTabs;
+        tabsRoot.classList.toggle('is-visible', useTabs);
+        if (leaderboardsRow) {
+            leaderboardsRow.classList.toggle('is-tabbed', useTabs);
+        }
+
+        if (!useTabs) {
+            placeLeaderboardTabsInSidebar(tabsRoot, mainSidebar);
+            mainSidebar.classList.add('is-leaderboard-panel-active');
+            themeSidebar.classList.remove('is-leaderboard-panel-active');
+            mainSidebar.removeAttribute('data-leaderboard-hidden');
+            themeSidebar.removeAttribute('data-leaderboard-hidden');
+            tabMain.classList.remove('is-active');
+            tabTheme.classList.remove('is-active');
+            tabMain.setAttribute('aria-selected', 'false');
+            tabTheme.setAttribute('aria-selected', 'false');
+            return;
+        }
+
+        const activeTab = tabsRoot.dataset.activeTab || 'main';
+        const isMain = activeTab !== 'theme';
+        const activeSidebar = isMain ? mainSidebar : themeSidebar;
+
+        placeLeaderboardTabsInSidebar(tabsRoot, activeSidebar);
+
+        mainSidebar.classList.toggle('is-leaderboard-panel-active', isMain);
+        themeSidebar.classList.toggle('is-leaderboard-panel-active', !isMain);
+        mainSidebar.removeAttribute('data-leaderboard-hidden');
+        themeSidebar.removeAttribute('data-leaderboard-hidden');
+
+        tabMain.classList.toggle('is-active', isMain);
+        tabTheme.classList.toggle('is-active', !isMain);
+        tabMain.setAttribute('aria-selected', String(isMain));
+        tabTheme.setAttribute('aria-selected', String(!isMain));
+        tabMain.tabIndex = isMain ? 0 : -1;
+        tabTheme.tabIndex = !isMain ? 0 : -1;
+
+        const activeList = document.getElementById(
+            isMain ? 'donorList' : 'specialThemeDonorList'
+        );
+        setupDonorListNameScroll(activeList);
+    };
+
+    if (!tabsRoot.dataset.bound) {
+        tabsRoot.dataset.bound = 'true';
+        tabMain.addEventListener('click', function () {
+            tabsRoot.dataset.activeTab = 'main';
+            applyLeaderboardTabs();
+        });
+        tabTheme.addEventListener('click', function () {
+            tabsRoot.dataset.activeTab = 'theme';
+            applyLeaderboardTabs();
+        });
+        window.addEventListener('resize', applyLeaderboardTabs);
+    }
+
+    applyLeaderboardTabs();
+}
+
 function updateFundingProgressLink(pageKey, showLink) {
     const link = document.getElementById('fundingProgressLink');
     if (!link) {
@@ -387,7 +542,135 @@ function renderPanelHeader(data) {
 
 let contentAnchorObserver = null;
 let anchorNavClickBound = false;
+let contentWheelNavBound = false;
+let contentWheelLocked = false;
+let contentWheelUnlockTimer = null;
+let anchorHighlightRaf = null;
 let cfResizeTimer = null;
+
+const CF_WHEEL_PAGE_MIN_DELTA = 28;
+const CF_WHEEL_PAGE_COOLDOWN_MS = 480;
+
+function prefersReducedScrollMotion() {
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+function setActiveAnchorForId(id) {
+    const nav = document.getElementById('anchorNav');
+    if (!nav || !id) {
+        return;
+    }
+    nav.querySelectorAll('a[href^="#"]').forEach(function (link) {
+        link.classList.toggle(
+            'is-active',
+            link.getAttribute('href') === '#' + id
+        );
+    });
+}
+
+function getContentBlocks(scroll) {
+    return scroll ? scroll.querySelectorAll('.cf-content-block') : [];
+}
+
+function findActiveBlockIndex(scroll, blocks) {
+    if (!scroll || !blocks.length) {
+        return 0;
+    }
+    const viewLine = scroll.scrollTop + scroll.clientHeight * 0.38;
+    let bestIdx = 0;
+    let bestDist = Infinity;
+    blocks.forEach(function (block, index) {
+        const dist = Math.abs(block.offsetTop - viewLine);
+        if (dist < bestDist) {
+            bestDist = dist;
+            bestIdx = index;
+        }
+    });
+    return bestIdx;
+}
+
+function scrollBlockInPanel(scroll, block, behavior) {
+    if (!scroll || !block) {
+        return;
+    }
+    const top = Math.max(
+        0,
+        block.getBoundingClientRect().top -
+            scroll.getBoundingClientRect().top +
+            scroll.scrollTop
+    );
+    scroll.scrollTo({
+        top: top,
+        behavior: behavior || 'auto',
+    });
+}
+
+function bindContentWheelNav() {
+    const scroll = document.getElementById('contentScroll');
+    if (!scroll || contentWheelNavBound) {
+        return;
+    }
+    contentWheelNavBound = true;
+
+    scroll.addEventListener(
+        'wheel',
+        function (e) {
+            if (isCfMobileLayout()) {
+                return;
+            }
+
+            const blocks = getContentBlocks(scroll);
+            if (blocks.length < 2) {
+                return;
+            }
+
+            const delta = e.deltaY;
+            if (Math.abs(delta) < CF_WHEEL_PAGE_MIN_DELTA) {
+                return;
+            }
+
+            const scrollTop = scroll.scrollTop;
+            const maxScroll = scroll.scrollHeight - scroll.clientHeight;
+            if (delta > 0 && scrollTop >= maxScroll - 4) {
+                return;
+            }
+            if (delta < 0 && scrollTop <= 4) {
+                return;
+            }
+
+            const current = findActiveBlockIndex(scroll, blocks);
+            const next =
+                delta > 0 ?
+                    Math.min(current + 1, blocks.length - 1)
+                :   Math.max(current - 1, 0);
+
+            if (next === current) {
+                return;
+            }
+
+            e.preventDefault();
+
+            if (contentWheelLocked) {
+                return;
+            }
+            contentWheelLocked = true;
+
+            const target = blocks[next];
+            setActiveAnchorForId(target.id);
+            scrollBlockInPanel(
+                scroll,
+                target,
+                prefersReducedScrollMotion() ? 'auto' : 'smooth'
+            );
+
+            clearTimeout(contentWheelUnlockTimer);
+            contentWheelUnlockTimer = setTimeout(function () {
+                contentWheelLocked = false;
+            }, CF_WHEEL_PAGE_COOLDOWN_MS);
+        },
+        { passive: false }
+    );
+}
 
 function bindContentAnchorNav() {
     const nav = document.getElementById('anchorNav');
@@ -404,12 +687,7 @@ function bindContentAnchorNav() {
         e.preventDefault();
         scrollContentBlockIntoView(target);
         history.replaceState(null, '', '#' + id);
-        nav.querySelectorAll('a[href^="#"]').forEach(function (link) {
-            link.classList.toggle(
-                'is-active',
-                link.getAttribute('href') === '#' + id
-            );
-        });
+        setActiveAnchorForId(id);
     });
 }
 
@@ -417,6 +695,7 @@ function scrollContentBlockIntoView(target) {
     if (!target) {
         return;
     }
+    const behavior = prefersReducedScrollMotion() ? 'auto' : 'smooth';
     if (isCfMobileLayout()) {
         const top =
             target.getBoundingClientRect().top +
@@ -424,11 +703,16 @@ function scrollContentBlockIntoView(target) {
             72;
         window.scrollTo({
             top: Math.max(0, top),
-            behavior: 'smooth',
+            behavior: behavior,
         });
         return;
     }
-    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const scroll = document.getElementById('contentScroll');
+    if (scroll && scroll.contains(target)) {
+        scrollBlockInPanel(scroll, target, behavior);
+        return;
+    }
+    target.scrollIntoView({ behavior: behavior, block: 'start' });
 }
 
 function updateAnchorSlideHeight() {
@@ -461,9 +745,14 @@ function syncContentAnchorScroll(applyHashScroll) {
 
     contentAnchorObserver = new IntersectionObserver(
         function (entries) {
+            if (contentWheelLocked) {
+                return;
+            }
             let best = null;
             entries.forEach(function (entry) {
-                if (!entry.isIntersecting) return;
+                if (!entry.isIntersecting) {
+                    return;
+                }
                 if (
                     !best ||
                     entry.intersectionRatio > best.intersectionRatio
@@ -471,18 +760,22 @@ function syncContentAnchorScroll(applyHashScroll) {
                     best = entry;
                 }
             });
-            if (!best) return;
+            if (!best) {
+                return;
+            }
             const id = best.target.id;
-            links.forEach(function (link) {
-                link.classList.toggle(
-                    'is-active',
-                    link.getAttribute('href') === '#' + id
-                );
+            if (anchorHighlightRaf) {
+                cancelAnimationFrame(anchorHighlightRaf);
+            }
+            anchorHighlightRaf = requestAnimationFrame(function () {
+                anchorHighlightRaf = null;
+                setActiveAnchorForId(id);
             });
         },
         {
             root: mobile ? null : scroll,
-            threshold: mobile ? [0.15, 0.35, 0.55] : [0.45, 0.6, 0.75, 0.9],
+            rootMargin: mobile ? '0px' : '-42% 0px -42% 0px',
+            threshold: mobile ? [0.2, 0.45] : [0.25, 0.5, 0.75],
         }
     );
 
@@ -497,15 +790,10 @@ function syncContentAnchorScroll(applyHashScroll) {
             requestAnimationFrame(function () {
                 scrollContentBlockIntoView(target);
             });
-            links.forEach(function (link) {
-                link.classList.toggle(
-                    'is-active',
-                    link.getAttribute('href') === '#' + hash
-                );
-            });
+            setActiveAnchorForId(hash);
         }
-    } else if (links.length > 0) {
-        links[0].classList.add('is-active');
+    } else if (links.length > 0 && blocks[0]) {
+        setActiveAnchorForId(blocks[0].id);
     }
 }
 
@@ -688,8 +976,10 @@ async function renderPage(data, pageKey) {
         resolveRecentDonors(key),
         fetchDonorsSpecial(key),
     ]);
+    renderLeaderboardBackgrounds(data);
     renderDonors(data, donors);
     renderSpecialThemeRanking(data, specialDonors);
+    setupLeaderboardTabs(data, specialDonors);
     renderCrowdfundingHero(data);
     renderPanelHeader(data);
     renderContentBlocks(data);
@@ -698,6 +988,7 @@ async function renderPage(data, pageKey) {
 
 async function init() {
     bindContentAnchorNav();
+    bindContentWheelNav();
     bindCrowdfundingHeroResize();
     window.addEventListener('resize', function () {
         clearTimeout(cfResizeTimer);

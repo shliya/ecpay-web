@@ -1,8 +1,19 @@
 const { Op } = require('sequelize');
 const sequelize = require('../config/database');
 const LargeCrowdfundingPage = require('../model/schema/large-crowdfunding-page');
-const { LCF_PAGE_STATUS } = require('../lib/large-crowdfunding');
+const { LCF_PAGE_STATUS, parseEcpayConfigId } = require('../lib/large-crowdfunding');
 
+async function findByEcpayConfigIdAndPageKey(ecpayConfigId, pageKey) {
+    const cfgId = parseEcpayConfigId(ecpayConfigId);
+    if (cfgId == null) {
+        return null;
+    }
+    return LargeCrowdfundingPage.findOne({
+        where: { ecpayConfigId: cfgId, pageKey },
+    });
+}
+
+/** @deprecated 請用 findByEcpayConfigIdAndPageKey；保留給尚未遷移的呼叫 */
 async function findByMerchantIdAndPageKey(merchantId, pageKey) {
     return LargeCrowdfundingPage.findOne({
         where: { merchantId, pageKey },
@@ -29,6 +40,18 @@ async function findById(id) {
     return LargeCrowdfundingPage.findByPk(id);
 }
 
+async function findByIdAndEcpayConfigId(id, ecpayConfigId) {
+    const pageId = Number(id);
+    const cfgId = parseEcpayConfigId(ecpayConfigId);
+    if (!Number.isInteger(pageId) || pageId <= 0 || cfgId == null) {
+        return null;
+    }
+    return LargeCrowdfundingPage.findOne({
+        where: { id: pageId, ecpayConfigId: cfgId },
+    });
+}
+
+/** @deprecated */
 async function findByIdAndMerchantId(id, merchantId) {
     return LargeCrowdfundingPage.findOne({
         where: { id, merchantId },
@@ -50,6 +73,22 @@ const LIST_SUMMARY_ATTRIBUTES = [
     'updated_at',
 ];
 
+async function listSummariesByEcpayConfigId(ecpayConfigId) {
+    const cfgId = parseEcpayConfigId(ecpayConfigId);
+    if (cfgId == null) {
+        return [];
+    }
+    return LargeCrowdfundingPage.findAll({
+        where: {
+            ecpayConfigId: cfgId,
+            status: { [Op.ne]: LCF_PAGE_STATUS.DELETED },
+        },
+        attributes: LIST_SUMMARY_ATTRIBUTES,
+        order: [['updated_at', 'DESC']],
+    });
+}
+
+/** @deprecated */
 async function listSummariesByMerchantId(merchantId) {
     return LargeCrowdfundingPage.findAll({
         where: {
@@ -61,9 +100,9 @@ async function listSummariesByMerchantId(merchantId) {
     });
 }
 
-async function upsertByMerchantIdAndPageKey(row, { transaction } = {}) {
-    const existing = await findByMerchantIdAndPageKey(
-        row.merchantId,
+async function upsertByEcpayConfigIdAndPageKey(row, { transaction } = {}) {
+    const existing = await findByEcpayConfigIdAndPageKey(
+        row.ecpayConfigId,
         row.pageKey
     );
     const now = new Date();
@@ -90,8 +129,13 @@ async function upsertByMerchantIdAndPageKey(row, { transaction } = {}) {
     );
 }
 
-async function setPageStatus(merchantId, pageKey, status, { transaction } = {}) {
-    const row = await findByMerchantIdAndPageKey(merchantId, pageKey);
+/** @deprecated */
+async function upsertByMerchantIdAndPageKey(row, { transaction } = {}) {
+    return upsertByEcpayConfigIdAndPageKey(row, { transaction });
+}
+
+async function setPageStatus(ecpayConfigId, pageKey, status, { transaction } = {}) {
+    const row = await findByEcpayConfigIdAndPageKey(ecpayConfigId, pageKey);
     if (!row) {
         return null;
     }
@@ -124,12 +168,16 @@ function getTransaction() {
 
 module.exports = {
     getTransaction,
+    findByEcpayConfigIdAndPageKey,
     findByMerchantIdAndPageKey,
     findByPageKey,
     findPublishedByPageKey,
     findById,
+    findByIdAndEcpayConfigId,
     findByIdAndMerchantId,
+    listSummariesByEcpayConfigId,
     listSummariesByMerchantId,
+    upsertByEcpayConfigIdAndPageKey,
     upsertByMerchantIdAndPageKey,
     setPageStatus,
     setPublishedAt,

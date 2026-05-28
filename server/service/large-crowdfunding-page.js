@@ -4,25 +4,29 @@ const {
     isLargeCrowdfundingEnabledForMerchant,
 } = require('../lib/large-crowdfunding-feature');
 const {
+    resolveEcpayConfigFromMerchantKey,
+} = require('../lib/large-crowdfunding-config');
+const {
     normalizePageKey,
     pageRowToApiJson,
     pageRowToSummaryJson,
     apiJsonToPageRow,
     assertPageAcceptsDonationsAtOrderTime,
     parseLargeCrowdfundingPageId,
+    parseEcpayConfigId,
     LCF_PAGE_STATUS,
     isPageActiveStatus,
 } = require('../lib/large-crowdfunding');
 
 async function listPageSummariesByMerchantId(merchantId) {
-    const mid = String(merchantId || '').trim();
-    if (!mid) {
+    const resolved = await resolveEcpayConfigFromMerchantKey(merchantId);
+    if (!resolved) {
         return [];
     }
-    const rows = await PageStore.listSummariesByMerchantId(mid);
-    return rows
-        .map(row => pageRowToSummaryJson(row))
-        .filter(Boolean);
+    const rows = await PageStore.listSummariesByEcpayConfigId(
+        resolved.ecpayConfigId
+    );
+    return rows.map(row => pageRowToSummaryJson(row)).filter(Boolean);
 }
 
 async function getPageByMerchantIdAndPageKey(merchantId, pageKey) {
@@ -30,8 +34,12 @@ async function getPageByMerchantIdAndPageKey(merchantId, pageKey) {
     if (!key) {
         return null;
     }
-    const row = await PageStore.findByMerchantIdAndPageKey(
-        String(merchantId || '').trim(),
+    const resolved = await resolveEcpayConfigFromMerchantKey(merchantId);
+    if (!resolved) {
+        return null;
+    }
+    const row = await PageStore.findByEcpayConfigIdAndPageKey(
+        resolved.ecpayConfigId,
         key
     );
     if (!row) {
@@ -55,9 +63,19 @@ async function getPublicPageByPageKey(pageKey, merchantId) {
     }
 
     const mid = merchantId ? String(merchantId).trim() : '';
-    const row = mid
-        ? await PageStore.findByMerchantIdAndPageKey(mid, key)
-        : await PageStore.findByPageKey(key);
+    let row = null;
+    if (mid) {
+        const resolved = await resolveEcpayConfigFromMerchantKey(mid);
+        if (!resolved) {
+            return { status: 'not_found' };
+        }
+        row = await PageStore.findByEcpayConfigIdAndPageKey(
+            resolved.ecpayConfigId,
+            key
+        );
+    } else {
+        row = await PageStore.findByPageKey(key);
+    }
 
     if (!row) {
         return { status: 'not_found' };
@@ -82,19 +100,27 @@ async function getPublishedPageByPageKey(pageKey) {
 }
 
 async function upsertPage(merchantId, pageKey, body) {
-    const mid = String(merchantId || '').trim();
     const key = normalizePageKey(pageKey);
-    if (!mid || !key) {
+    const resolved = await resolveEcpayConfigFromMerchantKey(merchantId);
+    if (!resolved || !key) {
         throw new Error('merchantId 或 pageKey 無效');
     }
-    const existing = await PageStore.findByMerchantIdAndPageKey(mid, key);
+    const existing = await PageStore.findByEcpayConfigIdAndPageKey(
+        resolved.ecpayConfigId,
+        key
+    );
     if (existing && Number(existing.status) === LCF_PAGE_STATUS.DELETED) {
         const err = new Error('專案已刪除，無法再編輯');
         err.statusCode = 410;
         throw err;
     }
-    const row = apiJsonToPageRow(body, mid, key);
-    const saved = await PageStore.upsertByMerchantIdAndPageKey(row);
+    const row = apiJsonToPageRow(
+        body,
+        resolved.ecpayConfigId,
+        resolved.merchantId,
+        key
+    );
+    const saved = await PageStore.upsertByEcpayConfigIdAndPageKey(row);
     return pageRowToApiJson(saved);
 }
 
@@ -110,12 +136,15 @@ async function publishPage(merchantId, pageKey, body) {
  * @returns {Promise<{ status: 'ok', page: object }|{ status: 'not_found'|'already_deleted' }>}
  */
 async function deletePage(merchantId, pageKey) {
-    const mid = String(merchantId || '').trim();
     const key = normalizePageKey(pageKey);
-    if (!mid || !key) {
+    const resolved = await resolveEcpayConfigFromMerchantKey(merchantId);
+    if (!resolved || !key) {
         return { status: 'not_found' };
     }
-    const existing = await PageStore.findByMerchantIdAndPageKey(mid, key);
+    const existing = await PageStore.findByEcpayConfigIdAndPageKey(
+        resolved.ecpayConfigId,
+        key
+    );
     if (!existing) {
         return { status: 'not_found' };
     }
@@ -123,28 +152,26 @@ async function deletePage(merchantId, pageKey) {
         return { status: 'already_deleted' };
     }
     const row = await PageStore.setPageStatus(
-        mid,
+        resolved.ecpayConfigId,
         key,
         LCF_PAGE_STATUS.DELETED
     );
     return { status: 'ok', page: pageRowToApiJson(row) };
 }
 
-async function getPageForDonationValidation(pageId, merchantId) {
+async function getPageForDonationValidation(pageId, ecpayConfigId) {
     const id = Number(pageId);
-    if (!Number.isInteger(id) || id <= 0) {
+    const cfgId = parseEcpayConfigId(ecpayConfigId);
+    if (!Number.isInteger(id) || id <= 0 || cfgId == null) {
         return null;
     }
-    const row = await PageStore.findByIdAndMerchantId(
-        id,
-        String(merchantId || '').trim()
-    );
+    const row = await PageStore.findByIdAndEcpayConfigId(id, cfgId);
     return row ? pageRowToApiJson(row) : null;
 }
 
 /**
  * 建立斗內訂單前驗證大型募資頁是否可收款
- * @returns {Promise<{ pageId: number, pageKey: string }|null>}
+ * @returns {Promise<{ pageId: number, pageKey: string, ecpayConfigId: number }|null>}
  */
 async function resolveDonateContext(merchantId, largeCrowdfundingPageId) {
     const pageId = parseLargeCrowdfundingPageId(largeCrowdfundingPageId);
@@ -157,7 +184,16 @@ async function resolveDonateContext(merchantId, largeCrowdfundingPageId) {
         err.statusCode = 403;
         throw err;
     }
-    const page = await getPageForDonationValidation(pageId, mid);
+    const resolved = await resolveEcpayConfigFromMerchantKey(mid);
+    if (!resolved) {
+        const err = new Error('找不到商店設定');
+        err.statusCode = 404;
+        throw err;
+    }
+    const page = await getPageForDonationValidation(
+        pageId,
+        resolved.ecpayConfigId
+    );
     const gate = assertPageAcceptsDonationsAtOrderTime(page);
     if (!gate.ok) {
         const err = new Error(gate.reason || '無法接受斗內');
@@ -169,7 +205,11 @@ async function resolveDonateContext(merchantId, largeCrowdfundingPageId) {
         err.statusCode = 404;
         throw err;
     }
-    return { pageId: page.id, pageKey: page.pageKey };
+    return {
+        pageId: page.id,
+        pageKey: page.pageKey,
+        ecpayConfigId: page.ecpayConfigId,
+    };
 }
 
 module.exports = {

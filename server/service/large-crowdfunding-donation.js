@@ -3,15 +3,14 @@ const DonationStore = require('../store/large-crowdfunding-donation');
 const PageService = require('./large-crowdfunding-page');
 const { createDonation: createEcpayDonation } = require('./donation');
 const {
+    resolveEcpayConfigIdForLcfPayment,
+} = require('../lib/large-crowdfunding-config');
+const {
     assertPageAcceptsDonationsAtOrderTime,
     assertPageAcceptsPaymentCallback,
     parseLargeCrowdfundingPageId,
 } = require('../lib/large-crowdfunding');
 
-/**
- * @param {object} result
- * @param {object} context
- */
 function logLcfDonationResult(result, context) {
     if (
         !result ||
@@ -36,12 +35,6 @@ function mapDonorRows(rows) {
     });
 }
 
-/**
- * 斗內榜單分頁（公開 API）
- * @param {string} pageKey
- * @param {{ page?: number, limit?: number }} [opts]
- * @returns {Promise<{ donors: Array, page: number, limit: number, totalCount: number, totalPages: number }>}
- */
 async function listDonorsPagedForApi(pageKey, opts = {}) {
     const page = Math.max(1, Math.floor(Number(opts.page)) || 1);
     const limit = Math.min(
@@ -71,11 +64,6 @@ async function listDonorsPagedForApi(pageKey, opts = {}) {
     };
 }
 
-/**
- * 榜十大哥：固定前 10 名（公開 API）
- * @param {string} pageKey
- * @returns {Promise<{ donors: Array, page: number, limit: number, totalCount: number, totalPages: number }>}
- */
 async function listDonorsTenForApi(pageKey) {
     const limit = 10;
     const [rows, totalCount] = await Promise.all([
@@ -93,19 +81,11 @@ async function listDonorsTenForApi(pageKey) {
     };
 }
 
-/**
- * 特殊主題榜：累計達 21210 且依達標時間最快的前 4 名
- * @param {string} pageKey
- * @returns {Promise<{ donors: Array }>}
- */
 async function listSpecialDonorsForApi(pageKey) {
     const rows = await DonationStore.listSpecialDonationsByPageKey(pageKey);
     return { donors: mapDonorRows(rows) };
 }
 
-/**
- * @deprecated 請改用 listDonorsPagedForApi；保留相容
- */
 async function listRecentDonorsForApi(pageKey, opts = {}) {
     const result = await listDonorsPagedForApi(pageKey, {
         page: 1,
@@ -120,7 +100,7 @@ async function listRecentDonorsForApi(pageKey, opts = {}) {
  */
 async function recordDonationFromPayment({
     largeCrowdfundingPageId,
-    merchantId,
+    ecpayConfigId,
     donorName,
     amount,
     message,
@@ -135,11 +115,11 @@ async function recordDonationFromPayment({
 
     const page = await PageService.getPageForDonationValidation(
         pageId,
-        merchantId
+        ecpayConfigId
     );
 
     const gate = trustOrderContext
-        ? assertPageAcceptsPaymentCallback(page, merchantId)
+        ? assertPageAcceptsPaymentCallback(page, ecpayConfigId)
         : assertPageAcceptsDonationsAtOrderTime(page);
     if (!gate.ok) {
         return { status: 'rejected', reason: gate.reason || '無法接受斗內' };
@@ -165,6 +145,7 @@ async function recordDonationFromPayment({
         const created = await DonationStore.createDonation(
             {
                 largeCrowdfundingPageId: pageId,
+                ecpayConfigId: page.ecpayConfigId,
                 merchantId: page.merchantId,
                 pageKey: page.pageKey,
                 donorName: name,
@@ -213,11 +194,24 @@ async function completeDonationFromPayment(row, orderInfo, query) {
     const trustOrderContext = trustedPageId != null;
 
     if (pageId != null) {
+        const ecpayConfigId = await resolveEcpayConfigIdForLcfPayment(
+            orderInfo,
+            row
+        );
+        if (ecpayConfigId == null) {
+            const result = {
+                status: 'rejected',
+                reason: '無法解析商店設定（ecpayConfigId）',
+            };
+            logLcfDonationResult(result, { pageId });
+            return result;
+        }
+
         const paymentTradeNo =
             row.merTradeNo != null ? String(row.merTradeNo).trim() : '';
         const result = await recordDonationFromPayment({
             largeCrowdfundingPageId: pageId,
-            merchantId: row.merchantId,
+            ecpayConfigId,
             donorName:
                 orderInfo?.fullName != null && orderInfo.fullName !== ''
                     ? orderInfo.fullName
@@ -232,9 +226,9 @@ async function completeDonationFromPayment(row, orderInfo, query) {
         });
         logLcfDonationResult(result, {
             pageId,
+            ecpayConfigId,
             trustOrderContext,
             paymentTradeNo: paymentTradeNo || null,
-            merchantId: row.merchantId,
         });
         return result;
     }

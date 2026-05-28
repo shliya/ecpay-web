@@ -26,6 +26,16 @@ function sidebarHeroOverlapPx(sidebar) {
         : 0;
 }
 
+function heroOverlapFromMarginRight(el) {
+    if (!el) {
+        return 0;
+    }
+    const marginRight = parseFloat(getComputedStyle(el).marginRight);
+    return Number.isFinite(marginRight) && marginRight < 0
+        ? Math.abs(marginRight)
+        : 0;
+}
+
 function resolveHeroFitMaxWidth(wrap, wrapStyle) {
     let maxW = parseFloat(wrapStyle.maxWidth);
     if (!Number.isFinite(maxW) || maxW <= 0) {
@@ -33,27 +43,47 @@ function resolveHeroFitMaxWidth(wrap, wrapStyle) {
     }
 
     const cluster = wrap.closest('.cf-main-cluster');
-    if (!cluster || cluster.clientWidth < 320) {
+    if (cluster && cluster.clientWidth >= 320) {
+        const sidebar = cluster.querySelector('.cf-sidebar-column');
+        const panel = cluster.querySelector('.cf-panel');
+        const clusterStyle = getComputedStyle(cluster);
+        const columnGap = parseFloat(clusterStyle.columnGap) || 0;
+        const reserved =
+            (sidebar ? sidebar.offsetWidth : 0) +
+            (panel ? panel.offsetWidth : 0) +
+            columnGap * 2;
+        const overlap = sidebarHeroOverlapPx(sidebar);
+        const available = cluster.clientWidth - reserved + overlap;
+
+        if (available > maxW) {
+            return maxW;
+        }
+        if (available > 48) {
+            return available;
+        }
         return maxW;
     }
 
-    const sidebar = cluster.querySelector('.cf-sidebar-column');
-    const panel = cluster.querySelector('.cf-panel');
-    const clusterStyle = getComputedStyle(cluster);
-    const columnGap = parseFloat(clusterStyle.columnGap) || 0;
-    const reserved =
-        (sidebar ? sidebar.offsetWidth : 0) +
-        (panel ? panel.offsetWidth : 0) +
-        columnGap * 2;
-    const overlap = sidebarHeroOverlapPx(sidebar);
-    const available = cluster.clientWidth - reserved + overlap;
+    const stage = wrap.closest('.cfd-stage');
+    if (stage && stage.clientWidth >= 320) {
+        const spacer = stage.querySelector('.cfd-sidebar-spacer');
+        const panelSlot = stage.querySelector('.cfd-panel-slot');
+        const columnGap = parseFloat(getComputedStyle(stage).columnGap) || 0;
+        const reserved =
+            (spacer ? spacer.offsetWidth : 0) +
+            (panelSlot ? panelSlot.offsetWidth : 0) +
+            columnGap * 2;
+        const overlap = heroOverlapFromMarginRight(spacer);
+        const available = stage.clientWidth - reserved + overlap;
 
-    if (available > maxW) {
-        return maxW;
+        if (available > maxW) {
+            return maxW;
+        }
+        if (available > 48) {
+            return available;
+        }
     }
-    if (available > 48) {
-        return available;
-    }
+
     return maxW;
 }
 

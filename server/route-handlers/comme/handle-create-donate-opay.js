@@ -150,6 +150,7 @@ module.exports = async (req, res) => {
         };
         if (lcfContext) {
             orderMeta.largeCrowdfundingPageId = lcfContext.pageId;
+            orderMeta.ecpayConfigId = lcfContext.ecpayConfigId;
         }
         if (videoId) {
             orderMeta.youtubeVideoPayload = videoId;

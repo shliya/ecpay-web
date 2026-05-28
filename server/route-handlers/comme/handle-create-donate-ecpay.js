@@ -136,6 +136,7 @@ module.exports = async (req, res) => {
         };
         if (lcfContext) {
             orderMeta.largeCrowdfundingPageId = lcfContext.pageId;
+            orderMeta.ecpayConfigId = lcfContext.ecpayConfigId;
         }
         await setPaymentOrder(result.merchantTradeNo, orderMeta);
         console.log('[ReturnUrl]: ', result.params.ReturnURL);

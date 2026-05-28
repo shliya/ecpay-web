@@ -1,6 +1,10 @@
 @import './crowdfunding-hero.css';
 @import './crowdfunding-line-seed-font.css';
 
+/*
+ * 感謝贊助頁（對齊設計稿）
+ * 左：主視覺（與主頁同欄位）　右：米色全高名單框（比主頁 panel 窄 50px）
+ */
 :root {
     --cf-page-bg: #d4c4a8;
     --cf-accent: #8b2323;
@@ -12,14 +16,19 @@
         -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff,
         0 0 4px rgba(255, 255, 255, 0.85);
     --cf-total-bar-text: #8b2323;
-    --cf-total-value-size: 1.15rem;
-    /* 感謝贊助：與主頁累積金額同色系＋白邊，字級放大 */
+    --cf-total-value-size: clamp(1.12rem, 1.55vw, 1.38rem);
+    --cf-donor-name-font-size: clamp(0.9rem, 1.32vw, 1.08rem);
+    --cf-donor-amount-font-size: clamp(0.72rem, 1.02vw, 0.86rem);
+    --cf-donor-tier-size: clamp(24px, 3.4vw, 30px);
+    --cf-donor-row-pad-y: clamp(0.26rem, 0.48vh, 0.36rem);
+    --cf-donor-detail-gap: clamp(0.1rem, 0.22vh, 0.15rem);
     --cfd-list-title-size: clamp(1.65rem, 3.2vw, 2.35rem);
     --cf-page-text: #2a2218;
     --cf-placeholder-bg: rgba(90, 75, 60, 0.15);
     --cf-hero-ratio: 4 / 5;
-    --cf-page-inset-bottom: 50px;
-    --cf-footer-bar-block-h: min(14vh, 112px);
+    --cf-page-inset: clamp(3.5rem, 5.5vw, 5.5rem);
+    --cf-page-inset-bottom: clamp(22px, 2.8vh, 34px);
+    --cf-footer-bar-block-h: min(11vh, 88px);
     --cf-footer-h: calc(
         var(--cf-footer-bar-block-h) + var(--cf-page-inset-bottom)
     );
@@ -27,16 +36,55 @@
     --cf-main-block-h: calc(
         100vh - var(--cf-footer-h) - var(--cf-main-top-pad) - 0.35rem
     );
-    /* 與主頁主視覺相同上限 */
-    --cf-hero-max-w: min(63vw, 800px);
+    --cf-hero-max-w: min(76vw, 1040px);
+    --cf-panel-w: min(52vw, 760px);
+    --cf-cluster-max-w: min(1920px, 100%);
+    --cf-leaderboard-col-w: clamp(180px, 10.5vw, 200px);
+    --cf-leaderboards-gap: 0.5rem;
+    --cf-sidebar-col-w: calc(
+        2 * var(--cf-leaderboard-col-w) + var(--cf-leaderboards-gap)
+    );
+    --cf-sidebar-shift-x: clamp(0.5rem, 1.5vw, 1.25rem);
+    --cf-sidebar-hero-overlap: clamp(6rem, 14vw, 12.5rem);
+    --cf-hero-panel-pull: clamp(1rem, 3vw, 2.75rem);
+    --cf-cluster-gap: 0.15rem;
+    --cfd-list-box-w: max(280px, calc(var(--cf-panel-w) - 50px));
+    --cfd-list-box-h: max(320px, calc(var(--cf-main-block-h) - 100px));
+    --cfd-stage-max-w: min(
+        var(--cf-cluster-max-w),
+        calc(
+            var(--cf-sidebar-col-w) + var(--cf-hero-max-w) +
+                var(--cfd-list-box-w) - var(--cf-sidebar-hero-overlap) -
+                var(--cf-hero-panel-pull) + var(--cf-cluster-gap) * 2
+        )
+    );
     --cfd-list-box-bg: #fdfbe4;
     --cfd-list-box-border: #2d2d2d;
-    --cfd-page-inset: clamp(1rem, 3vw, 2.5rem);
-    --cfd-stage-max-w: min(1080px, 96vw);
-    --cfd-hero-overlap: 10px;
-    /* 主視覺獨立高度（與主頁區塊同級）；列表依內容縮放 */
-    --cfd-hero-slot-h: var(--cf-main-block-h);
-    --cfd-list-scroll-max-h: min(40vh, 360px);
+    --cfd-list-header-pad: clamp(0.85rem, 1.6vw, 1.15rem);
+}
+
+@media (min-width: 1800px) and (max-width: 2200px) and (min-height: 1000px) and (max-height: 1200px) {
+    :root {
+        --cf-page-inset: 60px;
+        --cf-page-inset-bottom: 24px;
+        --cf-main-top-pad: 2.75rem;
+        --cf-footer-bar-block-h: 76px;
+        --cf-total-value-size: 1.34rem;
+        --cf-hero-max-w: 740px;
+        --cf-panel-w: 828px;
+        --cf-leaderboard-col-w: 196px;
+        --cf-leaderboards-gap: 8px;
+        --cf-sidebar-shift-x: 8px;
+        --cf-sidebar-hero-overlap: 268px;
+        --cf-hero-panel-pull: 3rem;
+        --cf-cluster-gap: 0;
+        --cf-donor-name-font-size: 1.05rem;
+        --cf-donor-amount-font-size: 0.84rem;
+        --cf-donor-tier-size: 28px;
+        --cf-donor-row-pad-y: 0.3rem;
+        --cf-donor-detail-gap: 0.12rem;
+        --cfd-list-title-size: 2.1rem;
+    }
 }
 
 *,
@@ -95,28 +143,36 @@ body.cfd-body {
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    padding: var(--cfd-page-inset);
+    padding: var(--cf-main-top-pad) var(--cf-page-inset)
+        var(--cf-page-inset-bottom);
 }
 
-/* 左：主視覺（在背景上）　右：米色列表框；主視覺僅壓框左緣約 10px */
+/* 三欄水平位置同主頁；主視覺與名單框頂緣對齊、同高 */
 .cfd-stage {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    align-items: center;
-    gap: 0;
+    grid-template-columns: auto auto minmax(0, var(--cfd-list-box-w));
+    align-items: start;
+    column-gap: var(--cf-cluster-gap);
     width: var(--cfd-stage-max-w);
     max-width: 100%;
+}
+
+.cfd-sidebar-spacer {
+    grid-column: 1;
+    width: var(--cf-sidebar-col-w);
+    min-width: var(--cf-sidebar-col-w);
+    margin-left: var(--cf-sidebar-shift-x);
+    margin-right: calc(-1 * var(--cf-sidebar-hero-overlap));
+    pointer-events: none;
 }
 
 .cfd-hero-col {
     position: relative;
     z-index: 2;
-    grid-column: 1;
+    grid-column: 2;
     display: flex;
     align-items: stretch;
     justify-content: flex-end;
-    align-self: center;
-    margin-right: calc(-1 * var(--cfd-hero-overlap));
     pointer-events: none;
 }
 
@@ -124,15 +180,16 @@ body.cfd-body {
     grid-area: unset;
     pointer-events: auto;
     width: max-content;
-    max-width: min(54vw, 580px);
-    height: var(--cfd-hero-slot-h);
-    max-height: calc(100vh - var(--cfd-page-inset) * 2 - 1rem);
+    max-width: var(--cf-hero-max-w);
+    height: var(--cf-main-block-h);
+    max-height: var(--cf-main-block-h);
     display: flex;
     align-items: flex-start;
     justify-content: center;
 }
 
 .cfd-hero-col .cf-hero-frame.has-hero {
+    max-width: var(--cf-hero-max-w);
     max-height: 100%;
 }
 
@@ -140,14 +197,26 @@ body.cfd-body {
     max-height: 100%;
 }
 
-.cfd-list-box {
-    grid-column: 2;
+.cfd-panel-slot {
+    grid-column: 3;
     position: relative;
     z-index: 1;
+    width: var(--cfd-list-box-w);
+    max-width: 100%;
     min-width: 0;
+    min-height: var(--cfd-list-box-h);
+    margin-left: calc(-1 * var(--cf-hero-panel-pull));
+    display: flex;
+    justify-content: flex-start;
+    align-items: stretch;
+}
+
+.cfd-list-box {
+    position: relative;
     width: 100%;
-    height: auto;
-    align-self: center;
+    height: 100%;
+    min-height: var(--cfd-list-box-h);
+    max-height: var(--cfd-list-box-h);
     display: flex;
     flex-direction: column;
     background: var(--cfd-list-box-bg);
@@ -159,6 +228,9 @@ body.cfd-body {
 .cfd-list-content {
     display: flex;
     flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    height: 100%;
     padding: 0 clamp(0.85rem, 2vw, 1.35rem);
 }
 
@@ -169,7 +241,7 @@ body.cfd-body {
     grid-template-rows: auto auto;
     align-items: end;
     gap: 0.35rem 1rem;
-    padding: 1rem 0 0.65rem;
+    padding: var(--cfd-list-header-pad) 0 0.55rem;
 }
 
 .cfd-update-hint {
@@ -180,7 +252,7 @@ body.cfd-body {
     font-family: var(--cf-font-family);
     font-size: calc(var(--cf-total-value-size) * 0.82);
     font-weight: 600;
-    color: var(--cf-total-bar-text);
+    color: var(--cf-page-text);
     letter-spacing: 0.02em;
     line-height: 1.35;
 }
@@ -210,11 +282,11 @@ body.cfd-body {
 }
 
 .cfd-donor-list {
-    flex: 0 1 auto;
+    flex: 1 1 auto;
     margin: 0;
-    padding: 0.1rem 0 0.35rem;
+    padding: 0.15rem 0 0.25rem;
     list-style: none;
-    max-height: var(--cfd-list-scroll-max-h);
+    min-height: 0;
     overflow-y: auto;
     scrollbar-width: thin;
 }
@@ -223,19 +295,23 @@ body.cfd-body {
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 0.45rem;
+    gap: 0.32rem;
     width: 100%;
-    padding: 0.45rem 0.1rem;
+    padding: var(--cf-donor-row-pad-y) 0.1rem;
     font-family: inherit;
-    font-size: var(--cf-total-value-size);
-    border-bottom: 1px solid rgba(45, 45, 45, 0.1);
+    font-size: var(--cf-donor-name-font-size);
+    border-bottom: none;
     box-sizing: border-box;
+}
+
+.cfd-donor-list .cf-donor-item:not(:last-child) {
+    border-bottom: 1px solid rgba(45, 45, 45, 0.12);
 }
 
 .cfd-donor-list .cf-donor-tier {
     flex-shrink: 0;
-    width: 28px;
-    height: 28px;
+    width: var(--cf-donor-tier-size);
+    height: var(--cf-donor-tier-size);
     border-radius: 50%;
     overflow: hidden;
     display: inline-flex;
@@ -254,17 +330,24 @@ body.cfd-body {
     display: block;
 }
 
+.cfd-donor-list .cf-donor-detail {
+    gap: var(--cf-donor-detail-gap);
+}
+
 .cfd-donor-list .cf-donor-name {
     color: var(--cf-page-text);
+    line-height: 1.28;
 }
 
 .cfd-donor-list .cf-donor-amount {
     flex-shrink: 0;
+    font-size: var(--cf-donor-amount-font-size);
     font-family: var(--cf-donor-font-family);
     font-weight: 700;
     color: var(--cf-accent);
-    text-align: right;
-    min-width: 4.25rem;
+    text-align: left;
+    min-width: 0;
+    line-height: 1.25;
 }
 
 .cfd-donor-list .cf-donor-empty {
@@ -306,6 +389,7 @@ body.cfd-body {
     padding: 0.3rem 0.9rem;
     cursor: pointer;
     text-shadow: var(--cf-milestone-text-shadow);
+    transition: background 0.2s ease;
 }
 
 .cfd-pagination__btn:hover:not(:disabled) {
@@ -331,15 +415,19 @@ body.cfd-body {
 
     .cfd-stage {
         grid-template-columns: 1fr;
-        grid-template-rows: auto 1fr;
+        grid-template-rows: auto auto;
+        align-items: start;
         width: 100%;
+    }
+
+    .cfd-sidebar-spacer {
+        display: none;
     }
 
     .cfd-hero-col {
         grid-column: 1;
         grid-row: 1;
         justify-content: center;
-        margin-right: 0;
         margin-bottom: 0.5rem;
     }
 
@@ -350,9 +438,23 @@ body.cfd-body {
         max-height: none;
     }
 
-    .cfd-list-box {
+    .cfd-panel-slot {
         grid-column: 1;
         grid-row: 2;
+        width: 100%;
+        min-height: 0;
+        margin-left: 0;
+    }
+
+    .cfd-list-box {
+        width: 100%;
+        min-height: 0;
+        max-height: none;
+        height: auto;
+    }
+
+    .cfd-donor-list {
+        max-height: min(42vh, 360px);
     }
 
     .cfd-pagination {

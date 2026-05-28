@@ -185,9 +185,12 @@ export function renderDonorList(listEl, pageData, donors, options) {
         const amount = document.createElement('span');
         amount.className = 'cf-donor-amount';
         amount.textContent = formatMoney(d.amount);
+        const detail = document.createElement('div');
+        detail.className = 'cf-donor-detail';
+        detail.appendChild(name);
+        detail.appendChild(amount);
         li.appendChild(tier);
-        li.appendChild(name);
-        li.appendChild(amount);
+        li.appendChild(detail);
         listEl.appendChild(li);
     });
 

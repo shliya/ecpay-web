@@ -13,7 +13,7 @@ import {
 } from './js/crowdfunding-hero.js';
 
 const DEFAULT_KEY = 'default';
-const POLL_MS = 5000;
+const POLL_MS = 8000;
 let pollTimer = null;
 let pageDataCache = null;
 let pageKeyCache = DEFAULT_KEY;

@@ -40,6 +40,7 @@ function pageRowToApiJson(row) {
     const d = typeof row.get === 'function' ? row.get({ plain: true }) : row;
     return {
         id: d.id,
+        ecpayConfigId: d.ecpayConfigId,
         pageKey: d.pageKey,
         merchantId: d.merchantId,
         largeFundraisingName: d.largeFundraisingName || '',
@@ -85,13 +86,15 @@ function isPageActiveStatus(status) {
 
 /**
  * @param {object} body
- * @param {string} merchantId
+ * @param {number} ecpayConfigId
+ * @param {string} merchantId 綠界代號（冗餘，供公開 URL／顯示）
  * @param {string} pageKey
  * @returns {object}
  */
-function apiJsonToPageRow(body, merchantId, pageKey) {
+function apiJsonToPageRow(body, ecpayConfigId, merchantId, pageKey) {
     const b = body && typeof body === 'object' ? body : {};
     return {
+        ecpayConfigId,
         merchantId,
         pageKey,
         largeFundraisingName: String(
@@ -157,15 +160,18 @@ function assertPageAcceptsDonationsAtOrderTime(page) {
 /**
  * 付款回調（有 DB 建單紀錄）：僅確認頁面存在、商家一致、未軟刪除
  * @param {object} page
- * @param {string} merchantId
+ * @param {number|null|undefined} ecpayConfigId
  * @returns {{ ok: boolean, reason?: string }}
  */
-function assertPageAcceptsPaymentCallback(page, merchantId) {
+function assertPageAcceptsPaymentCallback(page, ecpayConfigId) {
     if (!page) {
         return { ok: false, reason: '找不到大型募資活動' };
     }
-    const mid = String(merchantId || '').trim();
-    if (mid && String(page.merchantId || '').trim() !== mid) {
+    const cfgId = parseEcpayConfigId(ecpayConfigId);
+    if (
+        cfgId != null &&
+        parseEcpayConfigId(page.ecpayConfigId) !== cfgId
+    ) {
         return { ok: false, reason: '商家與募資頁不符' };
     }
     if (normalizePageStatus(page.status) === LCF_PAGE_STATUS.DELETED) {
@@ -263,6 +269,17 @@ function parseLargeCrowdfundingPageId(raw) {
     return n;
 }
 
+function parseEcpayConfigId(raw) {
+    if (raw == null || raw === '') {
+        return null;
+    }
+    const n = Number(raw);
+    if (!Number.isInteger(n) || n <= 0) {
+        return null;
+    }
+    return n;
+}
+
 module.exports = {
     PAGE_KEY_RE,
     LCF_PAGE_STATUS,
@@ -277,4 +294,5 @@ module.exports = {
     assertPageAcceptsPaymentCallback,
     computeProgressPercent,
     parseLargeCrowdfundingPageId,
+    parseEcpayConfigId,
 };

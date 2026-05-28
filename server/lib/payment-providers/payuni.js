@@ -7,6 +7,7 @@ const {
     getYoutubePricePerSecFromConfig,
     getYoutubeMaxPlaySecFromConfig,
 } = require('../youtube-donation');
+const { getPayuniDonationPaymentFlags } = require('../payment-donation-methods');
 
 require('dotenv').config({ path: path.resolve(__dirname, '../../../.env') });
 
@@ -80,7 +81,8 @@ function createPayment(
         TradeAmt: Math.floor(Number(orderData.amount)) || 0,
         Timestamp: Math.floor(Date.now() / 1000),
         ProdDesc: orderData.description || '斗內贊助',
-        NotifyURL: `${base}/api/v1/comme/payuni/id=${merchantId}?name=${safeName}&msg=${safeMsg}${vidPart}${extraNotifyQuery}`, // 背景回調
+        NotifyURL: `${base}/api/v1/comme/payuni/id=${merchantId}?name=${safeName}&msg=${safeMsg}${vidPart}${extraNotifyQuery}`,
+        ...getPayuniDonationPaymentFlags(),
     };
 
     const EncryptInfo = aesEncrypt(

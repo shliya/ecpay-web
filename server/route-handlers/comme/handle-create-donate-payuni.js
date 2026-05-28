@@ -63,7 +63,11 @@ module.exports = async (req, res) => {
             });
             return;
         }
-        if (largeCrowdfundingPageId != null && largeCrowdfundingPageId !== '' && !lcfContext) {
+        if (
+            largeCrowdfundingPageId != null &&
+            largeCrowdfundingPageId !== '' &&
+            !lcfContext
+        ) {
             res.status(400).json({ error: 'largeCrowdfundingPageId 無效' });
             return;
         }
@@ -76,8 +80,7 @@ module.exports = async (req, res) => {
             return;
         }
 
-        const hasYoutubeUrl =
-            youtubeUrl != null && String(youtubeUrl).trim();
+        const hasYoutubeUrl = youtubeUrl != null && String(youtubeUrl).trim();
         if (hasYoutubeUrl && row.youtubeDonationEnabled !== true) {
             res.status(403).json({ error: '影音斗內已關閉' });
             return;
@@ -164,7 +167,10 @@ module.exports = async (req, res) => {
             fullMessage: orderData.message || '',
             fullName: orderData.name || '',
             ...(lcfContext
-                ? { largeCrowdfundingPageId: lcfContext.pageId }
+                ? {
+                      largeCrowdfundingPageId: lcfContext.pageId,
+                      ecpayConfigId: lcfContext.ecpayConfigId,
+                  }
                 : {}),
         });
 

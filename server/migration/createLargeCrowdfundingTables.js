@@ -33,6 +33,8 @@ async function tableExists(tableName) {
             await sequelize.query(`
                 CREATE TABLE ${PAGES_TABLE} (
                     id BIGSERIAL PRIMARY KEY,
+                    "ecpayConfigId" BIGINT NOT NULL
+                        REFERENCES ecpay_config(id),
                     "merchantId" VARCHAR(50) NOT NULL,
                     "pageKey" VARCHAR(80) NOT NULL,
                     "largeFundraisingName" VARCHAR(200) NOT NULL DEFAULT '',
@@ -57,8 +59,8 @@ async function tableExists(tableName) {
                     status SMALLINT NOT NULL DEFAULT 1,
                     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
                     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-                    CONSTRAINT uq_large_crowdfunding_pages_merchant_page
-                        UNIQUE ("merchantId", "pageKey")
+                    CONSTRAINT uq_large_crowdfunding_pages_config_page
+                        UNIQUE ("ecpayConfigId", "pageKey")
                 )
             `);
             await sequelize.query(`
@@ -77,6 +79,8 @@ async function tableExists(tableName) {
                     id BIGSERIAL PRIMARY KEY,
                     "largeCrowdfundingPageId" BIGINT NOT NULL
                         REFERENCES ${PAGES_TABLE}(id) ON DELETE CASCADE,
+                    "ecpayConfigId" BIGINT NOT NULL
+                        REFERENCES ecpay_config(id),
                     "merchantId" VARCHAR(50) NOT NULL,
                     "pageKey" VARCHAR(80) NOT NULL,
                     "donorName" VARCHAR(100) NOT NULL,
