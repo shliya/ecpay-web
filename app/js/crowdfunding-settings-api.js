@@ -2,18 +2,7 @@
  * 大型募資設定 API（伺服器 API + localStorage 草稿／預覽）
  */
 
-import { getTotpToken } from './totp-guard.js';
-
 const CF_DRAFT_PREFIX = 'ecpay-cf-draft:';
-
-function buildAuthHeaders(merchantId, extra = {}) {
-    const headers = { ...extra };
-    const token = getTotpToken(merchantId);
-    if (token) {
-        headers['X-TOTP-Token'] = token;
-    }
-    return headers;
-}
 const CF_PREVIEW_PREFIX = 'ecpay-cf-preview:';
 
 /** @returns {string} */
@@ -196,6 +185,43 @@ export async function fetchDonorsSpecial(pageKey) {
  * @param {string} merchantId
  * @returns {Promise<boolean>}
  */
+/**
+ * GET /api/v1/comme/crowdfunding/payment-config/id=:merchantId
+ * @param {string} merchantId
+ */
+export async function fetchLcfPaymentConfig(merchantId) {
+    const url =
+        '/api/v1/comme/crowdfunding/payment-config/id=' +
+        encodeURIComponent(merchantId);
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || '載入付款設定失敗');
+    }
+    return res.json();
+}
+
+/**
+ * PATCH /api/v1/comme/crowdfunding/payment-config/id=:merchantId
+ * @param {string} merchantId
+ * @param {{ lcfEcpayEnabled?: boolean, lcfPayuniEnabled?: boolean, lcfOpayEnabled?: boolean }} body
+ */
+export async function saveLcfPaymentConfig(merchantId, body) {
+    const url =
+        '/api/v1/comme/crowdfunding/payment-config/id=' +
+        encodeURIComponent(merchantId);
+    const res = await fetch(url, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+        throw new Error(data.error || '儲存失敗');
+    }
+    return data;
+}
+
 export async function fetchLargeCrowdfundingEnabled(merchantId) {
     try {
         const res = await fetch(
@@ -251,10 +277,7 @@ export async function fetchCrowdfundingFromApi(merchantId, pageKey) {
         '/pageKey=' +
         encodeURIComponent(pageKey);
     try {
-        const res = await fetch(url, {
-            cache: 'no-store',
-            headers: buildAuthHeaders(merchantId),
-        });
+        const res = await fetch(url, { cache: 'no-store' });
         if (!res.ok) {
             return null;
         }
@@ -357,21 +380,11 @@ export async function saveCrowdfundingPage(merchantId, pageKey, data) {
             encodeURIComponent(pageKey);
         const res = await fetch(url, {
             method: 'PUT',
-            headers: buildAuthHeaders(merchantId, {
-                'Content-Type': 'application/json',
-            }),
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),
         });
         if (res.ok) {
             return { ok: true, source: 'api' };
-        }
-        if (res.status === 401) {
-            const body = await res.json().catch(() => ({}));
-            return {
-                ok: false,
-                source: 'auth',
-                error: body.error || '需要 TOTP 驗證碼',
-            };
         }
     } catch {
         /* 網路錯誤 */
@@ -400,21 +413,10 @@ export async function deleteCrowdfundingPage(merchantId, pageKey) {
             encodeURIComponent(merchantId) +
             '/pageKey=' +
             encodeURIComponent(pageKey);
-        const res = await fetch(url, {
-            method: 'DELETE',
-            headers: buildAuthHeaders(merchantId),
-        });
+        const res = await fetch(url, { method: 'DELETE' });
         if (res.ok) {
             clearCrowdfundingDraft(merchantId, pageKey);
             return { ok: true, source: 'api' };
-        }
-        if (res.status === 401) {
-            const body = await res.json().catch(() => ({}));
-            return {
-                ok: false,
-                source: 'auth',
-                error: body.error || '需要 TOTP 驗證碼',
-            };
         }
         const body = await res.json().catch(() => ({}));
         return {
@@ -439,21 +441,11 @@ export async function publishCrowdfundingPage(merchantId, pageKey, data) {
             '/publish';
         const res = await fetch(url, {
             method: 'POST',
-            headers: buildAuthHeaders(merchantId, {
-                'Content-Type': 'application/json',
-            }),
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),
         });
         if (res.ok) {
             return { ok: true, source: 'api' };
-        }
-        if (res.status === 401) {
-            const body = await res.json().catch(() => ({}));
-            return {
-                ok: false,
-                source: 'auth',
-                error: body.error || '需要 TOTP 驗證碼',
-            };
         }
     } catch {
         /* 網路錯誤 */

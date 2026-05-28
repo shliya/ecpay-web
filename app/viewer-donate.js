@@ -175,10 +175,16 @@ import './css/viewer-donate.css';
 
     function applyPaymentVisibility(cfg) {
         cfg = cfg || {};
-        var ecpayOk = cfg.ecpayEnabled !== false;
-        var payuniOk = cfg.payuniEnabled !== false;
+        var isLcf = getLargeCrowdfundingPageId() != null;
+        var ecpayOk = isLcf
+            ? cfg.lcfEcpayEnabled !== false
+            : cfg.ecpayEnabled !== false;
+        var payuniOk = isLcf
+            ? cfg.lcfPayuniEnabled !== false
+            : cfg.payuniEnabled !== false;
         var opayOk =
-            cfg.opayEnabled !== false && cfg.opayConfigured === true;
+            (isLcf ? cfg.lcfOpayEnabled !== false : cfg.opayEnabled !== false) &&
+            cfg.opayConfigured === true;
         var btnEcpay = document.getElementById('btnEcpay');
         var altLinks = document.querySelector('.alt-links');
         var linkPayuni = document.getElementById('linkPayuni');

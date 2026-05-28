@@ -36,6 +36,65 @@
     color: #fff;
 }
 
+.cfl-payment-panel {
+    background: #37474f;
+    border: 1px solid #546e7a;
+    border-radius: 12px;
+    padding: 20px 22px;
+    margin-bottom: 24px;
+}
+
+.cfl-payment-panel h2 {
+    margin: 0 0 8px;
+    font-size: 1.15rem;
+    color: #eceff1;
+}
+
+.cfl-payment-hint {
+    margin: 0 0 16px;
+    color: #b0bec5;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.cfl-payment-switches {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px 24px;
+    margin-bottom: 16px;
+}
+
+.cfl-payment-switch {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #eceff1;
+    cursor: pointer;
+    user-select: none;
+}
+
+.cfl-payment-switch input {
+    width: 18px;
+    height: 18px;
+    accent-color: #4fc3f7;
+}
+
+.cfl-payment-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+}
+
+.cfl-payment-msg {
+    font-size: 0.9rem;
+    color: #a5d6a7;
+}
+
+.cfl-payment-msg.is-error {
+    color: #ef9a9a;
+}
+
 .cfl-loading,
 .cfl-error {
     margin-bottom: 16px;

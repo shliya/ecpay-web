@@ -29,6 +29,8 @@ const {
     handleGetCrowdfundingDonorsRequest,
     handleGetCrowdfundingDonorsTenRequest,
     handleGetCrowdfundingDonorsSpecialRequest,
+    handleGetLcfPaymentConfigRequest,
+    handlePatchLcfPaymentConfigRequest,
 } = require('../../route-handlers/comme');
 
 //綠界notify回調
@@ -116,23 +118,27 @@ router.get(
 );
 router.get('/crowdfunding/id=:merchantId', handleListCrowdfundingPagesRequest);
 router.get(
+    '/crowdfunding/payment-config/id=:merchantId',
+    handleGetLcfPaymentConfigRequest
+);
+router.patch(
+    '/crowdfunding/payment-config/id=:merchantId',
+    handlePatchLcfPaymentConfigRequest
+);
+router.get(
     '/crowdfunding/id=:merchantId/pageKey=:pageKey',
-    requireTotp,
     handleGetCrowdfundingPageRequest
 );
 router.put(
     '/crowdfunding/id=:merchantId/pageKey=:pageKey',
-    requireTotp,
     handlePutCrowdfundingPageRequest
 );
 router.post(
     '/crowdfunding/id=:merchantId/pageKey=:pageKey/publish',
-    requireTotp,
     handlePublishCrowdfundingPageRequest
 );
 router.delete(
     '/crowdfunding/id=:merchantId/pageKey=:pageKey',
-    requireTotp,
     handleDeleteCrowdfundingPageRequest
 );
 

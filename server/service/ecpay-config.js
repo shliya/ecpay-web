@@ -43,6 +43,9 @@ function normalizeUpdateField(field, value) {
         field === 'ecpayEnabled' ||
         field === 'payuniEnabled' ||
         field === 'opayEnabled' ||
+        field === 'lcfEcpayEnabled' ||
+        field === 'lcfPayuniEnabled' ||
+        field === 'lcfOpayEnabled' ||
         field === 'youtubeDonationEnabled'
     ) {
         if (value === true || value === false) return value;
@@ -102,6 +105,9 @@ async function updateEcpayConfig(merchantId, updates) {
         'payuniEnabled',
         'youtubeDonationEnabled',
         'opayEnabled',
+        'lcfEcpayEnabled',
+        'lcfPayuniEnabled',
+        'lcfOpayEnabled',
     ];
     const updateData = {};
 
@@ -119,6 +125,9 @@ async function updateEcpayConfig(merchantId, updates) {
                 (field === 'ecpayEnabled' ||
                     field === 'payuniEnabled' ||
                     field === 'opayEnabled' ||
+                    field === 'lcfEcpayEnabled' ||
+                    field === 'lcfPayuniEnabled' ||
+                    field === 'lcfOpayEnabled' ||
                     field === 'youtubeDonationEnabled') &&
                 normalized === null
             ) {

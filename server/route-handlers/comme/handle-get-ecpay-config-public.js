@@ -24,6 +24,9 @@ function toPublicConfig(config) {
         ecpayEnabled: config.ecpayEnabled !== false,
         payuniEnabled: config.payuniEnabled !== false,
         opayEnabled: config.opayEnabled !== false,
+        lcfEcpayEnabled: config.lcfEcpayEnabled !== false,
+        lcfPayuniEnabled: config.lcfPayuniEnabled !== false,
+        lcfOpayEnabled: config.lcfOpayEnabled !== false,
         opayConfigured: Boolean(
             config.opayMerchantId &&
                 String(config.opayMerchantId).trim() &&

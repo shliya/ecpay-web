@@ -35,6 +35,9 @@ module.exports = async (req, res) => {
             ecpayEnabled: config.ecpayEnabled !== false,
             payuniEnabled: config.payuniEnabled !== false,
             opayEnabled: config.opayEnabled !== false,
+            lcfEcpayEnabled: config.lcfEcpayEnabled !== false,
+            lcfPayuniEnabled: config.lcfPayuniEnabled !== false,
+            lcfOpayEnabled: config.lcfOpayEnabled !== false,
             youtubeDonationEnabled: config.youtubeDonationEnabled === true,
             largeCrowdfundingEnabled:
                 config.largeCrowdfundingEnabled === true,

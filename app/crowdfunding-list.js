@@ -1,11 +1,10 @@
 import './css/crowdfunding-list.css';
-import checkTotpBinding, {
-    requireTotpVerification,
-} from './js/totp-guard.js';
 import {
     deleteCrowdfundingPage,
     fetchCrowdfundingList,
     fetchLargeCrowdfundingEnabled,
+    fetchLcfPaymentConfig,
+    saveLcfPaymentConfig,
 } from './js/crowdfunding-settings-api.js';
 
 let merchantId = '';
@@ -197,19 +196,10 @@ async function handleDeleteProject(pageKey, displayName) {
         return;
     }
 
-    const totpOk = await requireTotpVerification(merchantId);
-    if (!totpOk) {
-        return;
-    }
-
     showError('');
     const result = await deleteCrowdfundingPage(merchantId, pageKey);
     if (result.ok) {
         await loadList();
-        return;
-    }
-    if (result.source === 'auth') {
-        showError(result.error || '需要 TOTP 驗證');
         return;
     }
     showError(result.error || '刪除失敗，請稍後再試');
@@ -228,11 +218,83 @@ async function loadList() {
     }
 }
 
+function setLcfPaymentMsg(text, isError) {
+    const el = document.getElementById('cflPaymentMsg');
+    if (!el) {
+        return;
+    }
+    if (!text) {
+        el.hidden = true;
+        el.textContent = '';
+        el.classList.remove('is-error');
+        return;
+    }
+    el.hidden = false;
+    el.textContent = text;
+    el.classList.toggle('is-error', Boolean(isError));
+}
+
+function applyLcfPaymentToggles(config) {
+    const cfg = config || {};
+    const ecpayEl = document.getElementById('lcfEcpayEnabled');
+    const payuniEl = document.getElementById('lcfPayuniEnabled');
+    const opayEl = document.getElementById('lcfOpayEnabled');
+    if (ecpayEl) {
+        ecpayEl.checked = cfg.lcfEcpayEnabled !== false;
+    }
+    if (payuniEl) {
+        payuniEl.checked = cfg.lcfPayuniEnabled !== false;
+    }
+    if (opayEl) {
+        opayEl.checked = cfg.lcfOpayEnabled !== false;
+    }
+}
+
+async function loadLcfPaymentSettings() {
+    setLcfPaymentMsg('');
+    try {
+        const config = await fetchLcfPaymentConfig(merchantId);
+        applyLcfPaymentToggles(config);
+    } catch (err) {
+        setLcfPaymentMsg(
+            err && err.message ? err.message : '載入付款設定失敗',
+            true
+        );
+    }
+}
+
+async function saveLcfPaymentSettings() {
+    setLcfPaymentMsg('');
+    const body = {
+        lcfEcpayEnabled:
+            document.getElementById('lcfEcpayEnabled')?.checked ?? true,
+        lcfPayuniEnabled:
+            document.getElementById('lcfPayuniEnabled')?.checked ?? true,
+        lcfOpayEnabled:
+            document.getElementById('lcfOpayEnabled')?.checked ?? true,
+    };
+
+    try {
+        const data = await saveLcfPaymentConfig(merchantId, body);
+        applyLcfPaymentToggles(data);
+        setLcfPaymentMsg('已儲存大型募資付款設定');
+        setTimeout(() => setLcfPaymentMsg(''), 3000);
+    } catch (err) {
+        setLcfPaymentMsg(
+            err && err.message ? err.message : '儲存失敗',
+            true
+        );
+    }
+}
+
 function bindEvents() {
     document.getElementById('btnRefresh')?.addEventListener('click', loadList);
     document.getElementById('btnCreate')?.addEventListener('click', () => {
         window.location.href = getSettingsUrl(null);
     });
+    document
+        .getElementById('btnSaveLcfPayment')
+        ?.addEventListener('click', saveLcfPaymentSettings);
 }
 
 async function init() {
@@ -246,11 +308,6 @@ async function init() {
         label.textContent = merchantId;
     }
 
-    const totpOk = await checkTotpBinding(merchantId);
-    if (!totpOk) {
-        return;
-    }
-
     const enabled = await fetchLargeCrowdfundingEnabled(merchantId);
     if (!enabled) {
         window.location.href =
@@ -259,7 +316,7 @@ async function init() {
     }
 
     bindEvents();
-    await loadList();
+    await Promise.all([loadLcfPaymentSettings(), loadList()]);
 }
 
 init();

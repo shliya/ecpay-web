@@ -15,6 +15,9 @@ const {
     getYoutubePricePerSecFromConfig,
     getYoutubeMaxPlaySecFromConfig,
 } = require('../../lib/youtube-donation');
+const {
+    isDonationPaymentEnabled,
+} = require('../../lib/donation-payment-enabled');
 
 module.exports = async (req, res) => {
     try {
@@ -71,7 +74,7 @@ module.exports = async (req, res) => {
             res.status(400).json({ error: 'largeCrowdfundingPageId 無效' });
             return;
         }
-        if (row.payuniEnabled === false) {
+        if (!isDonationPaymentEnabled(row, 'payuni', Boolean(lcfContext))) {
             res.status(403).json({ error: '此付款已關閉' });
             return;
         }

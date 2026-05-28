@@ -21,6 +21,43 @@
             <p class="cfl-lead">
                 商家代號：<strong id="merchantIdLabel">—</strong>
             </p>
+
+            <section class="cfl-payment-panel" aria-labelledby="cflPaymentTitle">
+                <h2 id="cflPaymentTitle">大型募資付款方式</h2>
+                <p class="cfl-payment-hint">
+                    僅影響從大型募資頁進入的斗內；與「商店設定」內一般斗內的金流開關互不影響。金流帳號仍須在商店設定填寫。
+                </p>
+                <div class="cfl-payment-switches">
+                    <label class="cfl-payment-switch">
+                        <input type="checkbox" id="lcfEcpayEnabled" checked />
+                        <span>開放綠界</span>
+                    </label>
+                    <label class="cfl-payment-switch">
+                        <input type="checkbox" id="lcfPayuniEnabled" checked />
+                        <span>開放 PAYUNi</span>
+                    </label>
+                    <label class="cfl-payment-switch">
+                        <input type="checkbox" id="lcfOpayEnabled" checked />
+                        <span>開放歐付寶</span>
+                    </label>
+                </div>
+                <div class="cfl-payment-actions">
+                    <button
+                        type="button"
+                        class="btn btn-primary"
+                        id="btnSaveLcfPayment"
+                    >
+                        儲存付款設定
+                    </button>
+                    <span
+                        id="cflPaymentMsg"
+                        class="cfl-payment-msg"
+                        role="status"
+                        hidden
+                    ></span>
+                </div>
+            </section>
+
             <div class="cfl-loading" id="cflLoading" hidden>載入中…</div>
             <div class="cfl-error" id="cflError" hidden></div>
             <div class="cfl-list" id="cflList"></div>

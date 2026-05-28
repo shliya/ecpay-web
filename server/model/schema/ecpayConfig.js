@@ -127,6 +127,25 @@ const EcpayConfig = sequelize.define(
             defaultValue: true,
             field: 'payuniEnabled',
         },
+        /** 大型募資斗內：綠界（與一般斗內 ecpayEnabled 分開） */
+        lcfEcpayEnabled: {
+            type: DataTypes.BOOLEAN,
+            allowNull: true,
+            defaultValue: true,
+            field: 'lcfEcpayEnabled',
+        },
+        lcfPayuniEnabled: {
+            type: DataTypes.BOOLEAN,
+            allowNull: true,
+            defaultValue: true,
+            field: 'lcfPayuniEnabled',
+        },
+        lcfOpayEnabled: {
+            type: DataTypes.BOOLEAN,
+            allowNull: true,
+            defaultValue: true,
+            field: 'lcfOpayEnabled',
+        },
         youtubeDonationEnabled: {
             type: DataTypes.BOOLEAN,
             allowNull: true,

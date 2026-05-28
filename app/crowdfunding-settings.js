@@ -1,10 +1,6 @@
 import './css/common.css';
 import './css/crowdfunding-settings.css';
 import {
-    requireTotpVerification,
-    refreshTotpVerification,
-} from './js/totp-guard.js';
-import {
     fetchLargeCrowdfundingEnabled,
     getCrowdfundingActivityStatus,
     loadCrowdfundingPage,
@@ -396,7 +392,7 @@ async function loadPage(preferDraft) {
     }
 }
 
-async function handleSave(isRetry) {
+async function handleSave() {
     try {
         const data = collectFormData();
         const result = await saveCrowdfundingPage(
@@ -404,14 +400,6 @@ async function handleSave(isRetry) {
             data.pageKey,
             data
         );
-        if (result.source === 'auth' && !isRetry) {
-            const verified = await refreshTotpVerification(merchantId);
-            if (verified) {
-                return handleSave(true);
-            }
-            showMessage(result.error || '請完成 TOTP 驗證', 'error');
-            return;
-        }
         loadSource = result.source === 'api' ? 'api' : 'localDraft';
         updateSourceHint();
         updateStatusPanel(data);
@@ -428,7 +416,7 @@ async function handleSave(isRetry) {
     }
 }
 
-async function handlePublish(isRetry) {
+async function handlePublish() {
     try {
         const data = collectFormData();
         const result = await publishCrowdfundingPage(
@@ -436,14 +424,6 @@ async function handlePublish(isRetry) {
             data.pageKey,
             data
         );
-        if (result.source === 'auth' && !isRetry) {
-            const verified = await refreshTotpVerification(merchantId);
-            if (verified) {
-                return handlePublish(true);
-            }
-            showMessage(result.error || '請完成 TOTP 驗證', 'error');
-            return;
-        }
         loadSource = result.source === 'api' ? 'api' : loadSource;
         updateSourceHint();
         updateStatusPanel(data);
@@ -534,11 +514,6 @@ async function init() {
             pageKeyInput.value = pageKeyFromUrl;
         }
         setPageKeyReadonly(true);
-    }
-
-    const totpOk = await requireTotpVerification(merchantId);
-    if (!totpOk) {
-        return;
     }
 
     const enabled = await fetchLargeCrowdfundingEnabled(merchantId);

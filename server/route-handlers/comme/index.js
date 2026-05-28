@@ -24,4 +24,6 @@ module.exports = {
     handleGetCrowdfundingDonorsRequest: require('./handle-get-crowdfunding-donors'),
     handleGetCrowdfundingDonorsTenRequest: require('./handle-get-crowdfunding-donors-ten'),
     handleGetCrowdfundingDonorsSpecialRequest: require('./handle-get-crowdfunding-donors-special'),
+    handleGetLcfPaymentConfigRequest: require('./handle-get-lcf-payment-config'),
+    handlePatchLcfPaymentConfigRequest: require('./handle-patch-lcf-payment-config'),
 };
