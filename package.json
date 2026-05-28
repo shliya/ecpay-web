@@ -9,7 +9,7 @@
         "dev:client": "webpack serve --mode development",
         "dev-web": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
         "clean": "rimraf public/*.js public/*.html",
-        "build": "webpack",
+        "build": "webpack && node scripts/copy-static-for-public.js",
         "start": "npm run build && node index.js",
         "start:prod": "node index.js",
         "dev": "webpack serve --mode development",

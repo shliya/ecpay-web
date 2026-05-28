@@ -71,6 +71,28 @@ const EcpayConfig = sequelize.define(
             field: 'payuniHashIV',
             unique: true,
         },
+        opayMerchantId: {
+            type: DataTypes.STRING(100),
+            allowNull: true,
+            field: 'opayMerchantId',
+            unique: true,
+        },
+        opayHashKey: {
+            type: DataTypes.STRING(100),
+            allowNull: true,
+            field: 'opayHashKey',
+        },
+        opayHashIV: {
+            type: DataTypes.STRING(100),
+            allowNull: true,
+            field: 'opayHashIV',
+        },
+        opayEnabled: {
+            type: DataTypes.BOOLEAN,
+            allowNull: true,
+            defaultValue: true,
+            field: 'opayEnabled',
+        },
         totpSecret: {
             type: DataTypes.STRING(255),
             allowNull: true,
@@ -122,6 +144,13 @@ const EcpayConfig = sequelize.define(
             allowNull: true,
             defaultValue: 30,
             field: 'youtubeDonationMaxPlaySec',
+        },
+        /** 大型募資後台／建單功能（手動開啟，預設關閉） */
+        largeCrowdfundingEnabled: {
+            type: DataTypes.BOOLEAN,
+            allowNull: true,
+            defaultValue: false,
+            field: 'largeCrowdfundingEnabled',
         },
     },
     {

@@ -1,0 +1,1641 @@
+@import './crowdfunding-hero.css';
+@import './crowdfunding-line-seed-font.css';
+
+:root {
+    --cf-page-bg: #d4c4a8;
+    --cf-accent: #8b2323;
+    --cf-accent-muted: #8b2323;
+    --cf-cta-bg: #fff;
+    --cf-cta-border: #8b2323;
+    --cf-cta-text: #8b2323;
+    --cf-paper-bg: rgba(255, 252, 245, 0.94);
+    --cf-sidebar-bg: rgba(245, 240, 232, 0.82);
+    /* 進度條：填色桃膚色、軌道淺灰、字深紅＋白邊（對齊設計稿） */
+    --cf-timeline-track: #d9d9d9;
+    --cf-timeline-fill: #e5bb8d;
+    --cf-timeline-text: #912c22;
+    --cf-timeline-text-shadow: var(--cf-milestone-text-shadow);
+    --cf-muted-text: #6b5348;
+    --cf-font-family:
+        'Noto Serif TC', 'PMingLiU', 'MingLiU', 'Songti TC', serif;
+    --cf-milestone-text-shadow:
+        -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff,
+        0 0 4px rgba(255, 255, 255, 0.85);
+    --cf-total-bar-bg: transparent;
+    --cf-total-bar-text: #8b2323;
+    --cf-total-value-color: #8b2323;
+    --cf-page-text: #2a2218;
+    --cf-placeholder-bg: rgba(90, 75, 60, 0.15);
+    --cf-page-h: 100vh;
+    --cf-hero-ratio: 4 / 5;
+    --cf-node-size: 26px;
+    --cf-footer-bar-block-h: min(11vh, 88px);
+    --cf-footer-h: calc(
+        var(--cf-footer-bar-block-h) + var(--cf-page-inset-bottom)
+    );
+    --cf-total-value-size: clamp(1.12rem, 1.55vw, 1.38rem);
+    --cf-progress-label-size: calc(var(--cf-total-value-size) * 0.86);
+    --cf-funding-summary-inset: clamp(0.35rem, 1.15vw, 0.85rem);
+    --cf-stat-box-bg: rgba(255, 252, 245, 0.92);
+    --cf-stat-box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+    /* 右側錨點一頁高度（JS 會設成可捲動區 clientHeight，一屏一圖） */
+    --cf-anchor-slide-h: 100%;
+    --cf-anchor-slide-gap: 0;
+    /* 滿版背景 + 內容往中間聚集；inset 略縮以換取主視覺／右欄空間 */
+    --cf-page-inset: clamp(3.5rem, 5.5vw, 5.5rem);
+    --cf-page-inset-bottom: clamp(22px, 2.8vh, 34px);
+    --cf-cluster-max-w: min(1920px, 100%);
+    /* 雙榜等寬（各約 180–200px） */
+    --cf-leaderboards-gap: 0.5rem;
+    --cf-leaderboard-col-w: clamp(180px, 10.5vw, 200px);
+    --cf-sidebar-col-w: calc(
+        2 * var(--cf-leaderboard-col-w) + var(--cf-leaderboards-gap)
+    );
+    --cf-leaderboard-w-ratio: 1;
+    /* 榜單標題／列文字（對齊設計稿 fig.2） */
+    --cf-leaderboard-title-size: clamp(0.9rem, 1.38vw, 1.18rem);
+    --cf-leaderboard-theme-title-size: clamp(0.88rem, 1.32vw, 1.12rem);
+    --cf-donor-name-font-size: clamp(0.9rem, 1.32vw, 1.08rem);
+    --cf-donor-amount-font-size: clamp(0.72rem, 1.02vw, 0.86rem);
+    --cf-donor-tier-size: clamp(24px, 3.4vw, 30px);
+    --cf-donor-row-divider: rgba(72, 58, 48, 0.2);
+    --cf-donor-row-pad-y: clamp(0.26rem, 0.48vh, 0.36rem);
+    --cf-donor-detail-gap: clamp(0.1rem, 0.22vh, 0.15rem);
+    --cf-donor-row-min-h: clamp(2.45rem, 4.8vh, 2.75rem);
+    /* 主榜底圖：列表區 padding（底留白過大會把 10 列擠在一起） */
+    --cf-donor-list-pad-top: 7%;
+    --cf-donor-list-pad-x: 9%;
+    --cf-donor-list-pad-bottom: 34%;
+    --cf-leaderboard-tabs-gap: 10px;
+    /* 榜單貼近主視覺：overlap 越大欄距越小（設計稿雙欄幾乎相貼） */
+    --cf-sidebar-shift-x: clamp(0.5rem, 1.5vw, 1.25rem);
+    --cf-sidebar-hero-overlap: clamp(6rem, 14vw, 12.5rem);
+    --cf-hero-panel-pull: clamp(1rem, 3vw, 2.75rem);
+    --cf-cluster-gap: 0.15rem;
+    --cf-main-top-pad: 3.25rem;
+    --cf-timeline-inset: 0;
+    --cf-timeline-bar-h: 36px;
+    --cf-footer-content-max-w: min(
+        var(--cf-cluster-max-w),
+        calc(
+            var(--cf-sidebar-col-w) + var(--cf-hero-max-w) + var(--cf-panel-w) -
+                var(--cf-sidebar-hero-overlap) + var(--cf-cluster-gap) * 2
+        )
+    );
+    /* 主視覺／右欄：自贊助鈕頂緣起算到 footer 上方的主要高度 */
+    --cf-main-block-h: calc(
+        100vh - var(--cf-footer-h) - var(--cf-main-top-pad) - 0.35rem
+    );
+    /* 主視覺／右欄放大（設計稿占比高於舊 63vw／44vw） */
+    --cf-hero-max-w: min(76vw, 1040px);
+    --cf-panel-w: min(52vw, 760px);
+    --cf-hero-max-h: var(--cf-main-block-h);
+}
+
+/*
+ * 1920×1080 設計基線（Full HD 桌面；含 100%/125% 縮放常見區間）
+ * 內容寬 1800px = 1920 − 2×60 inset；榜單≈400、主視覺≈740、右欄≈828，overlap 壓縮視覺間距
+ */
+@media (min-width: 1800px) and (max-width: 2200px) and (min-height: 1000px) and (max-height: 1200px) {
+    :root {
+        --cf-page-inset: 60px;
+        --cf-page-inset-bottom: 24px;
+        --cf-main-top-pad: 2.75rem;
+        --cf-footer-bar-block-h: 76px;
+        --cf-timeline-bar-h: 40px;
+        --cf-total-value-size: 1.34rem;
+        --cf-funding-summary-inset: 0.65rem;
+        --cf-leaderboard-col-w: 196px;
+        --cf-leaderboards-gap: 8px;
+        --cf-sidebar-shift-x: 8px;
+        --cf-sidebar-hero-overlap: 268px;
+        --cf-hero-panel-pull: 3rem;
+        --cf-cluster-gap: 0;
+        --cf-hero-max-w: 740px;
+        --cf-panel-w: 828px;
+        --cf-leaderboard-title-size: 1.12rem;
+        --cf-leaderboard-theme-title-size: 1.08rem;
+        --cf-donor-name-font-size: 1.05rem;
+        --cf-donor-amount-font-size: 0.84rem;
+        --cf-donor-tier-size: 28px;
+        --cf-donor-row-pad-y: 0.3rem;
+        --cf-donor-detail-gap: 0.12rem;
+        --cf-donor-row-min-h: 2.62rem;
+        --cf-donor-list-pad-top: 6.5%;
+        --cf-donor-list-pad-bottom: 31%;
+    }
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+    font-family: var(--cf-font-family);
+    font-optical-sizing: auto;
+    font-style: normal;
+    color: var(--cf-page-text);
+}
+
+.cf-load-error {
+    margin: 2rem auto;
+    max-width: 32rem;
+    padding: 1rem 1.25rem;
+    text-align: center;
+    background: #fff3f3;
+    border: 1px solid #e8a0a0;
+    border-radius: 8px;
+    color: #8b2020;
+}
+
+.cf-body--ended {
+    overflow: auto;
+}
+
+/* 僅在未 hidden 時顯示；勿對 [hidden] 設 display:flex/grid，會蓋掉瀏覽器預設的 display:none */
+.cf-ended-screen:not([hidden]) {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: 2rem 1.25rem;
+    background: linear-gradient(165deg, #f8f4ef 0%, #ebe4dc 100%);
+}
+
+.cf-ended-card {
+    width: 100%;
+    max-width: 28rem;
+    padding: 2.5rem 2rem;
+    text-align: center;
+    background: #fff;
+    border: 1px solid #d9cfc4;
+    border-radius: 12px;
+    box-shadow: 0 12px 40px rgba(60, 40, 30, 0.08);
+}
+
+.cf-ended-title {
+    margin: 0 0 1rem;
+    font-size: 1.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: #ad4541;
+}
+
+.cf-ended-message {
+    margin: 0;
+    font-size: 1.05rem;
+    line-height: 1.65;
+    color: #4a4038;
+}
+
+.cf-ended-period {
+    margin: 1.25rem 0 0;
+    font-size: 0.95rem;
+    color: #7a6f64;
+}
+
+.cf-page[hidden] {
+    display: none !important;
+}
+
+.cf-page:not([hidden]) {
+    display: grid;
+}
+
+.cf-page {
+    position: relative;
+    width: 100%;
+    max-width: 100vw;
+    height: var(--cf-page-h);
+    max-height: var(--cf-page-h);
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) var(--cf-footer-h);
+    grid-template-areas:
+        'main'
+        'footer';
+    row-gap: 0;
+    overflow: hidden;
+}
+
+/* 榜單｜主視覺｜右欄：整坨置中，欄與欄緊鄰 */
+.cf-main-cluster {
+    grid-area: main;
+    position: relative;
+    z-index: 2;
+    display: grid;
+    width: 100%;
+    max-width: var(--cf-cluster-max-w);
+    margin: 0 auto;
+    padding: var(--cf-main-top-pad) var(--cf-page-inset) 0.1rem;
+    box-sizing: border-box;
+    min-height: 0;
+    max-height: 100%;
+    align-self: end;
+    grid-template-columns: auto auto auto;
+    grid-template-areas: 'sidebar-col hero panel';
+    column-gap: var(--cf-cluster-gap);
+    row-gap: 0;
+    justify-content: center;
+    align-content: start;
+    /* 三欄頂緣對齊（主視覺／方案框頂 = 贊助鈕頂） */
+    align-items: start;
+}
+
+.cf-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background-color: var(--cf-page-bg);
+    background-image: none;
+    background-size: cover;
+    background-position: center;
+}
+
+.cf-bg.is-empty {
+    background-color: var(--cf-page-bg);
+    background-image: none;
+}
+
+.cf-sidebar-column {
+    grid-area: sidebar-col;
+    position: relative;
+    z-index: 4;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.4rem;
+    width: var(--cf-sidebar-col-w);
+    min-width: var(--cf-sidebar-col-w);
+    max-width: var(--cf-sidebar-col-w);
+    margin: 0;
+    margin-left: var(--cf-sidebar-shift-x);
+    margin-right: calc(-1 * var(--cf-sidebar-hero-overlap));
+    min-height: 0;
+    max-height: 100%;
+    box-sizing: border-box;
+    pointer-events: auto;
+}
+
+/* 雙榜：等寬、在贊助鈕正下方 */
+.cf-leaderboards-row {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.35rem;
+    width: 100%;
+    max-width: calc(2 * var(--cf-leaderboard-col-w) + var(--cf-leaderboards-gap));
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: 100%;
+    box-sizing: border-box;
+}
+
+.cf-leaderboard-tabs {
+    display: none;
+    position: relative;
+    z-index: 6;
+    width: 100%;
+    gap: 0.35rem;
+    margin: 0 0 0.12rem;
+    pointer-events: auto;
+}
+
+.cf-leaderboard-tabs.is-visible {
+    display: flex;
+}
+
+.cf-leaderboard-tabs[hidden] {
+    display: none !important;
+}
+
+.cf-leaderboard-tab {
+    flex: 1;
+    min-width: 0;
+    padding: 0.4rem 0.45rem;
+    font-family: var(--cf-font-family);
+    font-size: clamp(0.72rem, 1.05vw, 0.9rem);
+    font-weight: 700;
+    line-height: 1.28;
+    color: var(--cf-total-bar-text);
+    text-shadow: var(--cf-milestone-text-shadow);
+    white-space: pre-line;
+    text-align: center;
+    background: rgba(255, 252, 245, 0.72);
+    border: 2px solid rgba(45, 45, 45, 0.22);
+    border-radius: 6px;
+    cursor: pointer;
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.cf-leaderboard-tab.is-active {
+    background: var(--cfd-list-box-bg, #fdfbe4);
+    border-color: var(--cf-accent);
+}
+
+.cf-leaderboard-tab:focus-visible {
+    outline: 2px solid var(--cf-accent);
+    outline-offset: 2px;
+}
+
+.cf-leaderboard-panels {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, var(--cf-leaderboard-col-w)));
+    align-items: stretch;
+    gap: var(--cf-leaderboards-gap);
+    width: 100%;
+    max-width: calc(2 * var(--cf-leaderboard-col-w) + var(--cf-leaderboards-gap));
+    min-height: 0;
+}
+
+.cf-leaderboards-row.is-tabbed .cf-leaderboard-panels
+    > .cf-sidebar:not(.is-leaderboard-panel-active) {
+    display: none !important;
+}
+
+/* 有雙榜時改為分頁：單欄全寬（約等於原雙欄總寬） */
+.cf-leaderboards-row.is-tabbed {
+    gap: 0;
+    max-width: var(--cf-sidebar-col-w);
+}
+
+.cf-leaderboards-row.is-tabbed .cf-leaderboard-panels {
+    display: block;
+    width: 100%;
+    max-width: var(--cf-sidebar-col-w);
+}
+
+/* 分頁在榜單框內、列表上方 */
+.cf-leaderboards-row.is-tabbed .cf-leaderboard-tabs.is-visible {
+    position: static;
+    flex: 0 0 auto;
+    box-sizing: border-box;
+    width: 100%;
+    margin: 0 0 var(--cf-leaderboard-tabs-gap);
+    padding: 5.5% 7.5% 0;
+    gap: 0.35rem;
+    pointer-events: auto;
+}
+
+.cf-leaderboards-row.is-tabbed .cf-sidebar.cf-sidebar--donors-main,
+.cf-leaderboards-row.is-tabbed .cf-sidebar.cf-sidebar--theme-ranking {
+    width: 100%;
+    max-width: none;
+}
+
+.cf-leaderboards-row.is-tabbed .cf-sidebar--theme-ranking {
+    grid-column: auto;
+}
+
+/* 分頁標題已顯示在 tab，榜內標題省略以縮短高度 */
+.cf-leaderboards-row.is-tabbed .cf-leaderboard-title {
+    display: none;
+}
+
+/* 分頁模式：框高隨最後一列收合（手機／桌面共用） */
+.cf-leaderboards-row.is-tabbed .cf-sidebar--donors-main,
+.cf-leaderboards-row.is-tabbed .cf-sidebar--theme-ranking {
+    height: fit-content;
+    max-height: none;
+    align-self: start;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.cf-leaderboards-row.is-tabbed .cf-sidebar.has-bg-image {
+    aspect-ratio: unset;
+    height: fit-content;
+    display: flex;
+    flex-direction: column;
+    background-size: 100% 100%;
+}
+
+.cf-leaderboards-row.is-tabbed .cf-sidebar.has-bg-image .cf-donor-list {
+    flex: 0 0 auto;
+    height: auto;
+    min-height: 0;
+    overflow: hidden;
+    padding: 0 var(--cf-donor-list-pad-x) clamp(0.35rem, 0.5vw, 0.55rem);
+}
+
+.cf-leaderboards-row.is-tabbed
+    .cf-sidebar--donors-main.has-bg-image
+    .cf-donor-list:has(> .cf-donor-item:nth-child(10):last-child) {
+    display: grid;
+    align-content: start;
+    grid-auto-rows: minmax(var(--cf-donor-row-min-h), auto);
+    grid-template-rows: none;
+}
+
+.cf-leaderboards-row.is-tabbed .cf-sidebar--theme-ranking.has-bg-image .cf-donor-list {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+.cf-sidebar--theme-ranking[data-placeholder='true'] {
+    display: none;
+}
+
+.cf-sponsor-cta {
+    position: relative;
+    z-index: 2;
+    flex-shrink: 0;
+    width: 100%;
+    max-width: 100%;
+    padding: 0.9rem 1.2rem;
+    font-size: clamp(1.05rem, 1.65vw, 1.4rem);
+    font-weight: 700;
+    text-decoration: none;
+    text-align: center;
+    color: var(--cf-cta-text);
+    background: var(--cf-cta-bg);
+    border: 3px solid var(--cf-cta-border);
+    border-radius: 4px;
+    box-shadow: 2px 3px 0 rgba(0, 0, 0, 0.12);
+    transition:
+        transform 0.15s ease,
+        opacity 0.15s ease;
+    box-sizing: border-box;
+}
+
+.cf-sponsor-cta:hover {
+    transform: translateY(-1px);
+}
+
+.cf-sponsor-cta.is-placeholder {
+    opacity: 0.85;
+    font-style: italic;
+}
+
+.cf-sponsor-cta.is-image {
+    padding: 0;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    line-height: 0;
+}
+
+.cf-sponsor-cta.is-image:hover {
+    transform: translateY(-1px);
+    opacity: 0.92;
+}
+
+.cf-sponsor-cta-img {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    max-height: 5.75rem;
+    height: auto;
+    margin: 0 auto;
+    object-fit: contain;
+    pointer-events: none;
+}
+
+.cf-sidebar {
+    position: relative;
+    z-index: 1;
+    margin: 0;
+    padding: 0.45rem 0.4rem;
+    min-height: 0;
+    max-height: 100%;
+    overflow: hidden;
+    background-color: var(--cf-sidebar-bg);
+    border-radius: 6px;
+    backdrop-filter: blur(4px);
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+
+/* 主榜（最多 10 人） */
+.cf-sidebar--donors-main {
+    grid-column: 1;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    height: 100%;
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 特殊主題榜：矮框、貼齊主榜欄底 */
+.cf-sidebar--theme-ranking {
+    grid-column: 2;
+    width: 100%;
+    min-width: 0;
+    align-self: end;
+    justify-content: flex-start;
+    align-items: stretch;
+    padding: 0.4rem 0.45rem;
+}
+
+.cf-sidebar--theme-ranking.has-bg-image {
+    padding: 0;
+}
+
+.cf-theme-ranking-placeholder {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 0.25rem;
+    padding: 0.45rem 0.4rem;
+    text-align: left;
+    text-indent: 0;
+    border: 1px dashed rgba(90, 75, 60, 0.32);
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.14);
+}
+
+.cf-theme-ranking-placeholder__label {
+    font-size: clamp(0.65rem, 0.88vw, 0.74rem);
+    font-weight: 700;
+    line-height: 1.4;
+    color: var(--cf-muted-text);
+    letter-spacing: 0.02em;
+    padding-left: 0.05em;
+}
+
+.cf-theme-ranking-placeholder__hint {
+    font-size: clamp(0.56rem, 0.78vw, 0.66rem);
+    line-height: 1.5;
+    color: var(--cf-muted-text);
+    font-style: italic;
+    opacity: 0.95;
+    padding-left: 0.15em;
+}
+
+.cf-sidebar.has-bg-image {
+    background-color: transparent;
+    backdrop-filter: none;
+    padding: 0;
+}
+
+.cf-leaderboard-title {
+    flex: 0 0 auto;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.35rem 0.3rem 0.2rem;
+    text-align: center;
+}
+
+.cf-sidebar.has-bg-image .cf-leaderboard-title {
+    padding: 8% 8% 2% 8%;
+}
+
+.cf-leaderboard-title__text {
+    display: block;
+    font-family: var(--cf-font-family);
+    font-weight: 700;
+    font-size: var(--cf-leaderboard-title-size);
+    line-height: 1.35;
+    color: var(--cf-total-bar-text);
+    text-shadow: var(--cf-milestone-text-shadow);
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.cf-leaderboard-title__img {
+    display: block;
+    max-width: 100%;
+    width: auto;
+    height: auto;
+    margin: 0 auto;
+    object-fit: contain;
+}
+
+.cf-sidebar--theme-ranking .cf-leaderboard-title {
+    padding: 0.3rem 0.25rem 0.15rem;
+}
+
+.cf-sidebar--theme-ranking .cf-leaderboard-title__text {
+    font-size: var(--cf-leaderboard-theme-title-size);
+    line-height: 1.32;
+}
+
+.cf-sidebar--theme-ranking .cf-donor-item {
+    min-height: 2.35rem;
+    padding: var(--cf-donor-row-pad-y) 0.28rem;
+}
+
+.cf-donor-list {
+    flex: 1 1 auto;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 0;
+    overflow-y: auto;
+    scrollbar-width: none;
+}
+
+.cf-sidebar.has-bg-image .cf-donor-list {
+    height: 100%;
+    box-sizing: border-box;
+    padding: var(--cf-donor-list-pad-top) var(--cf-donor-list-pad-x)
+        var(--cf-donor-list-pad-bottom);
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.cf-donor-list::-webkit-scrollbar {
+    display: none;
+}
+
+.cf-donor-item {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.4rem;
+    width: 100%;
+    padding: 0.42rem 0.35rem;
+    font-size: var(--cf-donor-name-font-size);
+    border-bottom: none;
+    box-sizing: border-box;
+}
+
+/* 榜單列間分隔線（主榜／主題榜一致；最後一列不加線） */
+.cf-sidebar .cf-donor-item:not(:last-child) {
+    border-bottom: 1px solid var(--cf-donor-row-divider);
+}
+
+/* 主榜：固定最小列高，滿 10 人時在列表區內均分剩餘高度（不壓扁文字） */
+.cf-sidebar--donors-main.has-bg-image .cf-donor-list {
+    display: grid;
+    align-content: start;
+    grid-auto-rows: minmax(var(--cf-donor-row-min-h), auto);
+}
+
+.cf-sidebar--donors-main.has-bg-image
+    .cf-donor-list:has(> .cf-donor-item:nth-child(10):last-child) {
+    align-content: stretch;
+    grid-template-rows: repeat(10, minmax(var(--cf-donor-row-min-h), 1fr));
+}
+
+.cf-sidebar--donors-main.has-bg-image .cf-donor-item {
+    flex: none;
+    min-height: var(--cf-donor-row-min-h);
+    margin: 0;
+    padding: var(--cf-donor-row-pad-y) 0.22rem;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 0.32rem;
+}
+
+.cf-sidebar.has-bg-image .cf-donor-detail {
+    gap: var(--cf-donor-detail-gap);
+}
+
+.cf-donor-tier {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cf-sidebar.has-bg-image .cf-donor-tier {
+    width: var(--cf-donor-tier-size);
+    height: var(--cf-donor-tier-size);
+}
+
+.cf-donor-tier--fallback {
+    background: var(--cf-accent-muted);
+}
+
+.cf-donor-tier-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.cf-donor-amount {
+    flex-shrink: 0;
+    margin-right: 0;
+    font-size: var(--cf-donor-amount-font-size);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+    color: var(--cf-accent);
+    line-height: 1.15;
+    display: block;
+}
+
+.cf-sidebar.has-bg-image .cf-donor-name {
+    font-size: var(--cf-donor-name-font-size);
+    line-height: 1.28;
+}
+
+.cf-sidebar.has-bg-image .cf-donor-amount {
+    font-size: var(--cf-donor-amount-font-size);
+    line-height: 1.25;
+}
+
+.cf-donor-empty {
+    flex: 0 0 auto;
+    padding: 1rem 0.55rem 1rem 0.6rem;
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--cf-muted-text);
+    font-style: italic;
+    white-space: normal;
+    word-break: keep-all;
+    line-height: 1.45;
+}
+
+.cf-panel {
+    grid-area: panel;
+    position: relative;
+    margin-left: calc(-1 * var(--cf-hero-panel-pull));
+    padding: 0 0.15rem 0.25rem;
+    min-height: 0;
+    height: var(--cf-main-block-h);
+    max-height: var(--cf-main-block-h);
+    width: var(--cf-panel-w);
+    max-width: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+
+.cf-panel-inner {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    height: 100%;
+    max-height: 100%;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    position: relative;
+}
+
+.cf-panel-header {
+    flex-shrink: 0;
+    padding: 0.55rem 0.65rem 0.35rem;
+    text-align: center;
+}
+
+.cf-logo {
+    max-width: 180px;
+    max-height: 72px;
+    object-fit: contain;
+    margin: 0 auto 0.5rem;
+    display: block;
+}
+
+.cf-logo-placeholder {
+    margin: 0 auto 0.4rem;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.75rem;
+    color: var(--cf-muted-text);
+    font-style: italic;
+    border: 1px dashed rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    display: inline-block;
+}
+
+.cf-title {
+    margin: 0 0 0.25rem;
+    font-size: clamp(1rem, 1.8vw, 1.4rem);
+    font-weight: 800;
+    line-height: 1.3;
+}
+
+.cf-title.is-placeholder {
+    color: var(--cf-muted-text);
+    font-style: italic;
+    font-weight: 600;
+}
+
+.cf-period {
+    margin: 0;
+    font-size: 0.78rem;
+    color: var(--cf-muted-text);
+}
+
+.cf-period.is-placeholder {
+    font-style: italic;
+}
+
+.cf-anchor-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.4rem;
+    justify-content: center;
+    margin-top: 0.4rem;
+    padding-top: 0.4rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.cf-anchor-nav a {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--cf-accent);
+    text-decoration: none;
+    padding: 0.2rem 0.45rem;
+    border-radius: 3px;
+}
+
+.cf-anchor-nav a:hover {
+    background: rgba(196, 30, 58, 0.08);
+}
+
+.cf-anchor-nav a.is-active {
+    background: rgba(139, 35, 35, 0.12);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.cf-content-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 0;
+    scroll-behavior: auto;
+    scroll-snap-type: y proximity;
+    overscroll-behavior-y: contain;
+    scrollbar-width: none;
+}
+
+.cf-content-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+.cf-content-block {
+    scroll-snap-align: start;
+    scroll-snap-stop: normal;
+    height: var(--cf-anchor-slide-h);
+    min-height: var(--cf-anchor-slide-h);
+    max-height: var(--cf-anchor-slide-h);
+    flex-shrink: 0;
+    margin-bottom: var(--cf-anchor-slide-gap);
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
+    gap: 0;
+    padding: 0;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.cf-content-block--has-image .cf-content-block-media {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+}
+
+.cf-content-block img {
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
+    margin: 0 auto;
+    object-fit: contain;
+    object-position: center center;
+}
+
+/* 桌面：說明區圖片盡量吃滿一屏高度 */
+@media (min-width: 901px) {
+    .cf-content-block--has-image .cf-content-block-media {
+        padding: 0 0.15rem;
+    }
+
+    .cf-content-block--image-only .cf-content-block-media,
+    .cf-content-block--image-text .cf-content-block-media {
+        max-height: calc(var(--cf-anchor-slide-h) - 0.5rem);
+    }
+
+    .cf-content-block--image-text .cf-content-block-media {
+        max-height: calc(var(--cf-anchor-slide-h) - 5rem);
+    }
+}
+
+.cf-content-block--image-only .cf-content-block-media {
+    flex: 1 1 100%;
+}
+
+.cf-content-block--image-text {
+    justify-content: flex-start;
+}
+
+.cf-content-block--image-text .cf-content-block-media {
+    flex: 1 1 auto;
+    max-height: calc(var(--cf-anchor-slide-h) - 5.5rem);
+}
+
+.cf-content-block--image-text img {
+    max-height: 100%;
+}
+
+.cf-content-block .cf-block-body {
+    flex-shrink: 0;
+    margin: 0;
+    padding: 0.35rem 0.5rem 0.25rem;
+    font-size: clamp(0.78rem, 1.05vw, 0.9rem);
+    line-height: 1.55;
+    white-space: pre-wrap;
+    text-align: left;
+}
+
+.cf-content-block--image-only .cf-block-body {
+    display: none;
+}
+
+.cf-content-block--text-only .cf-block-body {
+    padding: 0.5rem 0.35rem;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+}
+
+.cf-content-block--image-text .cf-block-body {
+    text-align: center;
+    max-width: 92%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.cf-content-empty {
+    padding: 1rem 0.5rem;
+    text-align: center;
+    color: var(--cf-muted-text);
+    font-style: italic;
+}
+
+.cf-footer {
+    grid-area: footer;
+    grid-column: 1 / -1;
+    position: relative;
+    z-index: 3;
+    width: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 0 var(--cf-page-inset) var(--cf-page-inset-bottom);
+    overflow-x: visible;
+    overflow-y: hidden;
+    box-sizing: border-box;
+}
+
+.cf-footer-funding {
+    width: 100%;
+    max-width: var(--cf-footer-content-max-w);
+    margin-inline: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.1rem;
+}
+
+/* 目前累積$ / 達標金額$（與進度條同寬、右緣內推對齊） */
+.cf-funding-summary {
+    margin: 0;
+    padding: 0 var(--cf-funding-summary-inset) 0.05rem 0;
+    align-self: flex-end;
+    text-align: right;
+    font-size: var(--cf-total-value-size);
+    font-weight: 700;
+    font-family: var(--cf-font-family);
+    color: var(--cf-total-bar-text);
+    text-shadow: var(--cf-milestone-text-shadow);
+    line-height: 1.35;
+    white-space: nowrap;
+}
+
+.cf-funding-summary.is-no-target {
+    opacity: 0.92;
+}
+
+.cf-funding-progress-slot {
+    flex: 1;
+    min-width: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.cf-funding-progress {
+    flex: 1;
+    min-width: 0;
+    width: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0;
+    padding: 0;
+}
+
+a.cf-funding-progress--link {
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+    border-radius: 999px;
+    transition: filter 0.2s ease, box-shadow 0.2s ease;
+}
+
+a.cf-funding-progress--link:hover .cf-timeline-fill,
+a.cf-funding-progress--link:focus-visible .cf-timeline-fill {
+    filter: brightness(1.04);
+}
+
+a.cf-funding-progress--link:focus-visible {
+    outline: 2px solid var(--cf-timeline-text);
+    outline-offset: 3px;
+}
+
+.cf-timeline-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    width: 100%;
+    min-height: 0;
+    padding: 0.12rem 0;
+    overflow: visible;
+}
+
+/* 募資進度列上方：查榜單提示（隨進度條連結可點，本身不攔截點擊） */
+.cf-funding-leaderboard-hint {
+    position: absolute;
+    left: max(0.35rem, var(--cf-timeline-inset));
+    bottom: calc(100% - 0.1rem);
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.05rem;
+    pointer-events: none;
+    font-family: var(--cf-font-family);
+    font-weight: 700;
+    font-size: clamp(0.78rem, 1.12vw, 0.98rem);
+    line-height: 1.15;
+    color: var(--cf-timeline-text);
+    text-shadow: var(--cf-timeline-text-shadow);
+    white-space: nowrap;
+}
+
+.cf-funding-leaderboard-hint__arrow {
+    font-size: 1.2em;
+    line-height: 1;
+}
+
+/* 外凸小標籤（已改為置入進度條內；保留類名供相容） */
+.cf-progress-label {
+    font-size: var(--cf-progress-label-size);
+    font-weight: 700;
+    color: var(--cf-timeline-text);
+    font-family: var(--cf-font-family);
+    letter-spacing: 0.02em;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+/* 「募資進度」與 % 同在填色區內左右對齊 */
+.cf-progress-label--in-bar {
+    flex-shrink: 0;
+    font-size: calc(var(--cf-progress-label-size) * 0.92);
+    font-weight: 700;
+    color: var(--cf-timeline-text);
+    text-shadow: var(--cf-timeline-text-shadow);
+    pointer-events: none;
+}
+
+.cf-timeline-empty {
+    text-align: center;
+    padding: 0.75rem 0.5rem;
+    color: var(--cf-muted-text);
+    font-style: italic;
+    background: rgba(255, 255, 255, 0.35);
+    border-radius: 6px;
+}
+
+.cf-timeline {
+    position: relative;
+    width: 100%;
+    min-height: calc(var(--cf-timeline-bar-h) + 4px);
+    padding: 0;
+    overflow: visible;
+}
+
+.cf-timeline-rail {
+    position: absolute;
+    left: var(--cf-timeline-inset);
+    right: var(--cf-timeline-inset);
+    top: 50%;
+    transform: translateY(-50%);
+    height: var(--cf-timeline-bar-h);
+    background: var(--cf-timeline-track);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.cf-timeline-fill {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.35rem;
+    box-sizing: border-box;
+    height: 100%;
+    width: 0%;
+    min-width: 0;
+    padding: 0 0.5rem;
+    background: var(--cf-timeline-fill);
+    border-radius: 999px;
+    transition: width 0.4s ease;
+    overflow: hidden;
+}
+
+.cf-timeline-fill.is-zero {
+    min-width: 6.75rem;
+}
+
+.cf-timeline-percent {
+    flex-shrink: 0;
+    margin-left: auto;
+    font-size: calc(var(--cf-progress-label-size) * 0.95);
+    font-weight: 700;
+    font-family: var(--cf-font-family);
+    color: var(--cf-timeline-text);
+    text-shadow: var(--cf-timeline-text-shadow);
+    white-space: nowrap;
+    line-height: 1;
+    pointer-events: none;
+}
+
+@media (max-width: 900px) {
+    :root {
+        --cf-page-inset: clamp(0.65rem, 3.5vw, 1rem);
+        --cf-page-inset-bottom: clamp(0.75rem, 4vw, 1.25rem);
+        /* 手機：框高隨列數收合，僅保留底圖內建邊距 */
+        --cf-donor-list-pad-top: 6%;
+        --cf-donor-list-pad-x: 8%;
+        --cf-donor-list-pad-bottom: clamp(0.35rem, 1.8vw, 0.55rem);
+        --cf-donor-row-min-h: 2.05rem;
+        --cf-anchor-slide-h: auto;
+        --cf-main-block-h: none;
+        --cf-total-value-size: 1.05rem;
+        --cf-mobile-timeline-right: calc(
+            env(safe-area-inset-right, 0px) + var(--cf-node-size) + 0.9rem
+        );
+        --cf-mobile-timeline-top: max(4.5rem, 10vh);
+        --cf-mobile-timeline-bottom: max(
+            4.75rem,
+            calc(env(safe-area-inset-bottom, 0px) + 4rem)
+        );
+        --cf-mobile-timeline-length: calc(
+            100vh - var(--cf-mobile-timeline-top) -
+                var(--cf-mobile-timeline-bottom)
+        );
+        --cf-mobile-timeline-bar-thickness: calc(
+            var(--cf-node-size) + 0.5rem
+        );
+        --cf-mobile-timeline-bar-bottom: calc(
+            var(--cf-mobile-timeline-top) +
+                min(var(--cf-mobile-timeline-length), 580px)
+        );
+    }
+
+    html,
+    body {
+        height: auto;
+        min-height: 100%;
+        width: 100%;
+        max-width: 100vw;
+        overflow-x: hidden;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .cf-page {
+        width: 100%;
+        max-width: 100vw;
+        height: auto;
+        max-height: none;
+        min-height: 0;
+        overflow-x: hidden;
+        overflow-y: visible;
+        grid-template-rows: auto auto;
+        grid-template-areas:
+            'main'
+            'footer';
+        padding-bottom: max(
+            7.5rem,
+            calc(var(--cf-page-inset-bottom) + 6rem)
+        );
+        padding-right: calc(var(--cf-node-size) + 1.35rem);
+    }
+
+    .cf-main-cluster {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-areas:
+            'hero'
+            'panel'
+            'sidebar-col';
+        justify-content: stretch;
+        align-self: stretch;
+        max-width: 100%;
+        min-height: 0;
+        max-height: none;
+        padding: 4.5rem var(--cf-page-inset) 1rem;
+    }
+
+    .cf-panel {
+        margin-left: 0;
+    }
+
+    .cf-footer-funding {
+        max-width: 100%;
+    }
+
+    .cf-main-cluster > * {
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    .cf-sidebar-column {
+        --cf-leaderboard-col-w: minmax(0, 1fr);
+        --cf-sidebar-col-w: min(
+            100%,
+            calc(
+                100vw - var(--cf-page-inset) - var(--cf-node-size) - 1.35rem
+            )
+        );
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        margin: 0 auto 1rem;
+        max-height: none;
+        gap: 0.35rem;
+        z-index: 2;
+    }
+
+    .cf-leaderboard-tab {
+        font-size: clamp(0.78rem, 3.4vw, 0.92rem);
+        padding: 0.45rem 0.5rem;
+    }
+
+    .cf-leaderboards-row.is-tabbed .cf-leaderboard-tabs.is-visible {
+        padding: 5% 7% 0;
+        margin-bottom: var(--cf-leaderboard-tabs-gap);
+    }
+
+    .cf-leaderboards-row {
+        width: 100%;
+        max-width: 100%;
+        margin: 0 auto;
+        gap: 0.35rem;
+    }
+
+    .cf-leaderboards-row.is-tabbed {
+        max-width: 100%;
+    }
+
+    .cf-leaderboards-row.is-tabbed .cf-leaderboard-panels {
+        max-width: 100%;
+    }
+
+    .cf-sidebar.cf-sidebar--donors-main,
+    .cf-sidebar.cf-sidebar--theme-ranking {
+        width: 100%;
+        max-width: none;
+    }
+
+    .cf-sponsor-cta {
+        width: 100%;
+    }
+
+    .cf-sponsor-cta-img {
+        max-height: 4.75rem;
+    }
+
+    .cf-sidebar {
+        width: 100%;
+        flex: none;
+        max-height: none;
+        overflow: visible;
+    }
+
+    .cf-sidebar.has-bg-image {
+        aspect-ratio: unset;
+        height: fit-content;
+        width: 100%;
+        max-width: 100%;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        align-self: start;
+        background-size: 100% 100%;
+        background-repeat: no-repeat;
+        background-position: center top;
+    }
+
+    .cf-sidebar.has-bg-image .cf-donor-list {
+        flex: 0 0 auto;
+        height: auto;
+        min-height: 0;
+        max-height: none;
+        overflow: hidden;
+        box-sizing: border-box;
+        padding: var(--cf-donor-list-pad-top) var(--cf-donor-list-pad-x)
+            var(--cf-donor-list-pad-bottom);
+    }
+
+    .cf-sidebar--donors-main.has-bg-image .cf-donor-list,
+    .cf-sidebar--theme-ranking.has-bg-image .cf-donor-list {
+        display: flex;
+        flex-direction: column;
+        align-content: start;
+        justify-content: flex-start;
+        gap: 0;
+    }
+
+    .cf-sidebar--donors-main.has-bg-image
+        .cf-donor-list:has(> .cf-donor-item:nth-child(10):last-child) {
+        display: grid;
+        align-content: start;
+        grid-auto-rows: minmax(var(--cf-donor-row-min-h), auto);
+        grid-template-rows: none;
+    }
+
+    .cf-sidebar--donors-main.has-bg-image .cf-donor-item,
+    .cf-sidebar--theme-ranking.has-bg-image .cf-donor-item {
+        flex: none;
+        min-height: var(--cf-donor-row-min-h);
+        margin: 0;
+        padding: var(--cf-donor-row-pad-y) 0.28rem;
+    }
+
+    .cf-donor-list {
+        overflow: hidden;
+        max-height: none;
+    }
+
+    .cf-sidebar.has-bg-image .cf-donor-name {
+        font-size: clamp(0.82rem, 3.6vw, 0.95rem);
+    }
+
+    .cf-sidebar.has-bg-image .cf-donor-amount {
+        font-size: clamp(0.7rem, 3vw, 0.82rem);
+    }
+
+    .cf-leaderboard-title__text {
+        font-size: clamp(0.88rem, 4vw, 1.05rem);
+    }
+
+    .cf-sidebar--theme-ranking .cf-leaderboard-title__text {
+        font-size: clamp(0.85rem, 3.8vw, 1rem);
+    }
+
+    .cf-sidebar:not(.has-bg-image) .cf-donor-list {
+        max-height: none;
+    }
+
+    .cf-panel {
+        min-height: 0;
+        height: auto;
+        width: 100%;
+        max-width: 100%;
+        overflow: visible;
+        padding: 0 0 1rem;
+        justify-self: stretch;
+        box-sizing: border-box;
+    }
+
+    .cf-panel-inner {
+        min-height: 0;
+        width: 100%;
+        height: auto;
+        max-height: none;
+        overflow: visible;
+    }
+
+    /* 手機：說明區改由整頁捲動，區塊全部展開 */
+    .cf-content-scroll {
+        flex: none;
+        width: 100%;
+        height: auto;
+        min-height: 0;
+        overflow: visible;
+        scroll-snap-type: none;
+        overscroll-behavior: auto;
+        padding: 0 0 0.75rem;
+        box-sizing: border-box;
+    }
+
+    .cf-content-block {
+        width: 100%;
+        height: auto;
+        min-height: 0;
+        max-width: 100%;
+        max-height: none;
+        scroll-snap-align: none;
+        scroll-snap-stop: normal;
+        margin-bottom: 1.25rem;
+        overflow: visible;
+        box-sizing: border-box;
+    }
+
+    .cf-content-block--has-image .cf-content-block-media {
+        flex: none;
+        width: 100%;
+        max-width: 100%;
+        height: auto;
+        overflow: visible;
+    }
+
+    .cf-content-block img {
+        display: block;
+        max-width: 100%;
+        width: 100%;
+        height: auto;
+        max-height: none;
+    }
+
+    .cf-content-block--image-text .cf-content-block-media {
+        max-height: none;
+    }
+
+    /* footer 不可加 transform，否則子元素 fixed 會錨在 footer 而非視窗 */
+    .cf-footer {
+        position: fixed;
+        z-index: 30;
+        inset: 0;
+        width: 0;
+        height: 0;
+        margin: 0;
+        padding: 0;
+        overflow: visible;
+        transform: none;
+        pointer-events: none;
+        background: transparent;
+        box-sizing: border-box;
+    }
+
+    .cf-footer > * {
+        pointer-events: auto;
+    }
+
+    .cf-footer-funding {
+        position: fixed;
+        z-index: 31;
+        left: max(0.5rem, env(safe-area-inset-left, 0px));
+        right: var(--cf-mobile-timeline-right);
+        bottom: max(
+            var(--cf-page-inset-bottom),
+            env(safe-area-inset-bottom, 0px)
+        );
+        width: auto;
+        max-width: calc(100vw - var(--cf-node-size) - 1.5rem);
+        pointer-events: auto;
+    }
+
+    .cf-funding-summary {
+        align-self: flex-end;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        padding: 0.35rem 0.5rem;
+        border-radius: 6px;
+        background: var(--cf-stat-box-bg);
+        box-shadow: var(--cf-stat-box-shadow);
+    }
+
+    /* 進度條維持原位；募資進度文字獨立定位，避免被旋轉條的版面寬度擠出畫面 */
+    .cf-funding-progress {
+        position: fixed;
+        z-index: 30;
+        inset: 0;
+        width: 0;
+        height: 0;
+        overflow: visible;
+        pointer-events: none;
+    }
+
+    /* 直式進度條內文字會隨 transform 旋轉，改為隱藏並用 ::after 標示 */
+    .cf-progress-label--in-bar {
+        display: none !important;
+    }
+
+    .cf-funding-leaderboard-hint {
+        position: fixed;
+        z-index: 32;
+        left: calc(
+            100% - var(--cf-mobile-timeline-right) -
+                var(--cf-mobile-timeline-bar-thickness) / 2
+        );
+        right: auto;
+        bottom: auto;
+        top: calc(var(--cf-mobile-timeline-bar-bottom) - 1.85rem);
+        transform: translateX(-50%);
+        font-size: clamp(0.72rem, 3.2vw, 0.88rem);
+    }
+
+    .cf-timeline-wrap::after {
+        content: '募資進度';
+        position: fixed;
+        z-index: 31;
+        left: calc(
+            100% - var(--cf-mobile-timeline-right) -
+                var(--cf-mobile-timeline-bar-thickness) / 2
+        );
+        right: auto;
+        top: calc(var(--cf-mobile-timeline-bar-bottom) + 0.45rem);
+        transform: translateX(-50%);
+        text-align: center;
+        font-size: var(--cf-progress-label-size);
+        font-weight: 700;
+        font-family: var(--cf-font-family);
+        letter-spacing: 0.02em;
+        color: var(--cf-timeline-text);
+        text-shadow: var(--cf-timeline-text-shadow);
+        pointer-events: none;
+    }
+
+    .cf-timeline-wrap {
+        position: fixed;
+        z-index: 30;
+        top: var(--cf-mobile-timeline-top);
+        right: var(--cf-mobile-timeline-right);
+        bottom: auto;
+        order: unset;
+        flex: none;
+        width: min(var(--cf-mobile-timeline-length), 580px);
+        min-width: min(52vh, 320px);
+        height: calc(var(--cf-node-size) + 0.5rem);
+        margin: 0;
+        padding: 0;
+        overflow: visible;
+        transform: rotate(-90deg);
+        transform-origin: 100% 0%;
+        filter: drop-shadow(0 1px 6px rgba(0, 0, 0, 0.18));
+        box-sizing: content-box;
+        pointer-events: auto;
+    }
+
+    .cf-timeline-empty {
+        font-size: 0.78rem;
+        padding: 0.5rem 0.35rem;
+    }
+
+    .cf-timeline {
+        width: 100%;
+        min-width: 0;
+        min-height: 0;
+        max-width: none;
+        padding: 0;
+    }
+
+    .cf-timeline-rail {
+        left: var(--cf-timeline-inset);
+        right: var(--cf-timeline-inset);
+        height: 12px;
+    }
+
+    .cf-sponsor-cta {
+        font-size: 0.95rem;
+    }
+}

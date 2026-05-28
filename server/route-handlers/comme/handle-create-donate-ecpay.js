@@ -1,6 +1,9 @@
 const { getEcpayConfigByMerchantId } = require('../../store/ecpay-config');
 const { setPaymentOrder } = require('../../store/payment-order');
 const { createPayment } = require('../../lib/payment-providers/ecpay');
+const {
+    resolveDonateContext,
+} = require('../../service/large-crowdfunding-page');
 const { getSafeApiErrorMessage } = require('../../lib/safe-error-message');
 const {
     parseYoutubeDonationFromInput,
@@ -12,8 +15,14 @@ const {
 
 module.exports = async (req, res) => {
     try {
-        const { merchantId, amount, name, message, youtubeUrl } =
-            req.body || {};
+        const {
+            merchantId,
+            amount,
+            name,
+            message,
+            youtubeUrl,
+            largeCrowdfundingPageId,
+        } = req.body || {};
 
         if (
             !merchantId ||
@@ -37,6 +46,27 @@ module.exports = async (req, res) => {
         const config = await getEcpayConfigByMerchantId(merchantId.trim());
         if (!config) {
             res.status(404).json({ error: '找不到該商店設定' });
+            return;
+        }
+
+        let lcfContext = null;
+        try {
+            lcfContext = await resolveDonateContext(
+                merchantId.trim(),
+                largeCrowdfundingPageId
+            );
+        } catch (lcfErr) {
+            res.status(lcfErr.statusCode || 400).json({
+                error: lcfErr.message || '大型募資狀態不允許斗內',
+            });
+            return;
+        }
+        if (
+            largeCrowdfundingPageId != null &&
+            largeCrowdfundingPageId !== '' &&
+            !lcfContext
+        ) {
+            res.status(400).json({ error: 'largeCrowdfundingPageId 無效' });
             return;
         }
         if (config.ecpayEnabled === false) {
@@ -99,11 +129,16 @@ module.exports = async (req, res) => {
         }
 
         const result = await createPayment(merchantId.trim(), orderData);
-        setPaymentOrder(result.merchantTradeNo, {
+        const orderMeta = {
             kind: 'ecpay-donation',
             fullMessage: orderData.message || '',
             fullName: orderData.name || '',
-        });
+        };
+        if (lcfContext) {
+            orderMeta.largeCrowdfundingPageId = lcfContext.pageId;
+            orderMeta.ecpayConfigId = lcfContext.ecpayConfigId;
+        }
+        await setPaymentOrder(result.merchantTradeNo, orderMeta);
         console.log('[ReturnUrl]: ', result.params.ReturnURL);
 
         res.status(200).json({

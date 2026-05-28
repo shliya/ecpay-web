@@ -1,0 +1,98 @@
+/* LINE Seed TW（斗內暱稱／金額） */
+@font-face {
+    font-family: 'LINE Seed TW';
+    src: url('../assest/LINE Seed TW_ver02/WOFF2/LINESeedTW_OTF_Rg.woff2')
+        format('woff2');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'LINE Seed TW';
+    src: url('../assest/LINE Seed TW_ver02/WOFF2/LINESeedTW_OTF_Bd.woff2')
+        format('woff2');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+:root {
+    --cf-donor-font-family:
+        'LINE Seed TW', 'PMingLiU', 'Microsoft JhengHei', sans-serif;
+}
+
+/* 主頁榜單（10）／特殊主題榜（4）／全部斗內列表 */
+.cf-donor-name,
+.cf-donor-amount,
+.cf-sidebar--theme-ranking .cf-donor-name,
+.cf-sidebar--theme-ranking .cf-donor-amount {
+    font-family: var(--cf-donor-font-family);
+}
+
+.cf-donor-detail {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: var(--cf-donor-detail-gap, 0.12rem);
+}
+
+.cf-donor-name {
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    font-weight: 400;
+}
+
+.cf-donor-name__track {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.cf-donor-name__text {
+    display: inline-block;
+    white-space: nowrap;
+    line-height: 1.2;
+}
+
+.cf-donor-name.is-scroll {
+    margin-right: 0.2rem;
+}
+
+.cf-donor-name.is-scroll .cf-donor-name__text {
+    padding-right: 0.15em;
+    box-sizing: content-box;
+    animation: cf-donor-name-scroll var(--cf-scroll-duration, 6s) ease-in-out
+        infinite alternate;
+    will-change: transform;
+}
+
+@keyframes cf-donor-name-scroll {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(calc(-1 * var(--cf-scroll-distance, 0px)));
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cf-donor-name.is-scroll .cf-donor-name__text {
+        animation: none;
+        display: block;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
+
+.cf-donor-amount {
+    font-weight: 700;
+}

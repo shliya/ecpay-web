@@ -2,7 +2,9 @@ const {
     getPayuniConfigByPayuniMerchantId,
 } = require('../../service/ecpay-config');
 const { parseDonationCallback } = require('../../lib/payment-providers/payuni');
-const { createDonation } = require('../../service/donation');
+const {
+    completeDonationFromPayment,
+} = require('../../service/large-crowdfunding-donation');
 const IchibanCardStore = require('../../store/ichiban-card');
 const IchibanEventStore = require('../../store/ichiban-event');
 const IchibanEventService = require('../../service/ichiban-event');
@@ -48,7 +50,7 @@ module.exports = async (req, res) => {
         }
 
         const merTradeNo = row.merTradeNo;
-        const orderInfo = merTradeNo ? getPaymentOrder(merTradeNo) : null;
+        const orderInfo = merTradeNo ? await getPaymentOrder(merTradeNo) : null;
 
         if (
             orderInfo &&
@@ -129,14 +131,28 @@ module.exports = async (req, res) => {
                 }
             }
 
-            deletePaymentOrder(merTradeNo);
+            await deletePaymentOrder(merTradeNo);
         } else {
-            await createDonation(row);
+            try {
+                await completeDonationFromPayment(row, orderInfo, req.query);
+            } catch (donationErr) {
+                console.error(
+                    '[payuni-notify] 斗內入帳失敗（仍回 OK）:',
+                    donationErr
+                );
+            }
+            if (merTradeNo) {
+                await deletePaymentOrder(merTradeNo);
+            }
         }
 
         res.status(200).send('OK');
     } catch (error) {
         console.error('PAYUNi Webhook Error:', error);
-        res.status(400).send('Error');
+        if (error && error.statusCode === 400) {
+            res.status(400).send('Error');
+            return;
+        }
+        res.status(200).send('OK');
     }
 };

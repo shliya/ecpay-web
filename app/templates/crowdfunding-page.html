@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="zh-Hant">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>募資計畫</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@200..900&display=swap"
+            rel="stylesheet"
+        />
+    </head>
+    <body>
+        <div id="loadError" class="cf-load-error" hidden></div>
+
+        <div id="cfEndedScreen" class="cf-ended-screen" hidden>
+            <div class="cf-ended-card" role="status">
+                <h1 class="cf-ended-title">募資已終止</h1>
+                <p id="cfEndedMessage" class="cf-ended-message"></p>
+                <p id="cfEndedPeriod" class="cf-ended-period" hidden></p>
+            </div>
+        </div>
+
+        <div id="pageRoot" class="cf-page" hidden>
+            <div class="cf-bg" id="cfBg" aria-hidden="true"></div>
+
+            <div class="cf-main-cluster">
+                <div class="cf-sidebar-column">
+                    <a
+                        id="sponsorCta"
+                        class="cf-sponsor-cta"
+                        href="#"
+                        data-placeholder="true"
+                    >
+                        我要贊助
+                    </a>
+                    <div class="cf-leaderboards-row">
+                        <div class="cf-leaderboard-panels">
+                            <aside
+                                id="donorListSidebar"
+                                class="cf-sidebar cf-sidebar--donors-main"
+                                aria-label="近期斗內（榜十大哥）"
+                            >
+                                <div
+                                    id="cfLeaderboardTabs"
+                                    class="cf-leaderboard-tabs"
+                                    role="tablist"
+                                    aria-label="榜單切換"
+                                    hidden
+                                >
+                                    <button
+                                        type="button"
+                                        id="cfLeaderboardTabMain"
+                                        class="cf-leaderboard-tab"
+                                        role="tab"
+                                        aria-selected="true"
+                                        aria-controls="donorListSidebar"
+                                        tabindex="0"
+                                    >
+                                        榜十大哥
+                                    </button>
+                                    <button
+                                        type="button"
+                                        id="cfLeaderboardTabTheme"
+                                        class="cf-leaderboard-tab"
+                                        role="tab"
+                                        aria-selected="false"
+                                        aria-controls="specialThemeRankingSidebar"
+                                        tabindex="-1"
+                                    >
+                                        特殊主題榜
+                                    </button>
+                                </div>
+                                <div
+                                    id="mainDonorListTitle"
+                                    class="cf-leaderboard-title"
+                                    hidden
+                                ></div>
+                                <ul id="donorList" class="cf-donor-list"></ul>
+                            </aside>
+                            <aside
+                                id="specialThemeRankingSidebar"
+                                class="cf-sidebar cf-sidebar--theme-ranking"
+                                aria-label="特殊主題榜單"
+                                data-placeholder="true"
+                            >
+                                <div
+                                    id="specialThemeRankingTitle"
+                                    class="cf-leaderboard-title"
+                                    hidden
+                                ></div>
+                                <ul
+                                    id="specialThemeDonorList"
+                                    class="cf-donor-list"
+                                    hidden
+                                ></ul>
+                            </aside>
+                        </div>
+                    </div>
+                </div>
+
+                <section class="cf-hero-wrap" aria-label="主視覺">
+                    <div id="heroFrame" class="cf-hero-frame">
+                        <img id="heroImg" class="cf-hero-img" alt="" />
+                        <div id="heroPlaceholder" class="cf-hero-placeholder">
+                            主視覺圖尚未設定
+                        </div>
+                    </div>
+                </section>
+
+                <section class="cf-panel" aria-label="募資說明">
+                    <div class="cf-panel-inner">
+                        <header class="cf-panel-header">
+                            <nav
+                                id="anchorNav"
+                                class="cf-anchor-nav"
+                                aria-label="內容錨點"
+                                hidden
+                            ></nav>
+                        </header>
+                        <div id="contentScroll" class="cf-content-scroll">
+                            <div id="contentEmpty" class="cf-content-empty">
+                                尚未新增說明內容
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <footer class="cf-footer">
+                <div class="cf-footer-funding">
+                    <p id="fundingSummary" class="cf-funding-summary">
+                        目前累積$0 / 達標金額$0
+                    </p>
+                    <div class="cf-funding-progress-slot">
+                        <div id="timelineEmpty" class="cf-timeline-empty">
+                            尚未設定募資目標
+                        </div>
+                        <a
+                            id="fundingProgressLink"
+                            class="cf-funding-progress cf-funding-progress--link"
+                            href="#"
+                            hidden
+                            aria-label="點我查榜單，查看全部斗內列表"
+                            title="點我查榜單，查看全部斗內列表"
+                        >
+                            <div class="cf-timeline-wrap">
+                                <span
+                                    class="cf-funding-leaderboard-hint"
+                                    aria-hidden="true"
+                                >
+                                    <span class="cf-funding-leaderboard-hint__line"
+                                        >點我查榜單</span
+                                    >
+                                    <span class="cf-funding-leaderboard-hint__arrow"
+                                        >↓</span
+                                    >
+                                </span>
+                                <div
+                                    id="timelineTrack"
+                                    class="cf-timeline"
+                                    hidden
+                                >
+                                    <div class="cf-timeline-rail">
+                                        <div
+                                            id="timelineFill"
+                                            class="cf-timeline-fill"
+                                        >
+                                            <span
+                                                class="cf-progress-label cf-progress-label--in-bar"
+                                                >募資進度</span
+                                            >
+                                            <span
+                                                id="timelinePercent"
+                                                class="cf-timeline-percent"
+                                                aria-hidden="true"
+                                                >0 %</span
+                                            >
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </body>
+</html>

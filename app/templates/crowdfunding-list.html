@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="zh-Hant">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>大型募資列表</title>
+    </head>
+    <body>
+        <div class="cfl-container">
+            <header class="cfl-header">
+                <h1>大型募資專案</h1>
+                <div class="cfl-header-actions">
+                    <button type="button" class="btn cfl-btn-create" id="btnCreate">
+                        ＋ 新增專案
+                    </button>
+                    <button type="button" class="btn cfl-btn-refresh" id="btnRefresh">
+                        重新整理
+                    </button>
+                </div>
+            </header>
+            <p class="cfl-lead">
+                商家代號：<strong id="merchantIdLabel">—</strong>
+            </p>
+            <div class="cfl-loading" id="cflLoading" hidden>載入中…</div>
+            <div class="cfl-error" id="cflError" hidden></div>
+            <div class="cfl-list" id="cflList"></div>
+        </div>
+    </body>
+</html>

@@ -12,7 +12,9 @@ const {
     getEcpayConfigByMerchantId,
     getAllEcpayConfigs,
 } = require('../../store/ecpay-config');
-const { createDonation } = require('../../service/donation');
+const {
+    completeDonationFromPayment,
+} = require('../../service/large-crowdfunding-donation');
 const {
     parseDonationCallback,
     parseUrlDonationCallback,
@@ -37,7 +39,7 @@ module.exports = async (req, res) => {
             CustomField1,
         } = req.body || {};
 
-        const orderInfo = getPaymentOrder(MerchantTradeNo);
+        const orderInfo = await getPaymentOrder(MerchantTradeNo);
         const isIchibanOrder =
             orderInfo &&
             orderInfo.kind !== 'ecpay-donation' &&
@@ -121,7 +123,7 @@ module.exports = async (req, res) => {
             }
 
             // 清理訂單資訊
-            deletePaymentOrder(MerchantTradeNo);
+            await deletePaymentOrder(MerchantTradeNo);
         } else {
             const pendingDonation =
                 orderInfo && orderInfo.kind === 'ecpay-donation'
@@ -168,9 +170,19 @@ module.exports = async (req, res) => {
                         row.name = pendingDonation.fullName;
                     }
                 }
-                await createDonation(row);
+                if (!row.merTradeNo && MerchantTradeNo) {
+                    row.merTradeNo = MerchantTradeNo;
+                }
+                try {
+                    await completeDonationFromPayment(row, pendingDonation);
+                } catch (donationErr) {
+                    console.error(
+                        '[ecpay-success] 斗內入帳失敗（仍回 1|OK）:',
+                        donationErr
+                    );
+                }
                 if (pendingDonation) {
-                    deletePaymentOrder(MerchantTradeNo);
+                    await deletePaymentOrder(MerchantTradeNo);
                 }
                 if (process.env.NODE_ENV !== 'production') {
                     console.log(

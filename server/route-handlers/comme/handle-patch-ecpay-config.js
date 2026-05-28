@@ -16,6 +16,12 @@ function normalizeBlockedKeywords(value) {
 }
 
 const ECPAY_HASH_KEYS = ['hashKey', 'hashIV'];
+const EXTRA_HASH_KEYS = [
+    'payuniHashKey',
+    'payuniHashIV',
+    'opayHashKey',
+    'opayHashIV',
+];
 
 function sanitizeUpdates(rawUpdates) {
     const updates =
@@ -28,7 +34,7 @@ function sanitizeUpdates(rawUpdates) {
         );
     }
 
-    for (const key of ECPAY_HASH_KEYS) {
+    for (const key of [...ECPAY_HASH_KEYS, ...EXTRA_HASH_KEYS]) {
         if (Object.hasOwn(result, key) && !result[key]) {
             delete result[key];
         }
@@ -67,6 +73,9 @@ module.exports = async (req, res) => {
         const hasSensitivePayuni =
             updates.hasOwnProperty('payuniHashKey') ||
             updates.hasOwnProperty('payuniHashIV');
+        const hasSensitiveOpay =
+            updates.hasOwnProperty('opayHashKey') ||
+            updates.hasOwnProperty('opayHashIV');
 
         const blockedKeywords = normalizeBlockedKeywords(
             updated.blockedKeywords
@@ -76,6 +85,7 @@ module.exports = async (req, res) => {
             merchantId: updated.merchantId,
             displayName: updated.displayName || null,
             payuniMerchantId: updated.payuniMerchantId || null,
+            opayMerchantId: updated.opayMerchantId || null,
             youtubeChannelHandle: updated.youtubeChannelHandle || null,
             youtubeChannelId: updated.youtubeChannelId || null,
             youtubeDonationAmount:
@@ -90,9 +100,11 @@ module.exports = async (req, res) => {
             blockedKeywords,
             ecpayEnabled: updated.ecpayEnabled !== false,
             payuniEnabled: updated.payuniEnabled !== false,
+            opayEnabled: updated.opayEnabled !== false,
             youtubeDonationEnabled: updated.youtubeDonationEnabled === true,
             hasSensitiveEcpayUpdate: hasSensitiveEcpay,
             hasSensitivePayuniUpdate: hasSensitivePayuni,
+            hasSensitiveOpayUpdate: hasSensitiveOpay,
         };
 
         res.status(200).json(body);

@@ -19,6 +19,7 @@ module.exports = async (req, res) => {
             merchantId: config.merchantId,
             displayName: config.displayName || null,
             payuniMerchantId: config.payuniMerchantId || null,
+            opayMerchantId: config.opayMerchantId || null,
             youtubeChannelHandle: config.youtubeChannelHandle || null,
             youtubeChannelId: config.youtubeChannelId || null,
             youtubeDonationAmount:
@@ -33,7 +34,10 @@ module.exports = async (req, res) => {
             blockedKeywords: config.blockedKeywords || [],
             ecpayEnabled: config.ecpayEnabled !== false,
             payuniEnabled: config.payuniEnabled !== false,
+            opayEnabled: config.opayEnabled !== false,
             youtubeDonationEnabled: config.youtubeDonationEnabled === true,
+            largeCrowdfundingEnabled:
+                config.largeCrowdfundingEnabled === true,
         });
     } catch (error) {
         console.error('[get-ecpay-config]', error);

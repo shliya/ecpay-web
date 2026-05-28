@@ -11,6 +11,7 @@ const {
     getYoutubePricePerSecFromConfig,
     getYoutubeMaxPlaySecFromConfig,
 } = require('../youtube-donation');
+const { getEcpayDonationPaymentFields } = require('../payment-donation-methods');
 
 require('dotenv').config({ path: path.resolve(__dirname, '../../../.env') });
 
@@ -245,7 +246,7 @@ async function createPayment(merchantId, orderData) {
                     : process.env.RETURN_URL_LOCAL;
             return `${(base || '').replace(/\/$/, '')}/api/v1/payment/ecpay-success`;
         })(),
-        ChoosePayment: 'ALL',
+        ...getEcpayDonationPaymentFields(),
         EncryptType: 1,
         ClientBackURL: (() => {
             const base =

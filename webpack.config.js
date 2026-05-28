@@ -32,6 +32,13 @@ module.exports = {
             __dirname,
             'app/youtube-donation-settings.js'
         ),
+        crowdfundingPage: path.resolve(__dirname, 'app/crowdfunding-page.js'),
+        crowdfundingDonors: path.resolve(__dirname, 'app/crowdfunding-donors.js'),
+        crowdfundingList: path.resolve(__dirname, 'app/crowdfunding-list.js'),
+        crowdfundingSettings: path.resolve(
+            __dirname,
+            'app/crowdfunding-settings.js'
+        ),
     },
     output: {
         path: path.resolve(__dirname, 'public'),
@@ -54,6 +61,13 @@ module.exports = {
                 type: 'asset/resource',
                 generator: {
                     filename: 'assets/[name].[contenthash][ext]',
+                },
+            },
+            {
+                test: /\.(woff2?|otf|ttf|eot)$/i,
+                type: 'asset/resource',
+                generator: {
+                    filename: 'assets/fonts/[name].[contenthash][ext]',
                 },
             },
         ],
@@ -279,12 +293,86 @@ module.exports = {
             },
             cache: false,
         }),
+        new HtmlWebpackPlugin({
+            template: path.resolve(
+                __dirname,
+                'app/templates/crowdfunding-page.html'
+            ),
+            filename: 'crowdfunding-page.html',
+            chunks: ['crowdfundingPage'],
+            inject: true,
+            scriptLoading: 'defer',
+            minify: {
+                removeComments: true,
+                collapseWhitespace: true,
+            },
+            cache: false,
+        }),
+        new HtmlWebpackPlugin({
+            template: path.resolve(
+                __dirname,
+                'app/templates/crowdfunding-donors.html'
+            ),
+            filename: 'crowdfunding-donors.html',
+            chunks: ['crowdfundingDonors'],
+            inject: true,
+            scriptLoading: 'defer',
+            minify: {
+                removeComments: true,
+                collapseWhitespace: true,
+            },
+            cache: false,
+        }),
+        new HtmlWebpackPlugin({
+            template: path.resolve(
+                __dirname,
+                'app/templates/crowdfunding-list.html'
+            ),
+            filename: 'crowdfunding-list.html',
+            chunks: ['crowdfundingList'],
+            inject: true,
+            scriptLoading: 'defer',
+            minify: {
+                removeComments: true,
+                collapseWhitespace: true,
+            },
+            cache: false,
+        }),
+        new HtmlWebpackPlugin({
+            template: path.resolve(
+                __dirname,
+                'app/templates/crowdfunding-settings.html'
+            ),
+            filename: 'crowdfunding-settings.html',
+            chunks: ['crowdfundingSettings'],
+            inject: true,
+            scriptLoading: 'defer',
+            minify: {
+                removeComments: true,
+                collapseWhitespace: true,
+            },
+            cache: false,
+        }),
     ],
     devtool: 'source-map',
     devServer: {
-        static: {
-            directory: path.join(__dirname, 'public'),
-        },
+        static: [
+            {
+                directory: path.join(__dirname, 'public'),
+            },
+            {
+                directory: path.join(
+                    __dirname,
+                    'static',
+                    'crowdfunding-data'
+                ),
+                publicPath: '/crowdfunding-data',
+            },
+            {
+                directory: path.join(__dirname, 'static', 'image'),
+                publicPath: '/image',
+            },
+        ],
         compress: true,
         port: 9000,
         historyApiFallback: true,

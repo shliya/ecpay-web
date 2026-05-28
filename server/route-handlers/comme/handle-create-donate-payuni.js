@@ -2,7 +2,11 @@ const {
     getPayuniConfigByPayuniMerchantId,
 } = require('../../service/ecpay-config');
 const { getEcpayConfigByMerchantId } = require('../../store/ecpay-config');
+const { setPaymentOrder } = require('../../store/payment-order');
 const { createPayment } = require('../../lib/payment-providers/payuni');
+const {
+    resolveDonateContext,
+} = require('../../service/large-crowdfunding-page');
 const { getSafeApiErrorMessage } = require('../../lib/safe-error-message');
 const {
     parseYoutubeDonationFromInput,
@@ -14,8 +18,14 @@ const {
 
 module.exports = async (req, res) => {
     try {
-        const { merchantId, amount, name, message, youtubeUrl } =
-            req.body || {};
+        const {
+            merchantId,
+            amount,
+            name,
+            message,
+            youtubeUrl,
+            largeCrowdfundingPageId,
+        } = req.body || {};
 
         if (
             !merchantId ||
@@ -40,6 +50,27 @@ module.exports = async (req, res) => {
             res.status(404).json({ error: '找不到該商店設定' });
             return;
         }
+
+        let lcfContext = null;
+        try {
+            lcfContext = await resolveDonateContext(
+                merchantId.trim(),
+                largeCrowdfundingPageId
+            );
+        } catch (lcfErr) {
+            res.status(lcfErr.statusCode || 400).json({
+                error: lcfErr.message || '大型募資狀態不允許斗內',
+            });
+            return;
+        }
+        if (
+            largeCrowdfundingPageId != null &&
+            largeCrowdfundingPageId !== '' &&
+            !lcfContext
+        ) {
+            res.status(400).json({ error: 'largeCrowdfundingPageId 無效' });
+            return;
+        }
         if (row.payuniEnabled === false) {
             res.status(403).json({ error: '此付款已關閉' });
             return;
@@ -49,8 +80,7 @@ module.exports = async (req, res) => {
             return;
         }
 
-        const hasYoutubeUrl =
-            youtubeUrl != null && String(youtubeUrl).trim();
+        const hasYoutubeUrl = youtubeUrl != null && String(youtubeUrl).trim();
         if (hasYoutubeUrl && row.youtubeDonationEnabled !== true) {
             res.status(403).json({ error: '影音斗內已關閉' });
             return;
@@ -121,11 +151,28 @@ module.exports = async (req, res) => {
             orderData.videoId = videoId;
         }
 
+        const extraNotifyQuery = lcfContext
+            ? `&lcfPageId=${encodeURIComponent(String(lcfContext.pageId))}`
+            : '';
+
         const result = await createPayment(config.payuniMerchantId, orderData, {
             hashKey: config.payuniHashKey,
             hashIV: config.payuniHashIV,
+            extraNotifyQuery,
         });
         console.log('[Payuni CreateOrder]: ', result.merchantTradeNo);
+
+        await setPaymentOrder(result.merchantTradeNo, {
+            kind: 'payuni-donation',
+            fullMessage: orderData.message || '',
+            fullName: orderData.name || '',
+            ...(lcfContext
+                ? {
+                      largeCrowdfundingPageId: lcfContext.pageId,
+                      ecpayConfigId: lcfContext.ecpayConfigId,
+                  }
+                : {}),
+        });
 
         res.status(200).json({
             paymentUrl: result.paymentUrl,

@@ -8,7 +8,7 @@ async function handlePaymentTimeoutWorker(taskName) {
     try {
         console.log(`[${taskName}] 開始檢查付款超時...`);
 
-        const paymentOrders = getAllPaymentOrders();
+        const paymentOrders = await getAllPaymentOrders();
 
         if (!paymentOrders || paymentOrders.size === 0) {
             console.log(`[${taskName}] 沒有待處理的付款訂單`);
@@ -28,17 +28,21 @@ async function handlePaymentTimeoutWorker(taskName) {
                 continue;
             }
 
-            if (orderInfo.kind === 'ecpay-donation') {
-                deletePaymentOrder(merchantTradeNo);
+            if (
+                orderInfo.kind === 'ecpay-donation' ||
+                orderInfo.kind === 'opay-donation' ||
+                orderInfo.kind === 'payuni-donation'
+            ) {
+                await deletePaymentOrder(merchantTradeNo);
                 staleOrderClearedCount++;
                 console.log(
-                    `[${taskName}] 綠界斗內預存訂單逾時已清除: ${merchantTradeNo}`
+                    `[${taskName}] ${orderInfo.kind} 預存訂單逾時已清除: ${merchantTradeNo}`
                 );
                 continue;
             }
 
             if (eventId == null || cardIndex == null) {
-                deletePaymentOrder(merchantTradeNo);
+                await deletePaymentOrder(merchantTradeNo);
                 staleOrderClearedCount++;
                 console.log(
                     `[${taskName}] 無效或缺少 eventId 的預存訂單已清除: ${merchantTradeNo}`
@@ -93,7 +97,7 @@ async function handlePaymentTimeoutWorker(taskName) {
                         `[${taskName}] 卡片 ${cardIndex} 付款超時，已恢復為可點擊狀態`
                     );
                     ichibanTimeoutCount++;
-                    deletePaymentOrder(merchantTradeNo);
+                    await deletePaymentOrder(merchantTradeNo);
                 }
             } catch (error) {
                 console.error(

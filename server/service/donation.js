@@ -33,6 +33,9 @@ async function resolveMerchantIdForWebSocket(row) {
     if (config.payuniMerchantId && String(config.payuniMerchantId).trim()) {
         return String(config.payuniMerchantId).trim();
     }
+    if (config.opayMerchantId && String(config.opayMerchantId).trim()) {
+        return String(config.opayMerchantId).trim();
+    }
     return key;
 }
 

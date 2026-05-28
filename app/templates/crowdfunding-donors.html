@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="zh-Hant">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>感謝贊助</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@200..900&display=swap"
+            rel="stylesheet"
+        />
+    </head>
+    <body class="cfd-body">
+        <div id="loadError" class="cfd-load-error" hidden></div>
+
+        <div id="pageRoot" class="cfd-page" hidden>
+            <div class="cfd-bg" id="cfBg" aria-hidden="true"></div>
+
+            <div class="cfd-layout">
+                <div class="cfd-stage">
+                    <div class="cfd-sidebar-spacer" aria-hidden="true"></div>
+                    <section class="cfd-hero-col" aria-label="主視覺">
+                        <div class="cf-hero-wrap">
+                            <div id="heroFrame" class="cf-hero-frame">
+                                <img id="heroImg" class="cf-hero-img" alt="" />
+                                <div
+                                    id="heroPlaceholder"
+                                    class="cf-hero-placeholder"
+                                >
+                                    主視覺圖尚未設定
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <div class="cfd-panel-slot">
+                    <div class="cfd-list-box">
+                        <div class="cfd-list-content">
+                            <header class="cfd-list-header">
+                                <p class="cfd-update-hint">
+                                    贊助名單將於每 8 秒更新一次
+                                </p>
+                                <h1 class="cfd-list-title">感謝贊助</h1>
+                                <span
+                                    class="cfd-list-header-line"
+                                    aria-hidden="true"
+                                ></span>
+                            </header>
+                            <ul id="donorListAll" class="cfd-donor-list"></ul>
+                            <nav
+                                id="donorPagination"
+                                class="cfd-pagination"
+                                aria-label="斗內列表分頁"
+                                hidden
+                            >
+                                <button
+                                    type="button"
+                                    id="donorPagePrev"
+                                    class="cfd-pagination__btn"
+                                >
+                                    上一頁
+                                </button>
+                                <p
+                                    id="donorPageInfo"
+                                    class="cfd-pagination__info"
+                                >
+                                    第 1 / 1 頁
+                                </p>
+                                <button
+                                    type="button"
+                                    id="donorPageNext"
+                                    class="cfd-pagination__btn"
+                                >
+                                    下一頁
+                                </button>
+                            </nav>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
