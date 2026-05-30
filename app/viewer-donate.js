@@ -1,4 +1,9 @@
 import './css/viewer-donate.css';
+import {
+    LCF_POST_DONATE_FORM_URL,
+    LCF_POST_DONATE_FORM_TITLE,
+    LCF_POST_DONATE_FORM_HINT,
+} from './js/lcf-post-donate-form.js';
 
 (function () {
     function getQuery(name) {
@@ -213,6 +218,105 @@ import './css/viewer-donate.css';
         return Number.isInteger(n) && n > 0 ? n : null;
     }
 
+    function readDonationFields(amountInput) {
+        var name =
+            (document.getElementById('nickname') &&
+                document.getElementById('nickname').value) ||
+            '';
+        var amount =
+            amountInput && amountInput.value
+                ? parseInt(amountInput.value, 10)
+                : 0;
+        var message =
+            (document.getElementById('message') &&
+                document.getElementById('message').value) ||
+            '';
+        if (!amount || isNaN(amount) || amount < 30) {
+            showError('請輸入有效金額（至少 30 元）');
+            return null;
+        }
+        return {
+            name: name,
+            amount: amount,
+            message: message,
+        };
+    }
+
+    function setupLcfFormStep(largeCrowdfundingPageId, onConfirmPayment) {
+        if (!largeCrowdfundingPageId) {
+            return null;
+        }
+
+        var modalEl = document.getElementById('lcfFormModal');
+        var openLink = document.getElementById('lcfFormOpenLink');
+        var confirmBtn = document.getElementById('lcfFormConfirmBtn');
+        var backBtn = document.getElementById('lcfFormBackBtn');
+        var closeBtn = document.getElementById('lcfFormCloseBtn');
+        var titleEl = document.getElementById('lcfFormStepTitle');
+        var hintEl = document.getElementById('lcfFormStepHint');
+
+        if (!modalEl || !openLink || !confirmBtn || !backBtn) {
+            return null;
+        }
+
+        if (titleEl) {
+            titleEl.textContent = LCF_POST_DONATE_FORM_TITLE;
+        }
+        if (hintEl) {
+            hintEl.textContent = LCF_POST_DONATE_FORM_HINT;
+        }
+        openLink.href = LCF_POST_DONATE_FORM_URL;
+
+        var pendingProvider = null;
+
+        function hideModal() {
+            pendingProvider = null;
+            modalEl.classList.remove('is-open');
+            modalEl.style.display = 'none';
+            modalEl.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = '';
+        }
+
+        function showModal(provider) {
+            pendingProvider = provider;
+            showError('');
+            modalEl.style.display = 'flex';
+            modalEl.classList.add('is-open');
+            modalEl.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function onBackdropClick(e) {
+            if (e.target === modalEl) {
+                hideModal();
+            }
+        }
+
+        modalEl.addEventListener('click', onBackdropClick);
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && modalEl.classList.contains('is-open')) {
+                hideModal();
+            }
+        });
+
+        backBtn.addEventListener('click', hideModal);
+        if (closeBtn) {
+            closeBtn.addEventListener('click', hideModal);
+        }
+
+        confirmBtn.addEventListener('click', function () {
+            if (!pendingProvider) {
+                return;
+            }
+            var provider = pendingProvider;
+            hideModal();
+            onConfirmPayment(provider);
+        });
+
+        return showModal;
+    }
+
     async function runPage(merchantId, prefetchedConfig) {
         var largeCrowdfundingPageId = getLargeCrowdfundingPageId();
         var data = {};
@@ -304,27 +408,10 @@ import './css/viewer-donate.css';
             });
         });
 
-        if (linkPayuni) {
-            linkPayuni.addEventListener('click', function (e) {
-                e.preventDefault();
-                showError('');
-                const name =
-                    (document.getElementById('nickname') &&
-                        document.getElementById('nickname').value) ||
-                    '';
-                const amount =
-                    amountInput && amountInput.value
-                        ? parseInt(amountInput.value, 10)
-                        : 0;
-                const message =
-                    (document.getElementById('message') &&
-                        document.getElementById('message').value) ||
-                    '';
-
-                if (!amount || isNaN(amount) || amount < 30) {
-                    showError('請輸入有效金額（至少 30 元）');
-                    return;
-                }
+        function payWithPayuni(fields) {
+            var name = fields.name;
+            var amount = fields.amount;
+            var message = fields.message;
 
                 linkPayuni.style.pointerEvents = 'none';
                 var originalText = linkPayuni.textContent;
@@ -377,30 +464,12 @@ import './css/viewer-donate.css';
 
                         showError('伺服器回傳格式錯誤');
                     });
-            });
         }
 
-        if (linkOpay) {
-            linkOpay.addEventListener('click', function (e) {
-                e.preventDefault();
-                showError('');
-                const name =
-                    (document.getElementById('nickname') &&
-                        document.getElementById('nickname').value) ||
-                    '';
-                const amount =
-                    amountInput && amountInput.value
-                        ? parseInt(amountInput.value, 10)
-                        : 0;
-                const message =
-                    (document.getElementById('message') &&
-                        document.getElementById('message').value) ||
-                    '';
-
-                if (!amount || isNaN(amount) || amount < 30) {
-                    showError('請輸入有效金額（至少 30 元）');
-                    return;
-                }
+        function payWithOpay(fields) {
+            var name = fields.name;
+            var amount = fields.amount;
+            var message = fields.message;
 
                 linkOpay.style.pointerEvents = 'none';
                 var originalTextOpay = linkOpay.textContent;
@@ -453,30 +522,12 @@ import './css/viewer-donate.css';
 
                         showError('伺服器回傳格式錯誤');
                     });
-            });
         }
 
-        if (!btnEcpay) return;
-
-        btnEcpay.addEventListener('click', async function () {
-            showError('');
-            const name =
-                (document.getElementById('nickname') &&
-                    document.getElementById('nickname').value) ||
-                '';
-            const amount =
-                amountInput && amountInput.value
-                    ? parseInt(amountInput.value, 10)
-                    : 0;
-            const message =
-                (document.getElementById('message') &&
-                    document.getElementById('message').value) ||
-                '';
-
-            if (!amount || isNaN(amount) || amount < 30) {
-                showError('請輸入有效金額（至少 30 元）');
-                return;
-            }
+        async function payWithEcpay(fields) {
+            var name = fields.name;
+            var amount = fields.amount;
+            var message = fields.message;
 
             btnEcpay.disabled = true;
             btnEcpay.textContent = '處理中…';
@@ -527,7 +578,62 @@ import './css/viewer-donate.css';
                 btnEcpay.disabled = false;
                 btnEcpay.textContent = '用綠界斗內';
             }
-        });
+        }
+
+        function runPayment(provider, fields) {
+            if (provider === 'payuni') {
+                payWithPayuni(fields);
+            } else if (provider === 'opay') {
+                payWithOpay(fields);
+            } else if (provider === 'ecpay') {
+                payWithEcpay(fields);
+            }
+        }
+
+        var showLcfFormStep = setupLcfFormStep(
+            largeCrowdfundingPageId,
+            function (provider) {
+                var fields = readDonationFields(amountInput);
+                if (!fields) {
+                    return;
+                }
+                runPayment(provider, fields);
+            }
+        );
+
+        function onPaymentClick(e, provider) {
+            if (e) {
+                e.preventDefault();
+            }
+            showError('');
+            var fields = readDonationFields(amountInput);
+            if (!fields) {
+                return;
+            }
+            if (showLcfFormStep) {
+                showLcfFormStep(provider);
+                return;
+            }
+            runPayment(provider, fields);
+        }
+
+        if (linkPayuni) {
+            linkPayuni.addEventListener('click', function (e) {
+                onPaymentClick(e, 'payuni');
+            });
+        }
+
+        if (linkOpay) {
+            linkOpay.addEventListener('click', function (e) {
+                onPaymentClick(e, 'opay');
+            });
+        }
+
+        if (btnEcpay) {
+            btnEcpay.addEventListener('click', function (e) {
+                onPaymentClick(e, 'ecpay');
+            });
+        }
     }
 
     if (document.readyState === 'loading') {

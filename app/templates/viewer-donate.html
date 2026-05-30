@@ -6,7 +6,7 @@
         <title>支持實況主 - 斗內</title>
     </head>
     <body>
-        <div class="window">
+        <div class="window" id="donateWindow">
             <div class="title">▶ 支持實況主</div>
             <div class="error" id="errorMsg"></div>
             <div class="label">NAME</div>
@@ -30,6 +30,57 @@
             <div class="alt-links">
                 <a href="#" id="linkPayuni" class="btn-payuni">PayUni 斗內</a>
                 <a href="#" id="linkOpay" class="btn-opay">歐付寶斗內</a>
+            </div>
+        </div>
+
+        <div
+            id="lcfFormModal"
+            class="modal donate-modal"
+            style="display: none"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="lcfFormStepTitle"
+            aria-hidden="true"
+        >
+            <div class="modal-content donate-modal__content">
+                <div class="modal-header donate-modal__header">
+                    <h2 id="lcfFormStepTitle">贊助者資料表單</h2>
+                    <button
+                        type="button"
+                        class="modal-close donate-modal__close"
+                        id="lcfFormCloseBtn"
+                        aria-label="關閉"
+                    >
+                        &times;
+                    </button>
+                </div>
+                <div class="modal-body donate-modal__body">
+                    <p class="donate-modal__hint" id="lcfFormStepHint"></p>
+                    <a
+                        id="lcfFormOpenLink"
+                        class="donate-modal__open"
+                        href="#"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        >前往填寫 Google 表單</a
+                    >
+                </div>
+                <div class="modal-footer donate-modal__footer">
+                    <button
+                        type="button"
+                        class="donate-modal__back"
+                        id="lcfFormBackBtn"
+                    >
+                        返回斗內
+                    </button>
+                    <button
+                        type="button"
+                        class="donate-modal__confirm"
+                        id="lcfFormConfirmBtn"
+                    >
+                        已完成填寫，繼續付款
+                    </button>
+                </div>
             </div>
         </div>
     </body>

@@ -272,4 +272,5 @@ module.exports = {
     getEcPayDonations,
     createPayment,
     verifyEcpayReturnCheckMac,
+    genCheckMacValue,
 };

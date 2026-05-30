@@ -1,4 +1,7 @@
 .env
+
+# 本機大型募資／斗內測試（不進版控）
+/test
 .node_modules
 .preload.js
 .webpack

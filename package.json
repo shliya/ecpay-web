@@ -4,7 +4,11 @@
     "description": "shiliya common",
     "main": "index.js",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1",
+        "test": "npm run test:lcf",
+        "test:lcf": "node --test test/lcf-donation.unit.test.js test/lcf-donation.integration.test.js test/lcf-donation.concurrency.test.js",
+        "test:lcf:unit": "node --test test/lcf-donation.unit.test.js",
+        "test:lcf:concurrency": "node --test test/lcf-donation.concurrency.test.js",
+        "test:lcf:http": "node --test test/lcf-donation.http.test.js",
         "dev:server": "nodemon index.js",
         "dev:client": "webpack serve --mode development",
         "dev-web": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
