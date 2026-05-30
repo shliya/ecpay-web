@@ -4,6 +4,7 @@ import {
     LCF_POST_DONATE_FORM_TITLE,
     LCF_POST_DONATE_FORM_HINT,
 } from './js/lcf-post-donate-form.js';
+import { donateThemeVarMap } from './js/donate-theme-keys.js';
 
 (function () {
     function getQuery(name) {
@@ -151,29 +152,12 @@ import {
         );
     }
 
-    var themeVarMap = {
-        bg: '--donate-bg',
-        windowBg: '--donate-window-bg',
-        border: '--donate-border',
-        borderLight: '--donate-border-light',
-        text: '--donate-text',
-        inputBg: '--donate-input-bg',
-        btnBg: '--donate-btn-bg',
-        btnBorder: '--donate-btn-border',
-        btnText: '--donate-btn-text',
-        activeBg: '--donate-quick-active-bg',
-        activeText: '--donate-quick-active-text',
-        link: '--donate-link',
-        linkMuted: '--donate-link-muted',
-        error: '--donate-error',
-    };
-
     function applyTheme(theme) {
         if (!theme || typeof theme !== 'object') return;
         var root = document.documentElement;
-        Object.keys(themeVarMap).forEach(function (key) {
+        Object.keys(donateThemeVarMap).forEach(function (key) {
             if (theme[key]) {
-                root.style.setProperty(themeVarMap[key], theme[key]);
+                root.style.setProperty(donateThemeVarMap[key], theme[key]);
             }
         });
     }
@@ -190,22 +174,22 @@ import {
         var opayOk =
             (isLcf ? cfg.lcfOpayEnabled !== false : cfg.opayEnabled !== false) &&
             cfg.opayConfigured === true;
+        var paymentsEl = document.getElementById('donatePayments');
         var btnEcpay = document.getElementById('btnEcpay');
-        var altLinks = document.querySelector('.alt-links');
         var linkPayuni = document.getElementById('linkPayuni');
         var linkOpay = document.getElementById('linkOpay');
         if (btnEcpay) {
             btnEcpay.style.display = ecpayOk ? '' : 'none';
-        }
-        if (altLinks) {
-            altLinks.style.display =
-                payuniOk || opayOk ? '' : 'none';
         }
         if (linkPayuni) {
             linkPayuni.style.display = payuniOk ? '' : 'none';
         }
         if (linkOpay) {
             linkOpay.style.display = opayOk ? '' : 'none';
+        }
+        if (paymentsEl) {
+            paymentsEl.style.display =
+                ecpayOk || payuniOk || opayOk ? '' : 'none';
         }
     }
 
@@ -319,6 +303,13 @@ import {
 
     async function runPage(merchantId, prefetchedConfig) {
         var largeCrowdfundingPageId = getLargeCrowdfundingPageId();
+        var donateWindow = document.getElementById('donateWindow');
+        if (donateWindow) {
+            donateWindow.classList.toggle(
+                'is-lcf-donate',
+                largeCrowdfundingPageId != null
+            );
+        }
         var data = {};
         try {
             var r = await fetch(

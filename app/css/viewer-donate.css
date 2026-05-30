@@ -1,7 +1,8 @@
 /**
  * 觀眾斗內頁：色塊皆用變數，可由 API themeColors 覆寫，整體版型不變。
  * 可自訂 key（皆為 hex 或 CSS 顏色）：bg, windowBg, border, borderLight, text,
- * inputBg, btnBg, btnBorder, btnText, activeBg, activeText, link, linkMuted, error.
+ * inputBg, btnBg/btnBorder/btnText（綠界）, payuniBg/payuniBorder/payuniText,
+ * opayBg/opayBorder/opayText, activeBg, activeText, link, linkMuted, error.
  */
 :root {
     --donate-bg: #cfe3ff;
@@ -13,6 +14,12 @@
     --donate-btn-bg: #4a90a4;
     --donate-btn-border: #2d5f6f;
     --donate-btn-text: #fff;
+    --donate-payuni-bg: #5b7c99;
+    --donate-payuni-border: #3d5a6e;
+    --donate-payuni-text: #fff;
+    --donate-opay-bg: #2d7a5e;
+    --donate-opay-border: #1d5a43;
+    --donate-opay-text: #fff;
     --donate-quick-active-bg: #1e355c;
     --donate-quick-active-text: #ffffff;
     --donate-link: #1e355c;
@@ -94,17 +101,56 @@ body {
     color: var(--donate-quick-active-text);
 }
 
-.btn-ecpay {
+.donate-payments {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
     margin-top: 12px;
+}
+
+/* 一般斗內：綠界 → PAYUNi → 歐付寶 */
+.donate-pay--ecpay {
+    order: 1;
+}
+
+.donate-pay--payuni {
+    order: 2;
+}
+
+.donate-pay--opay {
+    order: 3;
+}
+
+/* 大型募資斗內：歐付寶（若開放）排第一 */
+.window.is-lcf-donate .donate-pay--opay {
+    order: 1;
+}
+
+.window.is-lcf-donate .donate-pay--ecpay {
+    order: 2;
+}
+
+.window.is-lcf-donate .donate-pay--payuni {
+    order: 3;
+}
+
+.donate-payments .donate-pay {
+    display: block;
     width: 100%;
-    background: var(--donate-btn-bg);
-    color: var(--donate-btn-text);
-    border: 3px solid var(--donate-btn-border);
+    box-sizing: border-box;
+    text-align: center;
     font-family: inherit;
     font-size: 14px;
     padding: 10px 0;
     cursor: pointer;
     border-radius: 8px;
+    text-decoration: none;
+}
+
+.btn-ecpay {
+    background: var(--donate-btn-bg);
+    color: var(--donate-btn-text);
+    border: 3px solid var(--donate-btn-border);
 }
 
 .btn-ecpay:disabled {
@@ -112,52 +158,25 @@ body {
     cursor: not-allowed;
 }
 
-.alt-links {
-    margin-top: 12px;
-    text-align: center;
+.donate-payments .btn-payuni {
+    background: var(--donate-payuni-bg);
+    color: var(--donate-payuni-text);
+    border: 3px solid var(--donate-payuni-border);
 }
 
-.alt-links a {
-    color: var(--donate-link);
-    display: block;
-    margin: 4px 0;
-    cursor: pointer;
-    text-decoration: underline;
-}
-
-.alt-links a:hover {
-    opacity: 0.85;
-}
-
-.alt-links .btn-payuni {
-    margin-top: 8px;
-    padding: 10px 0;
-    background: var(--donate-payuni-bg, #5b7c99);
-    color: var(--donate-payuni-text, #fff);
-    border: 3px solid var(--donate-payuni-border, #3d5a6e);
-    border-radius: 8px;
-    font-size: 14px;
-    text-decoration: none;
-}
-
-.alt-links .btn-payuni:hover {
-    background: var(--donate-payuni-hover-bg, #4a6a82);
+.donate-payments .btn-payuni:hover {
+    filter: brightness(0.92);
     opacity: 1;
 }
 
-.alt-links .btn-opay {
-    margin-top: 8px;
-    padding: 10px 0;
-    background: var(--donate-opay-bg, #2d7a5e);
-    color: var(--donate-opay-text, #fff);
-    border: 3px solid var(--donate-opay-border, #1d5a43);
-    border-radius: 8px;
-    font-size: 14px;
-    text-decoration: none;
+.donate-payments .btn-opay {
+    background: var(--donate-opay-bg);
+    color: var(--donate-opay-text);
+    border: 3px solid var(--donate-opay-border);
 }
 
-.alt-links .btn-opay:hover {
-    background: var(--donate-opay-hover-bg, #256b52);
+.donate-payments .btn-opay:hover {
+    filter: brightness(0.92);
     opacity: 1;
 }
 

@@ -1,59 +1,13 @@
 import './css/common.css';
 import './css/donate-theme.css';
 import checkTotpBinding from './js/totp-guard.js';
+import {
+    donateThemeDefaults,
+    donateThemeFormFields,
+    applyDonateTheme,
+} from './js/donate-theme-keys.js';
 
 (function () {
-    var themeKeys = [
-        { key: 'bg', label: '頁面背景' },
-        { key: 'windowBg', label: '白底區塊' },
-        { key: 'border', label: '主邊框' },
-        { key: 'borderLight', label: '淺邊框/陰影' },
-        { key: 'text', label: '文字' },
-        { key: 'inputBg', label: '輸入框背景' },
-        { key: 'btnBg', label: '按鈕背景' },
-        { key: 'btnBorder', label: '按鈕邊框' },
-        { key: 'btnText', label: '按鈕文字' },
-        { key: 'activeBg', label: '快速金額選中背景' },
-        { key: 'activeText', label: '快速金額選中文字' },
-        { key: 'link', label: '連結' },
-        { key: 'linkMuted', label: '連結次要' },
-        { key: 'error', label: '錯誤訊息' },
-    ];
-
-    var defaultTheme = {
-        bg: '#cfe3ff',
-        windowBg: '#ffffff',
-        border: '#1e355c',
-        borderLight: '#7fa6e8',
-        text: '#1e355c',
-        inputBg: '#eef4ff',
-        btnBg: '#4a90a4',
-        btnBorder: '#2d5f6f',
-        btnText: '#fff',
-        activeBg: '#1e355c',
-        activeText: '#ffffff',
-        link: '#1e355c',
-        linkMuted: '#999',
-        error: '#c00',
-    };
-
-    var varMap = {
-        bg: '--donate-bg',
-        windowBg: '--donate-window-bg',
-        border: '--donate-border',
-        borderLight: '--donate-border-light',
-        text: '--donate-text',
-        inputBg: '--donate-input-bg',
-        btnBg: '--donate-btn-bg',
-        btnBorder: '--donate-btn-border',
-        btnText: '--donate-btn-text',
-        activeBg: '--donate-quick-active-bg',
-        activeText: '--donate-quick-active-text',
-        link: '--donate-link',
-        linkMuted: '--donate-link-muted',
-        error: '--donate-error',
-    };
-
     var cachedDisplayName = null;
 
     function getMerchantId() {
@@ -80,20 +34,13 @@ import checkTotpBinding from './js/totp-guard.js';
         return hex.length === 6 ? '#' + hex : '#000000';
     }
 
-    function applyThemeToPreview(theme) {
-        var wrapper = document.getElementById('previewWrapper');
-        if (!wrapper) return;
-        var t = theme || defaultTheme;
-        Object.keys(varMap).forEach(function (key) {
-            if (t[key]) wrapper.style.setProperty(varMap[key], t[key]);
-        });
-    }
-
     function getCurrentTheme() {
         var theme = {};
-        themeKeys.forEach(function (item) {
+        donateThemeFormFields.forEach(function (item) {
             var hexEl = document.getElementById('theme_' + item.key);
-            if (hexEl && hexEl.value) theme[item.key] = hexEl.value.trim();
+            if (hexEl && hexEl.value) {
+                theme[item.key] = hexEl.value.trim();
+            }
         });
         return theme;
     }
@@ -102,9 +49,19 @@ import checkTotpBinding from './js/totp-guard.js';
         var container = document.getElementById('themeFields');
         if (!container) return;
         container.innerHTML = '';
-        var t = currentTheme || defaultTheme;
-        themeKeys.forEach(function (item) {
-            var value = t[item.key] || defaultTheme[item.key] || '#000';
+        var t = Object.assign({}, donateThemeDefaults, currentTheme || {});
+        var lastSection = null;
+
+        donateThemeFormFields.forEach(function (item) {
+            if (item.section && item.section !== lastSection) {
+                lastSection = item.section;
+                var heading = document.createElement('h3');
+                heading.className = 'theme-section-title';
+                heading.textContent = item.section;
+                container.appendChild(heading);
+            }
+
+            var value = t[item.key] || donateThemeDefaults[item.key] || '#000000';
             var row = document.createElement('div');
             row.className = 'theme-row';
             var label = document.createElement('label');
@@ -120,14 +77,16 @@ import checkTotpBinding from './js/totp-guard.js';
             hexInput.id = 'theme_' + item.key;
             hexInput.placeholder = '#hex';
             hexInput.value = value;
-            hexInput.setAttribute('aria-label', item.label + ' hex');
+            hexInput.setAttribute(
+                'aria-label',
+                (item.section ? item.section + ' ' : '') + item.label
+            );
 
             function updatePreview() {
                 var hex = hexInput.value.trim();
                 if (hex && !hex.startsWith('#')) hex = '#' + hex;
                 if (hex) colorInput.value = hexToInputColor(hex);
-                var cur = getCurrentTheme();
-                applyThemeToPreview(cur);
+                applyDonateTheme(getCurrentTheme(), document.getElementById('previewWrapper'));
             }
 
             colorInput.addEventListener('input', function () {
@@ -172,14 +131,17 @@ import checkTotpBinding from './js/totp-guard.js';
                 cachedDisplayName = data.displayName || null;
                 var theme =
                     data.themeColors && typeof data.themeColors === 'object'
-                        ? Object.assign({}, defaultTheme, data.themeColors)
-                        : defaultTheme;
+                        ? Object.assign({}, donateThemeDefaults, data.themeColors)
+                        : Object.assign({}, donateThemeDefaults);
                 buildForm(theme);
-                applyThemeToPreview(theme);
+                applyDonateTheme(theme, document.getElementById('previewWrapper'));
             })
             .catch(function () {
-                buildForm(defaultTheme);
-                applyThemeToPreview(defaultTheme);
+                buildForm(donateThemeDefaults);
+                applyDonateTheme(
+                    donateThemeDefaults,
+                    document.getElementById('previewWrapper')
+                );
             });
 
         document
@@ -237,8 +199,11 @@ import checkTotpBinding from './js/totp-guard.js';
         document
             .getElementById('btnReset')
             .addEventListener('click', function () {
-                buildForm(defaultTheme);
-                applyThemeToPreview(defaultTheme);
+                buildForm(donateThemeDefaults);
+                applyDonateTheme(
+                    donateThemeDefaults,
+                    document.getElementById('previewWrapper')
+                );
                 showMessage('已還原為預設色，按「儲存」才會寫入。', 'success');
             });
     }

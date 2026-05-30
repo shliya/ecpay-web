@@ -27,6 +27,28 @@ async function createPayuniConfig(row) {
 }
 
 const ALLOWED_THEME_COLOR_KEYS = new Set([
+    // 觀眾斗內頁（donate-theme / viewer-donate）
+    'bg',
+    'windowBg',
+    'border',
+    'borderLight',
+    'text',
+    'inputBg',
+    'btnBg',
+    'btnBorder',
+    'btnText',
+    'payuniBg',
+    'payuniBorder',
+    'payuniText',
+    'opayBg',
+    'opayBorder',
+    'opayText',
+    'activeBg',
+    'activeText',
+    'link',
+    'linkMuted',
+    'error',
+    // 舊版 key（相容）
     'primary',
     'secondary',
     'background',
@@ -37,6 +59,19 @@ const ALLOWED_THEME_COLOR_KEYS = new Set([
     'buttonBg',
     'buttonText',
 ]);
+
+function sanitizeThemeColors(value) {
+    if (value == null || typeof value !== 'object' || Array.isArray(value)) {
+        return null;
+    }
+    const sanitized = {};
+    for (const key of Object.keys(value)) {
+        if (ALLOWED_THEME_COLOR_KEYS.has(key)) {
+            sanitized[key] = String(value[key]);
+        }
+    }
+    return Object.keys(sanitized).length ? sanitized : null;
+}
 
 function normalizeUpdateField(field, value) {
     if (
@@ -52,20 +87,7 @@ function normalizeUpdateField(field, value) {
         return null;
     }
     if (field === 'themeColors') {
-        if (
-            value == null ||
-            typeof value !== 'object' ||
-            Array.isArray(value)
-        ) {
-            return null;
-        }
-        const sanitized = {};
-        for (const key of Object.keys(value)) {
-            if (ALLOWED_THEME_COLOR_KEYS.has(key)) {
-                sanitized[key] = String(value[key]);
-            }
-        }
-        return Object.keys(sanitized).length ? sanitized : null;
+        return sanitizeThemeColors(value);
     }
     if (field === 'youtubeDonationAmount') {
         const n = Math.floor(Number(value));
@@ -152,7 +174,10 @@ async function updateEcpayConfig(merchantId, updates) {
 }
 
 async function updateEcpayTheme(merchantId, themeColors) {
-    return await ecpayConfigStore.updateThemeColors(merchantId, themeColors);
+    return await ecpayConfigStore.updateThemeColors(
+        merchantId,
+        sanitizeThemeColors(themeColors)
+    );
 }
 
 module.exports = {

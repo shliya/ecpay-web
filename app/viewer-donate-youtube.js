@@ -1,4 +1,5 @@
 import './css/viewer-donate.css';
+import { donateThemeVarMap } from './js/donate-theme-keys.js';
 
 (function () {
     function getQuery(name) {
@@ -192,29 +193,12 @@ import './css/viewer-donate.css';
         );
     }
 
-    var themeVarMap = {
-        bg: '--donate-bg',
-        windowBg: '--donate-window-bg',
-        border: '--donate-border',
-        borderLight: '--donate-border-light',
-        text: '--donate-text',
-        inputBg: '--donate-input-bg',
-        btnBg: '--donate-btn-bg',
-        btnBorder: '--donate-btn-border',
-        btnText: '--donate-btn-text',
-        activeBg: '--donate-quick-active-bg',
-        activeText: '--donate-quick-active-text',
-        link: '--donate-link',
-        linkMuted: '--donate-link-muted',
-        error: '--donate-error',
-    };
-
     function applyTheme(theme) {
         if (!theme || typeof theme !== 'object') return;
         var root = document.documentElement;
-        Object.keys(themeVarMap).forEach(function (key) {
+        Object.keys(donateThemeVarMap).forEach(function (key) {
             if (theme[key]) {
-                root.style.setProperty(themeVarMap[key], theme[key]);
+                root.style.setProperty(donateThemeVarMap[key], theme[key]);
             }
         });
     }
