@@ -4,6 +4,7 @@ import {
     getCrowdfundingActivityStatus,
     readCrowdfundingPreview,
     resolveRecentDonors,
+    fetchDonorsTen,
     fetchDonorsSpecial,
     CROWDFUNDING_MAIN_DONOR_LIMIT,
     CROWDFUNDING_SPECIAL_THEME_DONOR_LIMIT,
@@ -26,6 +27,14 @@ import {
 
 const PAGE_KEY_RE = /^[a-z0-9_-]{1,80}$/i;
 const DEFAULT_KEY = 'default';
+/** 榜十大哥、特殊主題前四名、斗內條／累積金額 */
+const LIVE_POLL_MS = 5000;
+
+let pollTimer = null;
+let pageKeyCache = null;
+let pageDataCache = null;
+let merchantIdCache = '';
+let livePollInFlight = false;
 
 function getQueryName() {
     return new URLSearchParams(window.location.search).get('name') || '';
@@ -986,6 +995,67 @@ async function renderPage(data, pageKey) {
     renderFundingProgress(data, key);
 }
 
+function getMerchantIdFromQuery() {
+    return (
+        new URLSearchParams(window.location.search).get('merchantId') || ''
+    ).trim();
+}
+
+/**
+ * 即時區塊：榜十大哥、特殊主題前四名、募資進度條與累積金額
+ */
+async function refreshLiveSections() {
+    if (!pageKeyCache || !pageDataCache || isPreviewMode()) {
+        return;
+    }
+    if (livePollInFlight) {
+        return;
+    }
+    livePollInFlight = true;
+    const key = pageKeyCache;
+    const merchantId = merchantIdCache || undefined;
+    try {
+        const [publicData, tenResult, specialDonors] = await Promise.all([
+            fetchCrowdfundingPublic(key, merchantId),
+            fetchDonorsTen(key),
+            fetchDonorsSpecial(key),
+        ]);
+        if (!publicData) {
+            return;
+        }
+        pageDataCache.currentTotal = publicData.currentTotal;
+        if (Array.isArray(publicData.milestones)) {
+            pageDataCache.milestones = publicData.milestones;
+        }
+        const donors = tenResult.donors || [];
+        renderFundingProgress(pageDataCache, key);
+        renderDonors(pageDataCache, donors);
+        renderSpecialThemeRanking(pageDataCache, specialDonors);
+        setupLeaderboardTabs(pageDataCache, specialDonors);
+    } catch {
+        /* 略過單次輪詢失敗 */
+    } finally {
+        livePollInFlight = false;
+    }
+}
+
+function startLivePolling() {
+    stopLivePolling();
+    if (isPreviewMode() || !pageKeyCache) {
+        return;
+    }
+    pollTimer = setInterval(function () {
+        refreshLiveSections().catch(function () {});
+    }, LIVE_POLL_MS);
+}
+
+function stopLivePolling() {
+    if (pollTimer) {
+        clearInterval(pollTimer);
+        pollTimer = null;
+    }
+}
+
 async function init() {
     bindContentAnchorNav();
     bindContentWheelNav();
@@ -1009,7 +1079,11 @@ async function init() {
             return;
         }
         showPage();
+        pageKeyCache = key;
+        pageDataCache = data;
+        merchantIdCache = getMerchantIdFromQuery();
         await renderPage(data, key);
+        startLivePolling();
     } catch (err) {
         const msg =
             err && err.message === 'not_published'
@@ -1018,5 +1092,18 @@ async function init() {
         showLoadError(msg);
     }
 }
+
+document.addEventListener('visibilitychange', function () {
+    if (document.hidden) {
+        stopLivePolling();
+    } else if (pageKeyCache && pageDataCache && !isPreviewMode()) {
+        refreshLiveSections().catch(function () {});
+        startLivePolling();
+    }
+});
+
+window.addEventListener('pagehide', function () {
+    stopLivePolling();
+});
 
 init();

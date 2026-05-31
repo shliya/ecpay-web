@@ -61,7 +61,8 @@ import {
                 container.appendChild(heading);
             }
 
-            var value = t[item.key] || donateThemeDefaults[item.key] || '#000000';
+            var value =
+                t[item.key] || donateThemeDefaults[item.key] || '#000000';
             var row = document.createElement('div');
             row.className = 'theme-row';
             var label = document.createElement('label');
@@ -86,7 +87,10 @@ import {
                 var hex = hexInput.value.trim();
                 if (hex && !hex.startsWith('#')) hex = '#' + hex;
                 if (hex) colorInput.value = hexToInputColor(hex);
-                applyDonateTheme(getCurrentTheme(), document.getElementById('previewWrapper'));
+                applyDonateTheme(
+                    getCurrentTheme(),
+                    document.getElementById('previewWrapper')
+                );
             }
 
             colorInput.addEventListener('input', function () {
@@ -131,10 +135,17 @@ import {
                 cachedDisplayName = data.displayName || null;
                 var theme =
                     data.themeColors && typeof data.themeColors === 'object'
-                        ? Object.assign({}, donateThemeDefaults, data.themeColors)
+                        ? Object.assign(
+                              {},
+                              donateThemeDefaults,
+                              data.themeColors
+                          )
                         : Object.assign({}, donateThemeDefaults);
                 buildForm(theme);
-                applyDonateTheme(theme, document.getElementById('previewWrapper'));
+                applyDonateTheme(
+                    theme,
+                    document.getElementById('previewWrapper')
+                );
             })
             .catch(function () {
                 buildForm(donateThemeDefaults);
