@@ -1237,6 +1237,10 @@ a.cf-funding-progress--link:focus-visible {
             var(--cf-mobile-timeline-top) +
                 min(var(--cf-mobile-timeline-length), 580px)
         );
+        --cf-mobile-sponsor-w: min(
+            10.5rem,
+            calc(var(--cf-mobile-timeline-bar-thickness) + 7.5rem)
+        );
     }
 
     html,
@@ -1342,14 +1346,6 @@ a.cf-funding-progress--link:focus-visible {
     .cf-sidebar.cf-sidebar--theme-ranking {
         width: 100%;
         max-width: none;
-    }
-
-    .cf-sponsor-cta {
-        width: 100%;
-    }
-
-    .cf-sponsor-cta-img {
-        max-height: 4.75rem;
     }
 
     .cf-sidebar {
@@ -1635,7 +1631,56 @@ a.cf-funding-progress--link:focus-visible {
         height: 12px;
     }
 
-    .cf-sponsor-cta {
+    /* 浮動於右側直式募資條正上方（與進度條、募資進度標籤同一水平軸） */
+    .cf-sidebar-column > .cf-sponsor-cta {
+        position: fixed;
+        z-index: 35;
+        left: calc(
+            100% - var(--cf-mobile-timeline-right) -
+                var(--cf-mobile-timeline-bar-thickness) / 2
+        );
+        right: auto;
+        top: calc(var(--cf-mobile-timeline-top) - 0.35rem);
+        bottom: auto;
+        width: var(--cf-mobile-sponsor-w);
+        max-width: min(
+            var(--cf-mobile-sponsor-w),
+            calc(100vw - var(--cf-mobile-timeline-right) - 0.65rem)
+        );
+        margin: 0;
+        transform: translateX(-50%) translateY(-100%);
+        pointer-events: auto;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .cf-sidebar-column > .cf-sponsor-cta:not(.is-image) {
+        padding: 0.55rem 0.65rem;
         font-size: 0.95rem;
+        box-shadow: 0 3px 14px rgba(0, 0, 0, 0.2);
+    }
+
+    .cf-sidebar-column > .cf-sponsor-cta:hover {
+        transform: translateX(-50%) translateY(calc(-100% - 1px));
+    }
+
+    /* 圖片贊助鈕：無底色／邊框／矩形陰影，只顯示素材本身 */
+    .cf-sidebar-column > .cf-sponsor-cta.is-image {
+        padding: 0;
+        background: none;
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+        backdrop-filter: none;
+    }
+
+    .cf-sidebar-column > .cf-sponsor-cta.is-image:hover {
+        transform: translateX(-50%) translateY(calc(-100% - 1px));
+        opacity: 0.92;
+        box-shadow: none;
+    }
+
+    .cf-sidebar-column > .cf-sponsor-cta-img {
+        max-height: 3.85rem;
+        filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.1));
     }
 }
