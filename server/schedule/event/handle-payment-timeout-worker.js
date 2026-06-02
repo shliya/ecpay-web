@@ -16,7 +16,7 @@ async function handlePaymentTimeoutWorker(taskName) {
         }
 
         const currentTime = Date.now();
-        const timeoutDuration = 5 * 60 * 1000; // 5分鐘
+        const timeoutDuration = 12 * 60 * 1000; // 12分鐘
         let ichibanTimeoutCount = 0;
         let staleOrderClearedCount = 0;
 

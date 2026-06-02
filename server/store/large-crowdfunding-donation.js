@@ -1,4 +1,4 @@
-const { Op, fn, col, QueryTypes } = require('sequelize');
+const { Op, QueryTypes } = require('sequelize');
 const LargeCrowdfundingDonation = require('../model/schema/large-crowdfunding-donation');
 
 const DEFAULT_RECENT_LIMIT = 50;
@@ -64,30 +64,60 @@ async function listRecentByPageId(pageId, opts = {}) {
 }
 
 /**
- * 依 donorName 合併：同名加總 amount，依加總金額排序（榜單顯示用）。
- * 資料庫仍保留每筆斗內紀錄。
+ * 依 donorName 合併：同名加總 amount（榜十／榜單顯示用）。
+ * 排序：累計金額 DESC；同額時依「首次達到目前累計總額」時間 ASC（先達標者在前）。
+ * 若之後加碼超過他人則因金額較高而往前，不受 tie-break 影響。
  * @param {string} pageKey
  * @param {{ limit?: number, offset?: number }} [opts]
  */
 async function listRecentByPageKey(pageKey, opts = {}) {
     const { limit, offset } = normalizeListOpts(opts);
-    return LargeCrowdfundingDonation.findAll({
-        where: { pageKey },
-        attributes: [
-            'donorName',
-            [fn('SUM', col('amount')), 'amount'],
-            [fn('MAX', col('created_at')), 'created_at'],
-        ],
-        group: ['donorName'],
-        order: [
-            [fn('SUM', col('amount')), 'DESC'],
-            [fn('MAX', col('created_at')), 'DESC'],
-        ],
-        limit,
-        offset,
-        subQuery: false,
-        raw: true,
-    });
+    return LargeCrowdfundingDonation.sequelize.query(
+        `
+        WITH donations AS (
+            SELECT id, "donorName", amount, created_at
+            FROM large_crowdfunding_donations
+            WHERE "pageKey" = :pageKey
+        ),
+        running AS (
+            SELECT
+                id,
+                "donorName",
+                created_at,
+                SUM(amount) OVER (
+                    PARTITION BY "donorName"
+                    ORDER BY created_at ASC, id ASC
+                ) AS running_total
+            FROM donations
+        ),
+        totals AS (
+            SELECT "donorName", SUM(amount)::int AS amount
+            FROM donations
+            GROUP BY "donorName"
+        ),
+        first_reached AS (
+            SELECT DISTINCT ON (r."donorName")
+                r."donorName",
+                r.created_at AS reached_at
+            FROM running r
+            INNER JOIN totals t ON t."donorName" = r."donorName"
+            WHERE r.running_total >= t.amount
+            ORDER BY r."donorName", r.created_at ASC, r.id ASC
+        )
+        SELECT
+            fr."donorName",
+            t.amount,
+            fr.reached_at AS created_at
+        FROM first_reached fr
+        INNER JOIN totals t ON t."donorName" = fr."donorName"
+        ORDER BY t.amount DESC, fr.reached_at ASC
+        LIMIT :limit OFFSET :offset
+        `,
+        {
+            replacements: { pageKey, limit, offset },
+            type: QueryTypes.SELECT,
+        }
+    );
 }
 
 /**
