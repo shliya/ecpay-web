@@ -26,6 +26,7 @@ const ENUM_DONATION_TYPE = {
     YOUTUBE_SUPER_CHAT: 2, // YouTube Super Chat
     PAYUNI: 3, // PAYUNi 支付
     OPAY: 4, // 歐付寶 OPay AIO
+    LARGE_CROWDFUNDING: 5, // 大型募資
 };
 
 module.exports = {

@@ -2,16 +2,9 @@ const {
     parseUrlDonationCallback,
     verifyOpayReturnCheckMac,
 } = require('../../lib/payment-providers/opay');
-const {
-    getPaymentOrder,
-    deletePaymentOrder,
-} = require('../../store/payment-order');
 const { getEcpayConfigByMerchantId } = require('../../store/ecpay-config');
+const { processDonationFromPaymentCallback } = require('../../service/donation-payment-callback');
 const {
-    completeDonationFromPayment,
-} = require('../../service/large-crowdfunding-donation');
-const {
-    buildVideoTaskFromVideoIdAndCost,
     getYoutubePricePerSecFromConfig,
     getYoutubeMaxPlaySecFromConfig,
 } = require('../../lib/youtube-donation');
@@ -63,23 +56,9 @@ module.exports = async (req, res) => {
             return;
         }
 
-        const pendingDonation = MerchantTradeNo
-            ? await getPaymentOrder(MerchantTradeNo)
-            : null;
-        const isOpayDonate =
-            pendingDonation && pendingDonation.kind === 'opay-donation';
-
         const row = parseUrlDonationCallback(req.body, opayMacConfig);
 
         if (row) {
-            if (isOpayDonate) {
-                if (pendingDonation.fullMessage) {
-                    row.message = pendingDonation.fullMessage;
-                }
-                if (pendingDonation.fullName) {
-                    row.name = pendingDonation.fullName;
-                }
-            }
             if (!row.merTradeNo && MerchantTradeNo) {
                 row.merTradeNo = MerchantTradeNo;
             }
@@ -87,41 +66,21 @@ module.exports = async (req, res) => {
                 row.merchantId,
                 config
             );
-            if (
-                isOpayDonate &&
-                pendingDonation.youtubeVideoPayload != null &&
-                String(pendingDonation.youtubeVideoPayload).trim()
-            ) {
-                const ytPayload =
-                    String(pendingDonation.youtubeVideoPayload).trim();
-                const videoTask = buildVideoTaskFromVideoIdAndCost(
-                    ytPayload,
-                    row.cost,
-                    null,
-                    {
-                        pricePerSec:
-                            getYoutubePricePerSecFromConfig(config),
-                        maxPlaySec:
-                            getYoutubeMaxPlaySecFromConfig(config),
-                    }
-                );
-                if (videoTask) {
-                    row.videoTask = videoTask;
-                }
-            }
             try {
-                await completeDonationFromPayment(
+                await processDonationFromPaymentCallback({
+                    merchantTradeNo: MerchantTradeNo,
                     row,
-                    isOpayDonate ? pendingDonation : null
-                );
+                    logPrefix: 'opay-success',
+                    youtubeConfig: {
+                        pricePerSec: getYoutubePricePerSecFromConfig(config),
+                        maxPlaySec: getYoutubeMaxPlaySecFromConfig(config),
+                    },
+                });
             } catch (donationErr) {
                 console.error(
                     '[opay-success] 斗內入帳失敗（仍回 1|OK）:',
                     donationErr
                 );
-            }
-            if (isOpayDonate && MerchantTradeNo) {
-                await deletePaymentOrder(MerchantTradeNo);
             }
         }
 

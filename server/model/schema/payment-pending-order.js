@@ -20,6 +20,11 @@ const PaymentPendingOrder = sequelize.define(
             allowNull: false,
             defaultValue: {},
         },
+        status: {
+            type: DataTypes.STRING(20),
+            allowNull: false,
+            defaultValue: 'pending',
+        },
         created_at: {
             type: DataTypes.DATE,
             allowNull: false,
@@ -39,6 +44,10 @@ const PaymentPendingOrder = sequelize.define(
             {
                 name: 'idx_payment_pending_orders_expires',
                 fields: ['expires_at'],
+            },
+            {
+                name: 'idx_payment_pending_orders_status',
+                fields: ['status'],
             },
         ],
     }

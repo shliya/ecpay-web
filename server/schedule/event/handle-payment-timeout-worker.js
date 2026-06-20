@@ -1,8 +1,12 @@
 const IchibanCardService = require('../../service/ichiban-card');
 const { ENUM_ICHIBAN_CARD_STATUS } = require('../../lib/enum');
 const { ichibanWebSocketServer } = global;
-const { getAllPaymentOrders } = require('../../store/payment-order');
-const { deletePaymentOrder } = require('../../store/payment-order');
+const {
+    getAllPaymentOrders,
+    markPaymentOrderExpired,
+    deletePaymentOrder,
+} = require('../../store/payment-order');
+const { isDonationPendingKind } = require('../../lib/payment-pending-status');
 
 async function handlePaymentTimeoutWorker(taskName) {
     try {
@@ -28,15 +32,11 @@ async function handlePaymentTimeoutWorker(taskName) {
                 continue;
             }
 
-            if (
-                orderInfo.kind === 'ecpay-donation' ||
-                orderInfo.kind === 'opay-donation' ||
-                orderInfo.kind === 'payuni-donation'
-            ) {
-                await deletePaymentOrder(merchantTradeNo);
+            if (isDonationPendingKind(orderInfo.kind)) {
+                await markPaymentOrderExpired(merchantTradeNo);
                 staleOrderClearedCount++;
                 console.log(
-                    `[${taskName}] ${orderInfo.kind} 預存訂單逾時已清除: ${merchantTradeNo}`
+                    `[${taskName}] ${orderInfo.kind} 預存訂單逾時（status=expired）: ${merchantTradeNo}`
                 );
                 continue;
             }
@@ -114,7 +114,7 @@ async function handlePaymentTimeoutWorker(taskName) {
         }
         if (staleOrderClearedCount > 0) {
             console.log(
-                `[${taskName}] 已清除 ${staleOrderClearedCount} 筆逾時預存訂單（斗內／無效）`
+                `[${taskName}] 已標記 ${staleOrderClearedCount} 筆逾時預存訂單（斗內 expired／無效已刪）`
             );
         }
         if (ichibanTimeoutCount === 0 && staleOrderClearedCount === 0) {

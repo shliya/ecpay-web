@@ -23,6 +23,7 @@ const DONATION_TYPE = {
     YOUTUBE_SUPER_CHAT: 2,
     PAYUNI: 3,
     OPAY: 4,
+    LARGE_CROWDFUNDING: 5,
 };
 
 const donationTypeFilterState = {
@@ -30,6 +31,7 @@ const donationTypeFilterState = {
     [DONATION_TYPE.YOUTUBE_SUPER_CHAT]: true,
     [DONATION_TYPE.PAYUNI]: true,
     [DONATION_TYPE.OPAY]: true,
+    [DONATION_TYPE.LARGE_CROWDFUNDING]: true,
 };
 
 async function initializeApp() {

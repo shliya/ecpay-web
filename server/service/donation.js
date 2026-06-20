@@ -1,10 +1,12 @@
 require('dotenv').config();
 const DonationStore = require('../store/donation');
+const LcfDonationStore = require('../store/large-crowdfunding-donation');
 const { getEcpayConfigByMerchantId } = require('../store/ecpay-config');
 const {
     batchUpdateFundraisingEventByMerchantId,
 } = require('./fundraising-events');
 const { ENUM_DONATION_TYPE } = require('../lib/enum');
+const { broadcastNewDonation } = require('../lib/donation-notify');
 
 const SPECIAL_MESSAGE_CONDITION_MERCHANTS = (
     process.env.SPECIAL_MESSAGE_CONDITION_MERCHANTS || ''
@@ -12,31 +14,31 @@ const SPECIAL_MESSAGE_CONDITION_MERCHANTS = (
     .split(',')
     .filter(Boolean);
 
-/**
- * WebSocket 房間名為 merchant-${id}，前端一律用綠界特店代號連線。
- * PAYUNi 回調的 row.merchantId 為 PAYUNi MerID，需對應到 ecpay_config.merchantId。
- * @param {Object} row
- * @returns {Promise<string|null>}
- */
-async function resolveMerchantIdForWebSocket(row) {
-    const key = String(row.merchantId || '').trim();
-    if (!key) {
+function passesBlockedKeywords(message, blockedKeywords) {
+    if (!Array.isArray(blockedKeywords) || blockedKeywords.length === 0) {
+        return true;
+    }
+    const msg = String(message || '').toLowerCase();
+    return blockedKeywords.every(
+        keyword => !msg.includes(String(keyword || '').toLowerCase())
+    );
+}
+
+function mapLcfDonationForListRow(row, blockedKeywords) {
+    const plain = typeof row.get === 'function' ? row.get({ plain: true }) : row;
+    const message = plain.message || '';
+    if (!passesBlockedKeywords(message, blockedKeywords)) {
         return null;
     }
-    const config = await getEcpayConfigByMerchantId(key);
-    if (!config) {
-        return key;
-    }
-    if (config.merchantId && String(config.merchantId).trim()) {
-        return String(config.merchantId).trim();
-    }
-    if (config.payuniMerchantId && String(config.payuniMerchantId).trim()) {
-        return String(config.payuniMerchantId).trim();
-    }
-    if (config.opayMerchantId && String(config.opayMerchantId).trim()) {
-        return String(config.opayMerchantId).trim();
-    }
-    return key;
+    return {
+        id: `lcf-${plain.id}`,
+        name: plain.donorName,
+        cost: Number(plain.amount) || 0,
+        message,
+        type: ENUM_DONATION_TYPE.LARGE_CROWDFUNDING,
+        created_at: plain.created_at,
+        pageKey: plain.pageKey,
+    };
 }
 
 async function createDonation(row, { transaction, skipDedupCheck } = {}) {
@@ -69,30 +71,17 @@ async function createDonation(row, { transaction, skipDedupCheck } = {}) {
 
         if (shouldCommit) {
             await txn.commit();
-            const { ichibanWebSocketServer } = global;
-            if (ichibanWebSocketServer) {
-                const wsMerchantId = await resolveMerchantIdForWebSocket(row);
-                if (wsMerchantId) {
-                    const wsPayload = {
-                        type: 'new-donation',
-                        name: row.name,
-                        cost: row.cost,
-                        message: row.message || '',
-                        donationType:
-                            row.type != null
-                                ? row.type
-                                : ENUM_DONATION_TYPE.ECPAY,
-                        timestamp: new Date().toISOString(),
-                    };
-                    if (row.videoTask) {
-                        wsPayload.videoTask = row.videoTask;
-                    }
-                    ichibanWebSocketServer.broadcastToMerchant(
-                        wsMerchantId,
-                        wsPayload
-                    );
-                }
-            }
+            await broadcastNewDonation({
+                merchantId: row,
+                name: row.name,
+                cost: row.cost,
+                message: row.message || '',
+                donationType:
+                    row.type != null
+                        ? row.type
+                        : ENUM_DONATION_TYPE.ECPAY,
+                videoTask: row.videoTask,
+            });
         }
     } catch (error) {
         if (shouldCommit) {
@@ -108,16 +97,36 @@ async function getDonationsByEcpayConfigId(merchantId) {
     if (ecpayConfigId == null) {
         throw new Error('Ecpay config not found');
     }
-    const donations =
-        await DonationStore.getDonationsByEcpayConfigId(ecpayConfigId);
-    const filteredDonations = donations.filter(donation => {
-        const blockedKeywords = donation.ecpayConfig.blockedKeywords;
-        return blockedKeywords.every(
-            keyword =>
-                !donation.message?.toLowerCase().includes(keyword.toLowerCase())
-        );
+
+    const config = await getEcpayConfigByMerchantId(merchantId);
+    const blockedKeywords = config?.blockedKeywords || [];
+
+    const [donations, lcfRows] = await Promise.all([
+        DonationStore.getDonationsByEcpayConfigId(ecpayConfigId),
+        LcfDonationStore.listByEcpayConfigId(ecpayConfigId),
+    ]);
+
+    const filteredRegular = donations.filter(donation => {
+        const keywords =
+            donation.ecpayConfig?.blockedKeywords || blockedKeywords;
+        return passesBlockedKeywords(donation.message, keywords);
     });
-    return filteredDonations;
+
+    const lcfForList = lcfRows
+        .map(row => mapLcfDonationForListRow(row, blockedKeywords))
+        .filter(Boolean);
+
+    const regularForList = filteredRegular.map(donation => {
+        const plain =
+            typeof donation.get === 'function'
+                ? donation.get({ plain: true })
+                : donation;
+        return plain;
+    });
+
+    return [...regularForList, ...lcfForList].sort(
+        (a, b) => new Date(b.created_at) - new Date(a.created_at)
+    );
 }
 
 async function getDonationsByStartDateEndDateAndEcpayConfigId(

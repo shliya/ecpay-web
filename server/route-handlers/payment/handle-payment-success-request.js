@@ -13,8 +13,9 @@ const {
     getAllEcpayConfigs,
 } = require('../../store/ecpay-config');
 const {
-    completeDonationFromPayment,
-} = require('../../service/large-crowdfunding-donation');
+    processDonationFromPaymentCallback,
+} = require('../../service/donation-payment-callback');
+const { isDonationPendingKind } = require('../../lib/payment-pending-status');
 const {
     parseDonationCallback,
     parseUrlDonationCallback,
@@ -125,11 +126,6 @@ module.exports = async (req, res) => {
             // 清理訂單資訊
             await deletePaymentOrder(MerchantTradeNo);
         } else {
-            const pendingDonation =
-                orderInfo && orderInfo.kind === 'ecpay-donation'
-                    ? orderInfo
-                    : null;
-            // 無一番賞訂單：視為斗內回調，寫入 donations
             if (process.env.NODE_ENV !== 'production') {
                 console.log('[ecpay-success] 無一番賞訂單，當作斗內回調處理');
             }
@@ -162,34 +158,25 @@ module.exports = async (req, res) => {
             }
 
             if (row) {
-                if (pendingDonation) {
-                    if (pendingDonation.fullMessage) {
-                        row.message = pendingDonation.fullMessage;
-                    }
-                    if (pendingDonation.fullName) {
-                        row.name = pendingDonation.fullName;
-                    }
-                }
                 if (!row.merTradeNo && MerchantTradeNo) {
                     row.merTradeNo = MerchantTradeNo;
                 }
-                try {
-                    await completeDonationFromPayment(row, pendingDonation);
-                } catch (donationErr) {
-                    console.error(
-                        '[ecpay-success] 斗內入帳失敗（仍回 1|OK）:',
-                        donationErr
-                    );
-                }
-                if (pendingDonation) {
-                    await deletePaymentOrder(MerchantTradeNo);
-                }
-                if (process.env.NODE_ENV !== 'production') {
-                    console.log(
-                        '[ecpay-success] 已寫入 donation',
-                        row.merchantId,
-                        row.cost
-                    );
+                const isDonatePath =
+                    (orderInfo && isDonationPendingKind(orderInfo.kind)) ||
+                    !orderInfo;
+                if (isDonatePath) {
+                    try {
+                        await processDonationFromPaymentCallback({
+                            merchantTradeNo: MerchantTradeNo,
+                            row,
+                            logPrefix: 'ecpay-success',
+                        });
+                    } catch (donationErr) {
+                        console.error(
+                            '[ecpay-success] 斗內入帳失敗（仍回 1|OK）:',
+                            donationErr
+                        );
+                    }
                 }
             } else if (process.env.NODE_ENV !== 'production') {
                 console.log(

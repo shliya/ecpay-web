@@ -6,6 +6,7 @@
     "scripts": {
         "test": "npm run test:lcf",
         "test:lcf": "node --test test/lcf-donation.unit.test.js test/lcf-donation.integration.test.js test/lcf-donation.concurrency.test.js",
+        "test:lcf-overlay": "node test/lcf-overlay-donate-list.integration.js",
         "test:lcf:unit": "node --test test/lcf-donation.unit.test.js",
         "test:lcf:concurrency": "node --test test/lcf-donation.concurrency.test.js",
         "test:lcf:http": "node --test test/lcf-donation.http.test.js",
@@ -19,7 +20,11 @@
         "dev": "webpack serve --mode development",
         "watch": "webpack --watch --mode development",
         "backup": "node backup.js",
-        "sync": "node server/lib/script/syncDB.js"
+        "sync": "node server/lib/script/syncDB.js",
+        "migrate": "node server/migration/migrate.js up",
+        "migrate:status": "node server/migration/migrate.js status",
+        "migrate:pending": "node server/migration/migrate.js pending",
+        "migrate:bootstrap-legacy": "node server/migration/bootstrap-legacy-records.js"
     },
     "build": {
         "appId": "com.shiliya.commonvote",
@@ -81,6 +86,7 @@
         "sequelize": "^6.37.7",
         "speakeasy": "^2.0.0",
         "style-loader": "^4.0.0",
+        "umzug": "^3.8.3",
         "webpack": "^5.94.0",
         "webpack-cli": "^5.1.4",
         "ws": "^8.18.3",

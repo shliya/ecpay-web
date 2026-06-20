@@ -10,6 +10,8 @@ const {
     assertPageAcceptsPaymentCallback,
     parseLargeCrowdfundingPageId,
 } = require('../lib/large-crowdfunding');
+const { ENUM_DONATION_TYPE } = require('../lib/enum');
+const { broadcastNewDonation } = require('../lib/donation-notify');
 
 function logLcfDonationResult(result, context) {
     if (
@@ -164,6 +166,16 @@ async function recordDonationFromPayment({
             transaction: txn,
         });
         await txn.commit();
+
+        const messageText = message ? String(message).trim() : '';
+        await broadcastNewDonation({
+            merchantId: page.merchantId,
+            name,
+            cost: amountNum,
+            message: messageText,
+            donationType: ENUM_DONATION_TYPE.LARGE_CROWDFUNDING,
+        });
+
         return {
             status: 'recorded',
             pageKey: page.pageKey,

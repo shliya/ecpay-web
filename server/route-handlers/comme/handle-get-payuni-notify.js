@@ -3,8 +3,12 @@ const {
 } = require('../../service/ecpay-config');
 const { parseDonationCallback } = require('../../lib/payment-providers/payuni');
 const {
-    completeDonationFromPayment,
-} = require('../../service/large-crowdfunding-donation');
+    processDonationFromPaymentCallback,
+} = require('../../service/donation-payment-callback');
+const {
+    getYoutubePricePerSecFromConfig,
+    getYoutubeMaxPlaySecFromConfig,
+} = require('../../lib/youtube-donation');
 const IchibanCardStore = require('../../store/ichiban-card');
 const IchibanEventStore = require('../../store/ichiban-event');
 const IchibanEventService = require('../../service/ichiban-event');
@@ -134,15 +138,21 @@ module.exports = async (req, res) => {
             await deletePaymentOrder(merTradeNo);
         } else {
             try {
-                await completeDonationFromPayment(row, orderInfo, req.query);
+                await processDonationFromPaymentCallback({
+                    merchantTradeNo: merTradeNo,
+                    row,
+                    query: req.query,
+                    logPrefix: 'payuni-notify',
+                    youtubeConfig: {
+                        pricePerSec: getYoutubePricePerSecFromConfig(config),
+                        maxPlaySec: getYoutubeMaxPlaySecFromConfig(config),
+                    },
+                });
             } catch (donationErr) {
                 console.error(
                     '[payuni-notify] 斗內入帳失敗（仍回 OK）:',
                     donationErr
                 );
-            }
-            if (merTradeNo) {
-                await deletePaymentOrder(merTradeNo);
             }
         }
 

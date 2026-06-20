@@ -24,7 +24,7 @@ function buildUserLines(name, message) {
     lines.push(
         message && String(message).trim()
             ? String(message).trim()
-            : '（無留言）'
+            : ''
     );
     return lines.join('\n');
 }

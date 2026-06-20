@@ -1,7 +1,12 @@
 .env
 
-# 本機大型募資／斗內測試（不進版控）
+# 本機大型募資／斗內測試、OBS overlay 等個人工具（不進版控）
 /test
+
+# 根目錄易誤放的本地 overlay（已移至 test/obs/）
+/MHS3.html
+/ths.mp3
+/work-index.html
 .node_modules
 .preload.js
 .webpack

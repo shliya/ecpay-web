@@ -18,6 +18,25 @@ function normalizeListOpts(opts = {}) {
     return { limit, offset };
 }
 
+/**
+ * donate-list 用：依商店列出各筆大型募資斗內（非榜單合併）
+ * @param {bigint|number|string} ecpayConfigId
+ */
+async function listByEcpayConfigId(ecpayConfigId) {
+    return LargeCrowdfundingDonation.findAll({
+        where: { ecpayConfigId },
+        order: [['created_at', 'DESC']],
+        attributes: [
+            'id',
+            'donorName',
+            'amount',
+            'message',
+            'created_at',
+            'pageKey',
+        ],
+    });
+}
+
 async function findByPaymentTradeNo(paymentTradeNo) {
     const tradeNo = String(paymentTradeNo || '').trim();
     if (!tradeNo) {
@@ -236,6 +255,7 @@ module.exports = {
     SPECIAL_THEME_THRESHOLD_AMOUNT,
     SPECIAL_THEME_LEADERBOARD_LIMIT,
     findByPaymentTradeNo,
+    listByEcpayConfigId,
     createDonation,
     listRecentByPageId,
     listRecentByPageKey,
