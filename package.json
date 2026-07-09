@@ -4,7 +4,9 @@
     "description": "shiliya common",
     "main": "index.js",
     "scripts": {
-        "test": "npm run test:lcf",
+        "test": "jest",
+        "test:unit": "jest",
+        "test:unit:watch": "jest --watch",
         "test:lcf": "node --test test/lcf-donation.unit.test.js test/lcf-donation.integration.test.js test/lcf-donation.concurrency.test.js",
         "test:lcf-overlay": "node test/lcf-overlay-donate-list.integration.js",
         "test:lcf:unit": "node --test test/lcf-donation.unit.test.js",
@@ -96,6 +98,7 @@
         "concurrently": "^9.0.0",
         "electron": "^34.1.1",
         "electron-builder": "^25.1.8",
+        "jest": "^30.4.2",
         "nodemon": "^3.1.4",
         "prettier": "^3.5.3",
         "webpack-dev-server": "^5.1.0"
