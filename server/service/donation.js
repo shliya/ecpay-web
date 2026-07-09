@@ -106,11 +106,9 @@ async function getDonationsByEcpayConfigId(merchantId) {
         LcfDonationStore.listByEcpayConfigId(ecpayConfigId),
     ]);
 
-    const filteredRegular = donations.filter(donation => {
-        const keywords =
-            donation.ecpayConfig?.blockedKeywords || blockedKeywords;
-        return passesBlockedKeywords(donation.message, keywords);
-    });
+    const filteredRegular = donations.filter(donation =>
+        passesBlockedKeywords(donation.message, blockedKeywords)
+    );
 
     const lcfForList = lcfRows
         .map(row => mapLcfDonationForListRow(row, blockedKeywords))
@@ -124,9 +122,9 @@ async function getDonationsByEcpayConfigId(merchantId) {
         return plain;
     });
 
-    return [...regularForList, ...lcfForList].sort(
-        (a, b) => new Date(b.created_at) - new Date(a.created_at)
-    );
+    return [...regularForList, ...lcfForList]
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+        .slice(0, DonationStore.DONATION_LIST_LIMIT);
 }
 
 async function getDonationsByStartDateEndDateAndEcpayConfigId(

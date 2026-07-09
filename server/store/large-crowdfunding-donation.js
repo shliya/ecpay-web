@@ -18,6 +18,9 @@ function normalizeListOpts(opts = {}) {
     return { limit, offset };
 }
 
+/** 與 store/donation.js DONATION_LIST_LIMIT 對齊，控制 donate-list 回應大小 */
+const DONATE_LIST_LIMIT = 100;
+
 /**
  * donate-list 用：依商店列出各筆大型募資斗內（非榜單合併）
  * @param {bigint|number|string} ecpayConfigId
@@ -26,6 +29,7 @@ async function listByEcpayConfigId(ecpayConfigId) {
     return LargeCrowdfundingDonation.findAll({
         where: { ecpayConfigId },
         order: [['created_at', 'DESC']],
+        limit: DONATE_LIST_LIMIT,
         attributes: [
             'id',
             'donorName',

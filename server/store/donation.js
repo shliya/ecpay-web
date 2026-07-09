@@ -3,8 +3,6 @@ const donationModel = require('../model/donation');
 const sequelize = require('../config/database');
 const { ENUM_DONATION_TYPE } = require('../lib/enum');
 const { getEcpayConfigByMerchantId } = require('./ecpay-config');
-const ecpayConfigModel = require('../model/ecpayConfig');
-
 /** 僅日期 `YYYY-MM-DD`（無時間／時區）時，依 UTC 曆法轉成查詢上下界。 */
 const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -38,18 +36,15 @@ async function transferMerchantIdToEcpayConfigId(merchantId) {
     return ecpayConfigId;
 }
 
+/** donate-list / overlay 輪詢用；限制筆數與欄位以控制 DB egress */
+const DONATION_LIST_LIMIT = 100;
+
 async function getDonationsByEcpayConfigId(ecpayConfigId) {
     return donationModel.findAll({
         where: { ecpayConfigId },
-        include: [
-            {
-                model: ecpayConfigModel,
-                as: 'ecpayConfig',
-                attributes: ['blockedKeywords'],
-            },
-        ],
         order: [['created_at', 'DESC']],
-        raw: false,
+        limit: DONATION_LIST_LIMIT,
+        attributes: ['id', 'name', 'cost', 'message', 'created_at', 'type'],
     });
 }
 
@@ -181,6 +176,7 @@ function getTransaction() {
 
 module.exports = {
     getTransaction,
+    DONATION_LIST_LIMIT,
     getDonationsByEcpayConfigId,
     sumDonationCostByEcpayConfigIdAndDateRange,
     getDonationsByEcpayConfigIdAndDate,
