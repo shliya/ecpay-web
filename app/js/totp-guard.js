@@ -85,6 +85,27 @@ async function requireTotpVerification(merchantId) {
     return showOverlay(merchantId);
 }
 
+/**
+ * 後台頁面的登入閘道：未綁定導去綁定頁；已綁定則檢查 24 小時 session，
+ * 沒有有效 session 就跳出驗證碼視窗。通過前無法使用頁面。
+ * @param {string} merchantId
+ * @returns {Promise<boolean>}
+ */
+async function ensureTotpSession(merchantId) {
+    const bindingOk = await checkTotpBinding(merchantId);
+    if (!bindingOk) {
+        return false;
+    }
+
+    const existingToken = getTotpToken(merchantId);
+    if (existingToken) {
+        resolvedToken = existingToken;
+        return true;
+    }
+
+    return showOverlay(merchantId);
+}
+
 async function fetchMerchantStatus(merchantId) {
     const response = await fetch(
         `/api/v1/login/check-merchant/id=${encodeURIComponent(merchantId)}`
@@ -305,4 +326,9 @@ async function refreshTotpVerification(merchantId) {
 }
 
 export default checkTotpBinding;
-export { requireTotpVerification, getTotpToken, refreshTotpVerification };
+export {
+    requireTotpVerification,
+    ensureTotpSession,
+    getTotpToken,
+    refreshTotpVerification,
+};

@@ -132,12 +132,17 @@
                             <label class="cfs-field">
                                 <span>目前累積金額（元）</span>
                                 <input
-                                    type="number"
+                                    type="text"
                                     id="currentTotal"
                                     name="currentTotal"
-                                    min="0"
-                                    step="1"
+                                    readonly
+                                    tabindex="-1"
+                                    aria-readonly="true"
+                                    title="由斗內紀錄自動累計，無法手動修改"
                                 />
+                                <span class="cfs-field-hint"
+                                    >由斗內紀錄自動累計，無法手動修改</span
+                                >
                             </label>
                         </div>
                     </fieldset>

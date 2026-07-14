@@ -6,7 +6,7 @@ let isInitialized = false;
 import './css/common.css';
 import './css/list.css';
 import ActiveStatusKeeper from './js/active-keeper.js';
-import checkTotpBinding from './js/totp-guard.js';
+import { ensureTotpSession, getTotpToken } from './js/totp-guard.js';
 
 // 儲存動畫狀態
 let donationScrollState = {
@@ -62,7 +62,7 @@ async function initializeApp() {
         return;
     }
 
-    const totpOk = await checkTotpBinding(merchantId);
+    const totpOk = await ensureTotpSession(merchantId);
     if (!totpOk) {
         return;
     }
@@ -104,8 +104,14 @@ async function initializeApp() {
 
 async function loadDonations(merchantId) {
     try {
+        const headers = {};
+        const token = getTotpToken(merchantId);
+        if (token) {
+            headers['X-TOTP-Token'] = token;
+        }
         const response = await fetch(
-            `/api/v1/comme/ecpay/donations/id=${merchantId}`
+            `/api/v1/comme/ecpay/donations/id=${merchantId}`,
+            { headers }
         );
         const donations = await response.json();
         donationSourceData = Array.isArray(donations) ? donations : [];

@@ -54,6 +54,25 @@ import './css/login.css';
         window.location.href = `index.html?merchantId=${encodeURIComponent(merchantId)}`;
     }
 
+    // 與 totp-guard.js 的 session 格式一致，登入後後台頁面不必重複驗證
+    function saveTotpSession(merchantId, data) {
+        if (!data || !data.sessionToken) {
+            return;
+        }
+        const expiresAt =
+            typeof data.expiresAt === 'number'
+                ? data.expiresAt
+                : Date.now() + 24 * 60 * 60 * 1000;
+        try {
+            localStorage.setItem(
+                `totpSession_${String(merchantId).trim()}`,
+                JSON.stringify({ sessionToken: data.sessionToken, expiresAt })
+            );
+        } catch {
+            // ignore storage error
+        }
+    }
+
     async function checkMerchant(merchantId) {
         const response = await fetch(
             `/api/v1/login/check-merchant/id=${encodeURIComponent(merchantId)}`
@@ -124,6 +143,7 @@ import './css/login.css';
             const { ok, data } = await verifyTotp(currentMerchantId, token);
 
             if (ok && data.success) {
+                saveTotpSession(currentMerchantId, data);
                 redirectToMain(currentMerchantId);
             } else {
                 showMessage(data.error || '驗證失敗', 'error');

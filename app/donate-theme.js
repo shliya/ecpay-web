@@ -1,6 +1,6 @@
 import './css/common.css';
 import './css/donate-theme.css';
-import checkTotpBinding from './js/totp-guard.js';
+import { ensureTotpSession, getTotpToken } from './js/totp-guard.js';
 import {
     donateThemeDefaults,
     donateThemeFormFields,
@@ -113,7 +113,7 @@ import {
             return;
         }
 
-        var totpOk = await checkTotpBinding(merchantId);
+        var totpOk = await ensureTotpSession(merchantId);
         if (!totpOk) return;
 
         var backLink = document.getElementById('backToIndex');
@@ -162,12 +162,17 @@ import {
                 if (!merchantId) return;
                 var theme = getCurrentTheme();
                 showMessage('儲存中…');
+                var saveHeaders = { 'Content-Type': 'application/json' };
+                var totpToken = getTotpToken(merchantId);
+                if (totpToken) {
+                    saveHeaders['X-TOTP-Token'] = totpToken;
+                }
                 fetch(
                     '/api/v1/comme/ecpay/theme/id=' +
                         encodeURIComponent(merchantId),
                     {
                         method: 'PATCH',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: saveHeaders,
                         body: JSON.stringify({ themeColors: theme }),
                     }
                 )

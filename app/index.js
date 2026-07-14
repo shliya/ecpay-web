@@ -1,6 +1,6 @@
 import './css/common.css';
 import './css/index.css';
-import checkTotpBinding from './js/totp-guard.js';
+import { ensureTotpSession } from './js/totp-guard.js';
 import { buildDonationOverlayPageUrl } from './js/donation-overlay-url.js';
 
 let isInitialized = false;
@@ -97,7 +97,7 @@ async function initializeIndex() {
         return;
     }
 
-    const totpOk = await checkTotpBinding(merchantId);
+    const totpOk = await ensureTotpSession(merchantId);
     if (!totpOk) {
         return;
     }

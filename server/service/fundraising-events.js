@@ -41,12 +41,12 @@ async function getFundraisingEventByIdAndMerchantId(id, merchantId) {
 async function updateFundraisingEventByIdAndMerchantId(
     id,
     merchantId,
-    { cost, eventName }
+    { eventName }
 ) {
     return FundraisingEventsStore.updateFundraisingEventByIdAndMerchantId(
         id,
         merchantId,
-        { cost, eventName }
+        { eventName }
     );
 }
 

@@ -1,6 +1,6 @@
 // 引入CSS
 import './css/ichiban-client.css';
-import checkTotpBinding from './js/totp-guard.js';
+import { ensureTotpSession } from './js/totp-guard.js';
 
 class IchibanClient {
     constructor() {
@@ -57,8 +57,10 @@ class IchibanClient {
             return;
         }
         if (this.merchantId) {
-            const totpOk = await checkTotpBinding(this.merchantId);
-            if (!totpOk) return;
+            const totpOk = await ensureTotpSession(this.merchantId);
+            if (!totpOk) {
+                return;
+            }
             try {
                 const res = await fetch(
                     '/api/v1/comme/ecpay/config/public/id=' +

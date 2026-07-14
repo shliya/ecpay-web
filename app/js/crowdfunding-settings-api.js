@@ -2,8 +2,20 @@
  * 大型募資設定 API（伺服器 API + localStorage 草稿／預覽）
  */
 
+import { getTotpToken } from './totp-guard.js';
+
 const CF_DRAFT_PREFIX = 'ecpay-cf-draft:';
 const CF_PREVIEW_PREFIX = 'ecpay-cf-preview:';
+
+/** 寫入 API 需帶 TOTP session token */
+function buildAuthHeaders(merchantId, extra = {}) {
+    const headers = { ...extra };
+    const token = getTotpToken(merchantId);
+    if (token) {
+        headers['X-TOTP-Token'] = token;
+    }
+    return headers;
+}
 
 /** @returns {string} */
 export function draftStorageKey(merchantId, pageKey) {
@@ -32,6 +44,7 @@ export function stripCrowdfundingMeta(raw) {
 export function prepareCrowdfundingPageConfig(data) {
     const out = stripCrowdfundingMeta(data);
     delete out.recentDonors;
+    delete out.currentTotal;
     return out;
 }
 
@@ -193,7 +206,10 @@ export async function fetchLcfPaymentConfig(merchantId) {
     const url =
         '/api/v1/comme/crowdfunding/payment-config/id=' +
         encodeURIComponent(merchantId);
-    const res = await fetch(url, { cache: 'no-store' });
+    const res = await fetch(url, {
+        cache: 'no-store',
+        headers: buildAuthHeaders(merchantId),
+    });
     if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         throw new Error(body.error || '載入付款設定失敗');
@@ -212,7 +228,9 @@ export async function saveLcfPaymentConfig(merchantId, body) {
         encodeURIComponent(merchantId);
     const res = await fetch(url, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: buildAuthHeaders(merchantId, {
+            'Content-Type': 'application/json',
+        }),
         body: JSON.stringify(body),
     });
     const data = await res.json().catch(() => ({}));
@@ -247,7 +265,10 @@ export async function fetchCrowdfundingList(merchantId) {
     const url =
         '/api/v1/comme/crowdfunding/id=' + encodeURIComponent(merchantId);
     try {
-        const res = await fetch(url, { cache: 'no-store' });
+        const res = await fetch(url, {
+            cache: 'no-store',
+            headers: buildAuthHeaders(merchantId),
+        });
         if (!res.ok) {
             return [];
         }
@@ -277,7 +298,10 @@ export async function fetchCrowdfundingFromApi(merchantId, pageKey) {
         '/pageKey=' +
         encodeURIComponent(pageKey);
     try {
-        const res = await fetch(url, { cache: 'no-store' });
+        const res = await fetch(url, {
+            cache: 'no-store',
+            headers: buildAuthHeaders(merchantId),
+        });
         if (!res.ok) {
             return null;
         }
@@ -380,7 +404,9 @@ export async function saveCrowdfundingPage(merchantId, pageKey, data) {
             encodeURIComponent(pageKey);
         const res = await fetch(url, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: buildAuthHeaders(merchantId, {
+                'Content-Type': 'application/json',
+            }),
             body: JSON.stringify(payload),
         });
         if (res.ok) {
@@ -413,7 +439,10 @@ export async function deleteCrowdfundingPage(merchantId, pageKey) {
             encodeURIComponent(merchantId) +
             '/pageKey=' +
             encodeURIComponent(pageKey);
-        const res = await fetch(url, { method: 'DELETE' });
+        const res = await fetch(url, {
+            method: 'DELETE',
+            headers: buildAuthHeaders(merchantId),
+        });
         if (res.ok) {
             clearCrowdfundingDraft(merchantId, pageKey);
             return { ok: true, source: 'api' };
@@ -441,7 +470,9 @@ export async function publishCrowdfundingPage(merchantId, pageKey, data) {
             '/publish';
         const res = await fetch(url, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: buildAuthHeaders(merchantId, {
+                'Content-Type': 'application/json',
+            }),
             body: JSON.stringify(payload),
         });
         if (res.ok) {

@@ -56,13 +56,18 @@ router.get(
     handleGetEcpayMerchantRequest
 );
 
-router.get('/ecpay/donations/id=:merchantId', handleGetEcpayDonationsRequest);
+router.get(
+    '/ecpay/donations/id=:merchantId',
+    requireTotp,
+    handleGetEcpayDonationsRequest
+);
 router.get(
     '/ecpay/config/public/id=:merchantId',
     handleGetEcpayConfigPublicRequest
 );
 router.get(
     '/ecpay/donations/startDate=:startDate/endDate=:endDate/id=:merchantId',
+    requireTotp,
     handleGetEcpayDonationsByStartDateEndDateRequest
 );
 router.get(
@@ -78,7 +83,11 @@ router.patch(
     requireTotp,
     handlePatchEcpayConfigRequest
 );
-router.patch('/ecpay/theme/id=:merchantId', handlePatchEcpayThemeRequest);
+router.patch(
+    '/ecpay/theme/id=:merchantId',
+    requireTotp,
+    handlePatchEcpayThemeRequest
+);
 router.post('/donate/ecpay', loginRateLimiter, handleCreateDonateEcpayRequest);
 
 router.post('/payuni/id=:merchantId', handleGetPayuniNotifyRequest);
@@ -116,29 +125,39 @@ router.get(
     '/crowdfunding/donors/pageKey=:pageKey/special',
     handleGetCrowdfundingDonorsSpecialRequest
 );
-router.get('/crowdfunding/id=:merchantId', handleListCrowdfundingPagesRequest);
+router.get(
+    '/crowdfunding/id=:merchantId',
+    requireTotp,
+    handleListCrowdfundingPagesRequest
+);
 router.get(
     '/crowdfunding/payment-config/id=:merchantId',
+    requireTotp,
     handleGetLcfPaymentConfigRequest
 );
 router.patch(
     '/crowdfunding/payment-config/id=:merchantId',
+    requireTotp,
     handlePatchLcfPaymentConfigRequest
 );
 router.get(
     '/crowdfunding/id=:merchantId/pageKey=:pageKey',
+    requireTotp,
     handleGetCrowdfundingPageRequest
 );
 router.put(
     '/crowdfunding/id=:merchantId/pageKey=:pageKey',
+    requireTotp,
     handlePutCrowdfundingPageRequest
 );
 router.post(
     '/crowdfunding/id=:merchantId/pageKey=:pageKey/publish',
+    requireTotp,
     handlePublishCrowdfundingPageRequest
 );
 router.delete(
     '/crowdfunding/id=:merchantId/pageKey=:pageKey',
+    requireTotp,
     handleDeleteCrowdfundingPageRequest
 );
 

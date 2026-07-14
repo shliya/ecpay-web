@@ -9,7 +9,7 @@ import {
     setDonationBellVolumePercent,
 } from './js/play-donation-bell.js';
 import { buildDonationOverlayPageUrl } from './js/donation-overlay-url.js';
-import checkTotpBinding from './js/totp-guard.js';
+import { ensureTotpSession } from './js/totp-guard.js';
 
 const TEST_DONATION = {
     name: '測試',
@@ -57,7 +57,7 @@ async function init() {
         return;
     }
 
-    const totpOk = await checkTotpBinding(merchantId);
+    const totpOk = await ensureTotpSession(merchantId);
     if (!totpOk) {
         return;
     }

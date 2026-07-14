@@ -6,7 +6,7 @@ let isInitialized = false;
 import './css/common.css';
 import './css/event-list.css';
 import ActiveStatusKeeper from './js/active-keeper.js';
-import checkTotpBinding from './js/totp-guard.js';
+import { ensureTotpSession, getTotpToken } from './js/totp-guard.js';
 
 // 儲存事件列表狀態
 let eventListState = {
@@ -22,6 +22,16 @@ const DONATION_TYPE = {
     PAYUNI: 3,
     OPAY: 4,
 };
+
+/** 寫入 API 需帶 TOTP session token */
+function buildAuthHeaders(extra = {}) {
+    const headers = { ...extra };
+    const token = getTotpToken(eventListState.merchantId);
+    if (token) {
+        headers['X-TOTP-Token'] = token;
+    }
+    return headers;
+}
 
 function formatDonationTypeLabel(type) {
     const n = Number(type);
@@ -75,7 +85,7 @@ async function initializeEventList() {
         return;
     }
 
-    const totpOk = await checkTotpBinding(merchantId);
+    const totpOk = await ensureTotpSession(merchantId);
     if (!totpOk) return;
 
     eventListState.merchantId = merchantId;
@@ -227,7 +237,9 @@ async function loadDonationsIntoDrawer(merchantId, startDate, endDate) {
         `/id=${encodeURIComponent(merchantId)}`;
 
     try {
-        const response = await fetch(path);
+        const response = await fetch(path, {
+            headers: buildAuthHeaders(),
+        });
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}`);
         }
@@ -588,9 +600,9 @@ async function handleCreateEvent(event) {
         console.log('Creating event:', eventData);
         const response = await fetch('/api/v1/fundraising-events', {
             method: 'POST',
-            headers: {
+            headers: buildAuthHeaders({
                 'Content-Type': 'application/json',
-            },
+            }),
             body: JSON.stringify(eventData),
         });
 
@@ -768,9 +780,9 @@ async function handleDisableEvent(event) {
             `/api/v1/fundraising-events/id=${encodeURIComponent(eventId)}/merchantId=${encodeURIComponent(merchantId)}/status`,
             {
                 method: 'PATCH',
-                headers: {
+                headers: buildAuthHeaders({
                     'Content-Type': 'application/json',
-                },
+                }),
                 body: JSON.stringify({
                     status: 0, // 設定為關閉狀態
                 }),
@@ -817,9 +829,9 @@ async function handleEnableEvent(event) {
             `/api/v1/fundraising-events/id=${encodeURIComponent(eventId)}/merchantId=${encodeURIComponent(merchantId)}/status/enable`,
             {
                 method: 'PATCH',
-                headers: {
+                headers: buildAuthHeaders({
                     'Content-Type': 'application/json',
-                },
+                }),
                 body: JSON.stringify({
                     status: 1, // 設定為啟動狀態
                 }),
@@ -866,9 +878,9 @@ async function handlePauseEvent(event) {
             `/api/v1/fundraising-events/id=${encodeURIComponent(eventId)}/merchantId=${encodeURIComponent(merchantId)}/status/pause`,
             {
                 method: 'PATCH',
-                headers: {
+                headers: buildAuthHeaders({
                     'Content-Type': 'application/json',
-                },
+                }),
             }
         );
 
@@ -912,9 +924,9 @@ async function handleResumeEvent(event) {
             `/api/v1/fundraising-events/id=${encodeURIComponent(eventId)}/merchantId=${encodeURIComponent(merchantId)}/status/enable`,
             {
                 method: 'PATCH',
-                headers: {
+                headers: buildAuthHeaders({
                     'Content-Type': 'application/json',
-                },
+                }),
                 body: JSON.stringify({
                     status: 1, // 設定為啟動狀態
                 }),
@@ -1023,9 +1035,9 @@ async function handleEditTitle(event) {
             `/api/v1/fundraising-events/id=${encodeURIComponent(eventId)}/merchantId=${encodeURIComponent(merchantId)}`,
             {
                 method: 'PATCH',
-                headers: {
+                headers: buildAuthHeaders({
                     'Content-Type': 'application/json',
-                },
+                }),
                 body: JSON.stringify({
                     eventName: newEventName,
                 }),

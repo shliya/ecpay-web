@@ -96,22 +96,25 @@ async function requireTotp(req, res, next) {
             return;
         }
 
-        if (!config.totpEnabled) {
-            next();
-            return;
-        }
-
         const totpToken = req.headers['x-totp-token'];
-        if (!totpToken) {
-            res.status(401).json({ error: '需要 TOTP 驗證碼' });
-            return;
-        }
 
         if (isTestMerchantId(trimmedMerchantId)) {
-            if (isNumericTotpToken(totpToken)) {
+            if (totpToken && isNumericTotpToken(totpToken)) {
                 next();
                 return;
             }
+        }
+
+        if (!config.totpEnabled) {
+            res.status(403).json({
+                error: '尚未綁定 TOTP，請先完成綁定後再使用後台功能',
+            });
+            return;
+        }
+
+        if (!totpToken) {
+            res.status(401).json({ error: '需要 TOTP 驗證碼' });
+            return;
         }
 
         if (isNumericTotpToken(totpToken)) {

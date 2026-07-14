@@ -6,6 +6,7 @@ import {
     fetchLcfPaymentConfig,
     saveLcfPaymentConfig,
 } from './js/crowdfunding-settings-api.js';
+import { ensureTotpSession } from './js/totp-guard.js';
 
 let merchantId = '';
 
@@ -303,6 +304,10 @@ async function init() {
         window.location.href = '/login.html';
         return;
     }
+
+    const totpOk = await ensureTotpSession(merchantId);
+    if (!totpOk) return;
+
     const label = document.getElementById('merchantIdLabel');
     if (label) {
         label.textContent = merchantId;

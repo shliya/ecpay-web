@@ -13,6 +13,7 @@ import {
     fillAllListEditors,
     initCrowdfundingListEditors,
 } from './js/crowdfunding-settings-editors.js';
+import { ensureTotpSession } from './js/totp-guard.js';
 
 /** 後台可調；贊助鈕／進度條等維持前台 CSS 預設 */
 const THEME_COLOR_FIELDS = [
@@ -183,8 +184,6 @@ function collectFormData() {
         specialThemeRankingTitle: document
             .getElementById('specialThemeRankingTitle')
             .value.trim(),
-        currentTotal:
-            Number(document.getElementById('currentTotal').value) || 0,
         donorTierIcons: {
             rank1: document.getElementById('tierRank1').value.trim(),
             rank2: document.getElementById('tierRank2').value.trim(),
@@ -492,6 +491,9 @@ async function init() {
         window.location.href = '/login.html';
         return;
     }
+
+    const totpOk = await ensureTotpSession(merchantId);
+    if (!totpOk) return;
 
     if (!pageKeyFromUrl && !isNewProject) {
         window.location.href = getListPageUrl();

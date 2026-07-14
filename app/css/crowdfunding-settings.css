@@ -175,6 +175,13 @@ body {
     font-family: inherit;
 }
 
+.cfs-field input[readonly] {
+    cursor: default;
+    background: #1e272c;
+    color: #b0bec5;
+    border-color: #455a64;
+}
+
 .cfs-info-panel {
     margin-bottom: 16px;
     padding: 12px 14px;

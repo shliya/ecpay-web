@@ -1,7 +1,16 @@
 // 引入CSS
 import './css/common.css';
 import './css/ichiban.css';
-import checkTotpBinding from './js/totp-guard.js';
+import { ensureTotpSession, getTotpToken } from './js/totp-guard.js';
+
+function buildAuthHeaders(merchantId, extra = {}) {
+    const headers = { ...extra };
+    const token = getTotpToken(merchantId);
+    if (token) {
+        headers['X-TOTP-Token'] = token;
+    }
+    return headers;
+}
 
 class IchibanAdmin {
     constructor() {
@@ -25,7 +34,7 @@ class IchibanAdmin {
             this.showError('缺少必要的參數 (merchantId)');
             return;
         }
-        const totpOk = await checkTotpBinding(this.merchantId);
+        const totpOk = await ensureTotpSession(this.merchantId);
         if (!totpOk) return;
         this.setupEventListeners();
         this.connectWebSocket();
@@ -921,9 +930,9 @@ class IchibanAdmin {
         try {
             const response = await fetch('/api/v1/ichiban-events', {
                 method: 'POST',
-                headers: {
+                headers: buildAuthHeaders(this.merchantId, {
                     'Content-Type': 'application/json',
-                },
+                }),
                 body: JSON.stringify(eventData),
             });
 

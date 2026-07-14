@@ -59,12 +59,11 @@ async function getFundraisingEventByIdAndEcpayConfigId(id, ecpayConfigId) {
 async function updateFundraisingEventByIdAndMerchantId(
     id,
     merchantId,
-    { cost, type, eventName }
+    { type, eventName }
 ) {
     const ecpayConfigId = await resolveEcpayConfigId(merchantId);
     if (ecpayConfigId == null) return [0];
     return updateFundraisingEventByIdAndEcpayConfigId(id, ecpayConfigId, {
-        cost,
         type,
         eventName,
     });
@@ -73,7 +72,7 @@ async function updateFundraisingEventByIdAndMerchantId(
 async function updateFundraisingEventByIdAndEcpayConfigId(
     id,
     ecpayConfigId,
-    { cost, type, eventName }
+    { type, eventName }
 ) {
     const where = {
         id,
@@ -85,13 +84,6 @@ async function updateFundraisingEventByIdAndEcpayConfigId(
     }
     if (type) {
         where.type = type;
-    }
-    if (cost) {
-        const numericCost = Number(cost);
-        if (!Number.isFinite(numericCost)) {
-            throw new Error('cost must be a valid number');
-        }
-        update.cost = sequelize.literal(`"cost" + ${numericCost}`);
     }
     if (Object.keys(update).length > 0) {
         update.updated_at = new Date();
@@ -122,8 +114,8 @@ async function batchUpdateFundraisingEventByEcpayConfigId(
         };
     }
     const numericCost = Number(cost);
-    if (!Number.isFinite(numericCost)) {
-        throw new Error('cost must be a valid number');
+    if (!Number.isFinite(numericCost) || numericCost < 0) {
+        throw new Error('cost must be a non-negative number');
     }
     return FundraisingEvents.update(
         {
