@@ -1,12 +1,12 @@
 const crypto = require('crypto');
 const speakeasy = require('speakeasy');
+const { getTotpSessionSecret } = require('../../lib/totp-session-secret');
 const { getEcpayConfigByMerchantId } = require('../../store/ecpay-config');
 const { decryptTotpSecret } = require('../../service/totp-crypto');
 const { isTestMerchantId } = require('../../lib/test-merchants');
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
-const SESSION_SECRET =
-    process.env.TOTP_SESSION_SECRET || 'CHANGE_THIS_TOTP_SESSION_SECRET';
+const SESSION_SECRET = getTotpSessionSecret();
 
 function createSessionToken(merchantId) {
     const trimmedMerchantId = String(merchantId).trim();
