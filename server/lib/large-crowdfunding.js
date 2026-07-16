@@ -124,7 +124,8 @@ function apiJsonToPageRow(body, ecpayConfigId, merchantId, pageKey) {
 }
 
 /**
- * 建單當下：須已發布、進行中、在募資期間內
+ * 建單當下：須已發布、未軟刪除；結束時間／手動關閉不擋斗內
+ * （公開募資畫面結束後仍顯示終止頁；斗內連結可獨立使用）
  * @param {object} page plain page row
  * @returns {{ ok: boolean, reason?: string }}
  */
@@ -136,23 +137,14 @@ function assertPageAcceptsDonationsAtOrderTime(page) {
         return { ok: false, reason: '募資頁尚未發布' };
     }
     if (!isPageActiveStatus(page.status)) {
-        return { ok: false, reason: '募資活動已結束或已刪除' };
-    }
-    if (page.manuallyClosed) {
-        return { ok: false, reason: '募資活動已結束' };
+        return { ok: false, reason: '募資活動已刪除' };
     }
     const now = Date.now();
     const start = page.fundraisingStartsAt
         ? new Date(page.fundraisingStartsAt).getTime()
         : NaN;
-    const end = page.fundraisingEndsAt
-        ? new Date(page.fundraisingEndsAt).getTime()
-        : NaN;
     if (Number.isFinite(start) && now < start) {
         return { ok: false, reason: '募資活動尚未開始' };
-    }
-    if (Number.isFinite(end) && now > end) {
-        return { ok: false, reason: '募資活動已結束' };
     }
     return { ok: true };
 }

@@ -531,7 +531,8 @@ export function getCrowdfundingActivityStatus(data) {
         return {
             key: 'manually_closed',
             label: '已手動關閉',
-            detail: '管理員已關閉活動，正式前台將顯示終止畫面。',
+            detail:
+                '訪客公開頁顯示終止畫面；斗內連結仍可使用。後台可按「開啟榜單」檢視。',
         };
     }
 
@@ -553,7 +554,8 @@ export function getCrowdfundingActivityStatus(data) {
         return {
             key: 'ended',
             label: '已結束',
-            detail: '已超過募資結束時間。',
+            detail:
+                '訪客公開頁顯示終止畫面；斗內連結仍可使用。後台可按「開啟榜單」檢視。',
         };
     }
 

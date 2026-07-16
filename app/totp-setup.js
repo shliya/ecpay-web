@@ -14,26 +14,43 @@ import './css/totp-setup.css';
         return;
     }
 
+    const ownershipForm = document.getElementById('ownershipForm');
     const qrContainer = document.getElementById('qrContainer');
     const loadingMsg = document.getElementById('loadingMsg');
     const confirmForm = document.getElementById('confirmForm');
     const messageDiv = document.getElementById('message');
 
-    async function loadQrCode() {
+    function showMessage(text, isError) {
+        messageDiv.className = isError ? 'message error' : 'message';
+        messageDiv.textContent = text;
+        messageDiv.style.display = 'block';
+    }
+
+    async function loadQrCode(hashKey, payuniHashKey) {
+        loadingMsg.style.display = 'block';
+        loadingMsg.textContent = '載入中...';
+        messageDiv.style.display = 'none';
+
         try {
             const response = await fetch('/api/v1/login/setup-totp', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ merchantId }),
+                body: JSON.stringify({
+                    merchantId,
+                    hashKey: hashKey || undefined,
+                    payuniHashKey: payuniHashKey || undefined,
+                }),
             });
             const data = await response.json();
 
             if (!response.ok) {
-                loadingMsg.textContent = data.error || '載入失敗';
+                loadingMsg.style.display = 'none';
+                showMessage(data.error || '載入失敗', true);
                 return;
             }
 
             loadingMsg.style.display = 'none';
+            ownershipForm.style.display = 'none';
             qrContainer.style.display = 'block';
             confirmForm.style.display = 'block';
 
@@ -50,18 +67,30 @@ import './css/totp-setup.css';
             const manualSecret = document.getElementById('manualSecret');
             if (manualSecret) manualSecret.textContent = data.secret || '';
         } catch (error) {
-            loadingMsg.textContent = '載入失敗，請稍後再試';
+            loadingMsg.style.display = 'none';
+            showMessage('載入失敗，請稍後再試', true);
             console.error(error);
         }
     }
+
+    ownershipForm.addEventListener('submit', async e => {
+        e.preventDefault();
+        const hashKey = document.getElementById('hashKey').value.trim();
+        const payuniHashKey = document
+            .getElementById('payuniHashKey')
+            .value.trim();
+        if (!hashKey && !payuniHashKey) {
+            showMessage('請填寫綠界或 PayUni 的 Hash Key', true);
+            return;
+        }
+        await loadQrCode(hashKey, payuniHashKey);
+    });
 
     confirmForm.addEventListener('submit', async e => {
         e.preventDefault();
         const token = document.getElementById('totpToken').value.trim();
         if (!token || token.length !== 6) {
-            messageDiv.className = 'message error';
-            messageDiv.textContent = '請輸入6位數驗證碼';
-            messageDiv.style.display = 'block';
+            showMessage('請輸入6位數驗證碼', true);
             return;
         }
 
@@ -77,16 +106,10 @@ import './css/totp-setup.css';
                 localStorage.setItem('merchantId', merchantId);
                 window.location.href = `index.html?id=${merchantId}`;
             } else {
-                messageDiv.className = 'message error';
-                messageDiv.textContent = data.error || '驗證失敗';
-                messageDiv.style.display = 'block';
+                showMessage(data.error || '驗證失敗', true);
             }
         } catch (error) {
-            messageDiv.className = 'message error';
-            messageDiv.textContent = '驗證時發生錯誤，請稍後再試';
-            messageDiv.style.display = 'block';
+            showMessage('驗證時發生錯誤，請稍後再試', true);
         }
     });
-
-    loadQrCode();
 })();

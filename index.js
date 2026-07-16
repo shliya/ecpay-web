@@ -1,4 +1,5 @@
 require('dotenv').config();
+require('./server/lib/totp-session-secret').getTotpSessionSecret();
 const sequelize = require('./server/config/database');
 const path = require('path');
 const express = require('express');

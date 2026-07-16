@@ -1,6 +1,7 @@
 const express = require('express');
 const router = new express.Router();
 const requireTotp = require('../../middleware/require-totp');
+const { safeEqualString } = require('../../lib/safe-equal');
 const {
     handleGetFundraisingEventsRequest,
     handleCreateFundraisingEventRequest,
@@ -13,8 +14,9 @@ const {
 } = require('../../route-handlers/fundraising-event');
 
 function requireInternalApiKey(req, res, next) {
-    const apiKey = req.headers['x-api-key'];
-    if (!apiKey || apiKey !== process.env.INTERNAL_API_KEY) {
+    const apiKey = String(req.headers['x-api-key'] || '').trim();
+    const expected = String(process.env.INTERNAL_API_KEY || '').trim();
+    if (!expected || !apiKey || !safeEqualString(apiKey, expected)) {
         return res.status(403).json({ error: '未授權的存取' });
     }
     next();

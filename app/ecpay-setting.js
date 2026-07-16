@@ -50,6 +50,9 @@ import './css/ecpay-setting.css';
                 merchantId: document.getElementById('merchantId').value,
                 hashKey: document.getElementById('hashKey').value,
                 hashIV: document.getElementById('hashIV').value,
+                registrationSecret: document.getElementById(
+                    'ecpayRegistrationSecret'
+                ).value,
             };
 
             try {
@@ -57,6 +60,12 @@ import './css/ecpay-setting.css';
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        ...(formData.registrationSecret
+                            ? {
+                                  'X-Registration-Secret':
+                                      formData.registrationSecret,
+                              }
+                            : {}),
                     },
                     body: JSON.stringify(formData),
                 });
@@ -109,6 +118,9 @@ import './css/ecpay-setting.css';
                     .value.trim(),
                 payuniHashKey: document.getElementById('payuniHashKey').value,
                 payuniHashIV: document.getElementById('payuniHashIV').value,
+                registrationSecret: document.getElementById(
+                    'payuniRegistrationSecret'
+                ).value,
             };
 
             try {
@@ -116,6 +128,12 @@ import './css/ecpay-setting.css';
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        ...(formData.registrationSecret
+                            ? {
+                                  'X-Registration-Secret':
+                                      formData.registrationSecret,
+                              }
+                            : {}),
                     },
                     body: JSON.stringify(formData),
                 });

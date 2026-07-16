@@ -210,6 +210,16 @@ class IchibanWebSocketServer {
         if (!client) return;
 
         try {
+            const event =
+                await IchibanEventStore.getIchibanEventByIdAndMerchantId(
+                    eventId,
+                    client.merchantId
+                );
+            if (!event) {
+                this.sendError(clientId, 'Event not found or access denied');
+                return;
+            }
+
             const card =
                 await IchibanCardStore.getIchibanCardByEventIdAndCardIndexAndStatus(
                     eventId,

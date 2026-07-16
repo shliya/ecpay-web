@@ -2,12 +2,24 @@ const speakeasy = require('speakeasy');
 const { getEcpayConfigByMerchantId } = require('../../store/ecpay-config');
 const { updateEcpayConfig } = require('../../store/ecpay-config');
 const { encryptTotpSecret } = require('../../service/totp-crypto');
+const {
+    verifyMerchantKeyOwnership,
+} = require('../../lib/merchant-ownership');
 
 module.exports = async (req, res) => {
     try {
-        const { merchantId } = req.body;
+        const { merchantId, hashKey, payuniHashKey } = req.body;
         if (!merchantId || typeof merchantId !== 'string') {
             res.status(400).json({ error: '缺少 merchantId' });
+            return;
+        }
+
+        if (
+            !(String(hashKey || '').trim() || String(payuniHashKey || '').trim())
+        ) {
+            res.status(400).json({
+                error: '請提供 Hash Key（綠界 hashKey 或 PayUni payuniHashKey）以驗證商店所有權',
+            });
             return;
         }
 
@@ -19,6 +31,13 @@ module.exports = async (req, res) => {
 
         if (config.totpEnabled) {
             res.status(400).json({ error: '已綁定 TOTP，無需重複設定' });
+            return;
+        }
+
+        if (
+            !verifyMerchantKeyOwnership(config, { hashKey, payuniHashKey })
+        ) {
+            res.status(403).json({ error: '金流金鑰驗證失敗，無法綁定 TOTP' });
             return;
         }
 

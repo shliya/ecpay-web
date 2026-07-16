@@ -1,7 +1,15 @@
 const { createPayuniConfig } = require('../../service/ecpay-config');
+const {
+    assertRegistrationAllowed,
+} = require('../../lib/registration-guard');
 
 module.exports = async (req, res) => {
     try {
+        const gate = assertRegistrationAllowed(req);
+        if (!gate.ok) {
+            return res.status(gate.status).json({ message: gate.message });
+        }
+
         const { payuniMerchantId, payuniHashKey, payuniHashIV } = req.body;
 
         if (!payuniMerchantId || !payuniHashKey || !payuniHashIV) {

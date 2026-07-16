@@ -1,8 +1,15 @@
-const sequelize = require('../../config/database');
 const { createEcpayConfig } = require('../../service/ecpay-config');
+const {
+    assertRegistrationAllowed,
+} = require('../../lib/registration-guard');
 
 module.exports = async (req, res) => {
     try {
+        const gate = assertRegistrationAllowed(req);
+        if (!gate.ok) {
+            return res.status(gate.status).json({ message: gate.message });
+        }
+
         const { merchantId, hashKey, hashIV } = req.body;
 
         if (!merchantId || !hashKey || !hashIV) {

@@ -10,7 +10,6 @@ const {
 const { ENUM_ICHIBAN_EVENT_STATUS } = require('../../lib/enum');
 const {
     getEcpayConfigByMerchantId,
-    getAllEcpayConfigs,
 } = require('../../store/ecpay-config');
 const {
     processDonationFromPaymentCallback,
@@ -136,30 +135,51 @@ module.exports = async (req, res) => {
                 : null;
 
             let row = null;
+            let matchedConfig = config;
             if (body.Data) {
-                row = config
-                    ? parseDonationCallback(body, {
-                          hashKey: config.hashKey,
-                          hashIV: config.hashIV,
-                      })
-                    : null;
-                if (!row && body.Data) {
-                    const configs = await getAllEcpayConfigs();
-                    for (const c of configs) {
-                        row = parseDonationCallback(body, {
-                            hashKey: c.hashKey,
-                            hashIV: c.hashIV,
-                        });
-                        if (row) break;
+                if (config) {
+                    row = parseDonationCallback(body, {
+                        hashKey: config.hashKey,
+                        hashIV: config.hashIV,
+                    });
+                    if (row) {
+                        const payloadMerchantId = String(
+                            row.merchantId || ''
+                        ).trim();
+                        const cfgMerchantId = String(
+                            config.merchantId || merchantId || ''
+                        ).trim();
+                        if (
+                            !payloadMerchantId ||
+                            !cfgMerchantId ||
+                            payloadMerchantId !== cfgMerchantId
+                        ) {
+                            console.warn(
+                                '[ecpay-success] Data 解密後 MerchantID 不符',
+                                { cfgMerchantId, payloadMerchantId }
+                            );
+                            row = null;
+                        } else {
+                            matchedConfig = config;
+                        }
                     }
                 }
+                // 不再遍歷全站金鑰暴力解密，避免自註冊 key 偽造他店入帳
             } else if (config) {
+                if (!verifyEcpayReturnCheckMac(req.body, config)) {
+                    res.status(400).send('0|ERROR');
+                    return;
+                }
                 row = parseUrlDonationCallback(body, config);
+                matchedConfig = config;
             }
 
             if (row) {
                 if (!row.merTradeNo && MerchantTradeNo) {
                     row.merTradeNo = MerchantTradeNo;
+                }
+                if (matchedConfig?.merchantId) {
+                    row.merchantId = String(matchedConfig.merchantId).trim();
                 }
                 const isDonatePath =
                     (orderInfo && isDonationPendingKind(orderInfo.kind)) ||

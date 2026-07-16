@@ -9,8 +9,34 @@
         <div class="totp-setup-container">
             <h1>綁定 Google Authenticator</h1>
             <p class="totp-hint">
-                為保障帳號安全，請先綁定 Google Authenticator 以繼續使用
+                為保障帳號安全，請先以金流 Hash Key 驗證商店所有權，再綁定
+                Google Authenticator
             </p>
+            <form id="ownershipForm" class="ownership-form">
+                <div class="form-group">
+                    <label for="hashKey">綠界 Hash Key</label>
+                    <input
+                        type="password"
+                        id="hashKey"
+                        name="hashKey"
+                        autocomplete="off"
+                        placeholder="若為綠界商店請填寫"
+                    />
+                </div>
+                <div class="form-group">
+                    <label for="payuniHashKey">PayUni Hash Key（選填）</label>
+                    <input
+                        type="password"
+                        id="payuniHashKey"
+                        name="payuniHashKey"
+                        autocomplete="off"
+                        placeholder="若為 PayUni 商店可改填此欄"
+                    />
+                </div>
+                <button type="submit" class="btn-confirm" id="btnLoadQr">
+                    驗證並顯示 QR Code
+                </button>
+            </form>
             <div id="qrContainer" class="qr-container" style="display: none">
                 <p>請使用 Google Authenticator 掃描下方 QR Code</p>
                 <div id="qrCode"></div>
@@ -18,7 +44,9 @@
                     或手動輸入金鑰：<code id="manualSecret"></code>
                 </p>
             </div>
-            <div id="loadingMsg" class="loading-msg">載入中...</div>
+            <div id="loadingMsg" class="loading-msg" style="display: none">
+                載入中...
+            </div>
             <form id="confirmForm" style="display: none">
                 <div class="form-group">
                     <input

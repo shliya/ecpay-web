@@ -53,6 +53,18 @@ module.exports = async (req, res) => {
             return;
         }
 
+        const urlMerchantId = String(merchantId || '').trim();
+        const payloadMerchantId = String(row.merchantId || '').trim();
+        if (!payloadMerchantId || payloadMerchantId !== urlMerchantId) {
+            console.warn(
+                '[payuni-notify] MerID 與 URL 不符，拒絕入帳',
+                { urlMerchantId, payloadMerchantId }
+            );
+            res.status(400).send('Error');
+            return;
+        }
+        row.merchantId = urlMerchantId;
+
         const merTradeNo = row.merTradeNo;
         const orderInfo = merTradeNo ? await getPaymentOrder(merTradeNo) : null;
 

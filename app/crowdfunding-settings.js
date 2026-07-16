@@ -300,6 +300,28 @@ function getPublicPageFullUrl(pageKey) {
     return url.toString();
 }
 
+/** 後台檢視榜單：preview=1 略過訪客終止畫面，仍載入公開 API 即時累計／榜單 */
+function getLeaderboardPreviewUrl(pageKey) {
+    const path = window.location.pathname.replace(/[^/]*$/, '');
+    const url = new URL(
+        window.location.origin + path + 'crowdfunding-page.html'
+    );
+    url.searchParams.set('name', pageKey);
+    url.searchParams.set('preview', '1');
+    if (merchantId) {
+        url.searchParams.set('merchantId', merchantId);
+    }
+    return url.toString();
+}
+
+function getCurrentPageKey() {
+    return (
+        normalizePageKeyInput(document.getElementById('pageKey').value) ||
+        pageKeyFromUrl ||
+        'default'
+    );
+}
+
 function updatePublicUrl(pageKey) {
     const input = document.getElementById('publicPageUrl');
     if (input) {
@@ -461,11 +483,17 @@ function bindEvents() {
     });
 
     document.getElementById('btnOpenPublic').addEventListener('click', function () {
-        const key =
-            normalizePageKeyInput(document.getElementById('pageKey').value) ||
-            'default';
+        const key = getCurrentPageKey();
         window.open(getPublicPageFullUrl(key), '_blank', 'noopener');
     });
+
+    document
+        .getElementById('btnOpenLeaderboard')
+        .addEventListener('click', function () {
+            const key = getCurrentPageKey();
+            // preview=1：略過訪客終止畫面，仍從公開 API 載入即時榜單／累計
+            window.open(getLeaderboardPreviewUrl(key), '_blank', 'noopener');
+        });
 
     document.getElementById('manuallyClosed').addEventListener('change', function () {
         try {
