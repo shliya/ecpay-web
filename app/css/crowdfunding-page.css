@@ -161,25 +161,21 @@ body {
 
 /* 僅在未 hidden 時顯示；勿對 [hidden] 設 display:flex/grid，會蓋掉瀏覽器預設的 display:none */
 .cf-ended-screen:not([hidden]) {
-    position: relative;
-    z-index: 1;
-    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     min-height: 100vh;
     min-height: 100dvh;
-    padding: 2rem 1.25rem 3rem;
+    padding: 2rem 1.25rem;
     background: linear-gradient(165deg, #f8f4ef 0%, #ebe4dc 100%);
-}
-
-.cf-ended-inner {
-    width: 100%;
-    max-width: 960px;
-    margin: 0 auto;
 }
 
 .cf-ended-card {
     width: 100%;
     max-width: 28rem;
-    margin: 0 auto 2rem;
     padding: 2.5rem 2rem;
     text-align: center;
     background: #fff;
@@ -215,40 +211,19 @@ body {
     max-width: 100%;
 }
 
-.cf-ended-leaderboards {
-    width: 100%;
-}
-
-.cf-ended-boards-heading {
-    margin: 0 0 1rem;
-    text-align: center;
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: #5c4a3a;
-    letter-spacing: 0.06em;
-}
-
-.cf-ended-boards-row {
-    justify-content: center;
-}
-
-.cf-ended-boards-actions {
-    margin: 1.5rem 0 0;
-    text-align: center;
-}
-
-.cf-ended-view-all {
+.cf-ended-view-board {
     display: inline-block;
-    padding: 0.65rem 1.25rem;
+    margin-top: 1rem;
+    padding: 0.7rem 1.4rem;
     color: #5c4a3a;
     font-weight: 600;
     text-decoration: none;
     border: 1px solid #c4b5a5;
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.75);
+    background: rgba(255, 255, 255, 0.9);
 }
 
-.cf-ended-view-all:hover {
+.cf-ended-view-board:hover {
     background: #fff;
     border-color: #ad4541;
     color: #ad4541;

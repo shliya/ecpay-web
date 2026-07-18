@@ -532,7 +532,7 @@ export function getCrowdfundingActivityStatus(data) {
             key: 'manually_closed',
             label: '已手動關閉',
             detail:
-                '訪客公開頁顯示終止說明、贊助入口與榜單。斗內直連仍可使用。',
+                '訪客公開頁顯示終止說明、贊助入口與「查看榜單」。斗內直連仍可使用。',
         };
     }
 
@@ -555,7 +555,7 @@ export function getCrowdfundingActivityStatus(data) {
             key: 'ended',
             label: '已結束',
             detail:
-                '訪客公開頁顯示終止說明、贊助入口與榜單。斗內直連仍可使用。',
+                '訪客公開頁顯示終止說明、贊助入口與「查看榜單」。斗內直連仍可使用。',
         };
     }
 
