@@ -1,19 +1,20 @@
 const {
     listDonorsTenForApi,
 } = require('../../service/large-crowdfunding-donation');
-const { normalizePageKey } = require('../../lib/large-crowdfunding');
 const { getSafeApiErrorMessage } = require('../../lib/safe-error-message');
+const {
+    assertPublicDonorPageAccess,
+} = require('../../lib/large-crowdfunding-public-access');
 
 module.exports = async (req, res) => {
     try {
-        const { pageKey } = req.params;
-        const key = normalizePageKey(pageKey);
-        if (!key) {
-            res.status(400).json({ error: 'pageKey 無效' });
+        const access = await assertPublicDonorPageAccess(req.params.pageKey);
+        if (!access.ok) {
+            res.status(access.status).json({ error: access.error });
             return;
         }
 
-        const result = await listDonorsTenForApi(key);
+        const result = await listDonorsTenForApi(access.pageKey);
         res.status(200).json({
             recentDonors: result.donors,
             page: result.page,

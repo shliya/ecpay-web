@@ -1,9 +1,11 @@
 const {
     listDonorsPagedForApi,
 } = require('../../service/large-crowdfunding-donation');
-const { normalizePageKey } = require('../../lib/large-crowdfunding');
 const { getSafeApiErrorMessage } = require('../../lib/safe-error-message');
 const DonationStore = require('../../store/large-crowdfunding-donation');
+const {
+    assertPublicDonorPageAccess,
+} = require('../../lib/large-crowdfunding-public-access');
 
 function parseQueryPage(raw) {
     const n = Number(raw);
@@ -26,17 +28,19 @@ function parseQueryLimit(raw) {
 
 module.exports = async (req, res) => {
     try {
-        const { pageKey } = req.params;
-        const key = normalizePageKey(pageKey);
-        if (!key) {
-            res.status(400).json({ error: 'pageKey 無效' });
+        const access = await assertPublicDonorPageAccess(req.params.pageKey);
+        if (!access.ok) {
+            res.status(access.status).json({ error: access.error });
             return;
         }
 
         const page = parseQueryPage(req.query.page);
         const limit = parseQueryLimit(req.query.limit);
 
-        const result = await listDonorsPagedForApi(key, { page, limit });
+        const result = await listDonorsPagedForApi(access.pageKey, {
+            page,
+            limit,
+        });
         res.status(200).json({
             recentDonors: result.donors,
             page: result.page,

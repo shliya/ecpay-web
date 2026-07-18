@@ -183,6 +183,174 @@ function showEndedScreen(data) {
     document.body.classList.add('cf-body--ended');
 }
 
+/**
+ * 結束畫面：僅公開榜單（不露出贊助鈕／商戶識別）
+ * @param {object} data
+ * @param {string} pageKey
+ */
+async function renderEndedLeaderboards(data, pageKey) {
+    applyTheme(data.theme || {});
+    renderSponsorCta(data, 'endedSponsorCta');
+
+    const [donors, specialDonors] = await Promise.all([
+        resolveRecentDonors(pageKey),
+        fetchDonorsSpecial(pageKey),
+    ]);
+
+    applyLeaderboardPanelBackground(
+        document.getElementById('endedDonorListSidebar'),
+        data.donorListBackgroundImageUrl
+    );
+    applyLeaderboardPanelBackground(
+        document.getElementById('endedSpecialThemeRankingSidebar'),
+        data.donorListBackgroundImageUrl
+    );
+
+    renderLeaderboardTitle(
+        document.getElementById('endedMainDonorListTitle'),
+        data.mainDonorListTitle,
+        '榜十大哥'
+    );
+    const mainList = document.getElementById('endedDonorList');
+    renderDonorList(
+        mainList,
+        data,
+        (Array.isArray(donors) ? donors : []).slice(
+            0,
+            CROWDFUNDING_MAIN_DONOR_LIMIT
+        )
+    );
+
+    const themeSidebar = document.getElementById(
+        'endedSpecialThemeRankingSidebar'
+    );
+    const themeList = document.getElementById('endedSpecialThemeDonorList');
+    const hasTitle = isNonEmptyString(data.specialThemeRankingTitle);
+    const themeDonors = (Array.isArray(specialDonors) ? specialDonors : []).slice(
+        0,
+        CROWDFUNDING_SPECIAL_THEME_DONOR_LIMIT
+    );
+    const hasThemeDonors = themeDonors.length > 0;
+
+    renderLeaderboardTitle(
+        document.getElementById('endedSpecialThemeRankingTitle'),
+        data.specialThemeRankingTitle,
+        '特殊主題榜單'
+    );
+    if (themeList) {
+        themeList.hidden = !hasThemeDonors;
+        if (hasThemeDonors) {
+            renderDonorList(themeList, data, themeDonors, {
+                tierIconUrl: data.specialThemeTierIconUrl,
+            });
+        } else {
+            themeList.innerHTML = '';
+        }
+    }
+    if (themeSidebar) {
+        if (hasTitle || hasThemeDonors) {
+            themeSidebar.removeAttribute('data-placeholder');
+        } else {
+            themeSidebar.setAttribute('data-placeholder', 'true');
+        }
+    }
+
+    setupEndedLeaderboardTabs(data, specialDonors);
+
+    const viewAll = document.getElementById('endedViewAllDonors');
+    if (viewAll && pageKey) {
+        const mid =
+            data && isNonEmptyString(data.merchantId)
+                ? data.merchantId.trim()
+                : '';
+        viewAll.href = buildCrowdfundingDonorsAllUrl(pageKey, {
+            merchantId: mid || undefined,
+        });
+        viewAll.hidden = false;
+    } else if (viewAll) {
+        viewAll.hidden = true;
+    }
+}
+
+function setupEndedLeaderboardTabs(pageData, specialDonors) {
+    const tabsRoot = document.getElementById('endedLeaderboardTabs');
+    const tabMain = document.getElementById('endedLeaderboardTabMain');
+    const tabTheme = document.getElementById('endedLeaderboardTabTheme');
+    const mainSidebar = document.getElementById('endedDonorListSidebar');
+    const themeSidebar = document.getElementById(
+        'endedSpecialThemeRankingSidebar'
+    );
+    const leaderboardsRow =
+        tabsRoot && tabsRoot.closest('.cf-leaderboards-row');
+
+    if (!tabsRoot || !tabMain || !tabTheme || !mainSidebar || !themeSidebar) {
+        return;
+    }
+
+    const themeAvailable = isSpecialThemeRankingAvailable(
+        pageData,
+        specialDonors
+    );
+
+    tabMain.textContent = leaderboardTabLabel(
+        pageData.mainDonorListTitle,
+        '榜十大哥'
+    );
+    tabTheme.textContent = leaderboardTabLabel(
+        pageData.specialThemeRankingTitle,
+        '特殊主題榜'
+    );
+
+    const applyLeaderboardTabs = function () {
+        const useTabs = themeAvailable;
+        tabsRoot.hidden = !useTabs;
+        tabsRoot.classList.toggle('is-visible', useTabs);
+        if (leaderboardsRow) {
+            leaderboardsRow.classList.toggle('is-tabbed', useTabs);
+        }
+
+        if (!useTabs) {
+            placeLeaderboardTabsInSidebar(tabsRoot, mainSidebar);
+            mainSidebar.classList.add('is-leaderboard-panel-active');
+            themeSidebar.classList.remove('is-leaderboard-panel-active');
+            return;
+        }
+
+        const activeTab = tabsRoot.dataset.activeTab || 'main';
+        const isMain = activeTab !== 'theme';
+        const activeSidebar = isMain ? mainSidebar : themeSidebar;
+        placeLeaderboardTabsInSidebar(tabsRoot, activeSidebar);
+        mainSidebar.classList.toggle('is-leaderboard-panel-active', isMain);
+        themeSidebar.classList.toggle('is-leaderboard-panel-active', !isMain);
+        tabMain.classList.toggle('is-active', isMain);
+        tabTheme.classList.toggle('is-active', !isMain);
+        tabMain.setAttribute('aria-selected', String(isMain));
+        tabTheme.setAttribute('aria-selected', String(!isMain));
+        tabMain.tabIndex = isMain ? 0 : -1;
+        tabTheme.tabIndex = !isMain ? 0 : -1;
+        setupDonorListNameScroll(
+            document.getElementById(
+                isMain ? 'endedDonorList' : 'endedSpecialThemeDonorList'
+            )
+        );
+    };
+
+    if (!tabsRoot.dataset.bound) {
+        tabsRoot.dataset.bound = 'true';
+        tabMain.addEventListener('click', function () {
+            tabsRoot.dataset.activeTab = 'main';
+            applyLeaderboardTabs();
+        });
+        tabTheme.addEventListener('click', function () {
+            tabsRoot.dataset.activeTab = 'theme';
+            applyLeaderboardTabs();
+        });
+        window.addEventListener('resize', applyLeaderboardTabs);
+    }
+
+    applyLeaderboardTabs();
+}
+
 function renderBackground(data) {
     const bg = document.getElementById('cfBg');
     if (!bg) return;
@@ -217,8 +385,8 @@ function buildViewerDonateUrl(data) {
     );
 }
 
-function renderSponsorCta(data) {
-    const cta = document.getElementById('sponsorCta');
+function renderSponsorCta(data, elementId) {
+    const cta = document.getElementById(elementId || 'sponsorCta');
     if (!cta) return;
     const donateUrl = buildViewerDonateUrl(data);
     cta.href = donateUrl || '#';
@@ -1076,6 +1244,10 @@ async function init() {
         const data = await fetchPageData(key);
         if (!isPreviewMode() && isPublicCrowdfundingClosed(data)) {
             showEndedScreen(data);
+            pageKeyCache = key;
+            pageDataCache = data;
+            merchantIdCache = '';
+            await renderEndedLeaderboards(data, key);
             return;
         }
         showPage();

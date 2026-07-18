@@ -9,6 +9,7 @@ const {
 const {
     normalizePageKey,
     pageRowToApiJson,
+    pageRowToPublicApiJson,
     pageRowToSummaryJson,
     apiJsonToPageRow,
     assertPageAcceptsDonationsAtOrderTime,
@@ -87,7 +88,7 @@ async function getPublicPageByPageKey(pageKey, merchantId) {
         return { status: 'not_published' };
     }
 
-    const json = pageRowToApiJson(row);
+    const json = pageRowToPublicApiJson(row);
     const sum = await DonationStore.sumAmountByPageId(row.id);
     json.currentTotal = sum;
     return { status: 'ok', data: json };

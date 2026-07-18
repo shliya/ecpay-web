@@ -15,10 +15,100 @@
         <div id="loadError" class="cf-load-error" hidden></div>
 
         <div id="cfEndedScreen" class="cf-ended-screen" hidden>
-            <div class="cf-ended-card" role="status">
-                <h1 class="cf-ended-title">募資已終止</h1>
-                <p id="cfEndedMessage" class="cf-ended-message"></p>
-                <p id="cfEndedPeriod" class="cf-ended-period" hidden></p>
+            <div class="cf-ended-inner">
+                <div class="cf-ended-card" role="status">
+                    <h1 class="cf-ended-title">募資已終止</h1>
+                    <p id="cfEndedMessage" class="cf-ended-message"></p>
+                    <p id="cfEndedPeriod" class="cf-ended-period" hidden></p>
+                    <a
+                        id="endedSponsorCta"
+                        class="cf-sponsor-cta cf-ended-sponsor-cta"
+                        href="#"
+                        data-placeholder="true"
+                    >
+                        我要贊助
+                    </a>
+                </div>
+                <section
+                    class="cf-ended-leaderboards"
+                    aria-label="募資榜單"
+                >
+                    <h2 class="cf-ended-boards-heading">感謝支持・榜單回顧</h2>
+                    <div class="cf-leaderboards-row cf-ended-boards-row">
+                        <div class="cf-leaderboard-panels">
+                            <aside
+                                id="endedDonorListSidebar"
+                                class="cf-sidebar cf-sidebar--donors-main"
+                                aria-label="近期斗內（榜十大哥）"
+                            >
+                                <div
+                                    id="endedLeaderboardTabs"
+                                    class="cf-leaderboard-tabs"
+                                    role="tablist"
+                                    aria-label="榜單切換"
+                                    hidden
+                                >
+                                    <button
+                                        type="button"
+                                        id="endedLeaderboardTabMain"
+                                        class="cf-leaderboard-tab"
+                                        role="tab"
+                                        aria-selected="true"
+                                        aria-controls="endedDonorListSidebar"
+                                        tabindex="0"
+                                    >
+                                        榜十大哥
+                                    </button>
+                                    <button
+                                        type="button"
+                                        id="endedLeaderboardTabTheme"
+                                        class="cf-leaderboard-tab"
+                                        role="tab"
+                                        aria-selected="false"
+                                        aria-controls="endedSpecialThemeRankingSidebar"
+                                        tabindex="-1"
+                                    >
+                                        特殊主題榜
+                                    </button>
+                                </div>
+                                <div
+                                    id="endedMainDonorListTitle"
+                                    class="cf-leaderboard-title"
+                                    hidden
+                                ></div>
+                                <ul
+                                    id="endedDonorList"
+                                    class="cf-donor-list"
+                                ></ul>
+                            </aside>
+                            <aside
+                                id="endedSpecialThemeRankingSidebar"
+                                class="cf-sidebar cf-sidebar--theme-ranking"
+                                aria-label="特殊主題榜單"
+                                data-placeholder="true"
+                            >
+                                <div
+                                    id="endedSpecialThemeRankingTitle"
+                                    class="cf-leaderboard-title"
+                                    hidden
+                                ></div>
+                                <ul
+                                    id="endedSpecialThemeDonorList"
+                                    class="cf-donor-list"
+                                    hidden
+                                ></ul>
+                            </aside>
+                        </div>
+                    </div>
+                    <p class="cf-ended-boards-actions">
+                        <a
+                            id="endedViewAllDonors"
+                            class="cf-ended-view-all"
+                            href="#"
+                            >查看全部斗內名單</a
+                        >
+                    </p>
+                </section>
             </div>
         </div>
 

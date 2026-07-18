@@ -66,6 +66,21 @@ function pageRowToApiJson(row) {
 }
 
 /**
+ * 公開頁／訪客 API：不回傳 ecpayConfigId（內部商店設定 id）。
+ * 保留 merchantId／page id 供贊助入口使用（結束後斗內直連仍開放）。
+ * @param {object} row
+ * @returns {object|null}
+ */
+function pageRowToPublicApiJson(row) {
+    const full = pageRowToApiJson(row);
+    if (!full) {
+        return null;
+    }
+    const { ecpayConfigId: _omitConfigId, ...rest } = full;
+    return rest;
+}
+
+/**
  * @param {*} raw
  * @returns {number}
  */
@@ -279,6 +294,7 @@ module.exports = {
     normalizePageStatus,
     isPageActiveStatus,
     pageRowToApiJson,
+    pageRowToPublicApiJson,
     pageRowToSummaryJson,
     apiJsonToPageRow,
     assertPageAcceptsDonations,
