@@ -1,5 +1,5 @@
-const PageStore = require('../../store/large-crowdfunding-page');
-const { normalizePageKey } = require('../../lib/large-crowdfunding');
+const PageStore = require('../store/large-crowdfunding-page');
+const { normalizePageKey } = require('./large-crowdfunding');
 
 /**
  * 公開榜單 API：僅允許已發布且未刪除的 pageKey
