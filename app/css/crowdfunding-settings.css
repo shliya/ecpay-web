@@ -428,6 +428,11 @@ body {
     line-height: 1.45;
 }
 
+.cfs-panel-lead--warn {
+    margin-top: 12px;
+    color: #ffcc80;
+}
+
 .cfs-panel-lead code {
     font-size: 12px;
     color: #90caf9;

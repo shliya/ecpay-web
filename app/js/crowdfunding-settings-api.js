@@ -410,7 +410,12 @@ export async function saveCrowdfundingPage(merchantId, pageKey, data) {
             body: JSON.stringify(payload),
         });
         if (res.ok) {
-            return { ok: true, source: 'api' };
+            const body = await res.json().catch(() => ({}));
+            return {
+                ok: true,
+                source: 'api',
+                page: body && body.page ? body.page : null,
+            };
         }
     } catch {
         /* 網路錯誤 */
@@ -476,7 +481,12 @@ export async function publishCrowdfundingPage(merchantId, pageKey, data) {
             body: JSON.stringify(payload),
         });
         if (res.ok) {
-            return { ok: true, source: 'api' };
+            const body = await res.json().catch(() => ({}));
+            return {
+                ok: true,
+                source: 'api',
+                page: body && body.page ? body.page : null,
+            };
         }
     } catch {
         /* 網路錯誤 */

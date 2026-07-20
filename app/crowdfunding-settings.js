@@ -13,6 +13,7 @@ import {
     fillAllListEditors,
     initCrowdfundingListEditors,
 } from './js/crowdfunding-settings-editors.js';
+import { buildLargeCrowdfundingDonateUrl } from './js/crowdfunding-page-url.js';
 import { ensureTotpSession } from './js/totp-guard.js';
 
 /** 後台可調；贊助鈕／進度條等維持前台 CSS 預設 */
@@ -30,6 +31,8 @@ let merchantId = '';
 let pageKeyFromUrl = '';
 let isNewProject = false;
 let loadSource = 'api';
+/** @type {number|null} */
+let loadedPageId = null;
 function getMerchantId() {
     const p = new URLSearchParams(window.location.search);
     return (
@@ -252,8 +255,26 @@ function fillForm(data) {
     fillThemeFields(d.theme);
     fillAllListEditors(d);
 
+    const pageIdNum = Number(d.id);
+    loadedPageId =
+        Number.isInteger(pageIdNum) && pageIdNum > 0 ? pageIdNum : null;
+
     updateStatusPanel(d);
     updatePublicUrl(d.pageKey || 'default');
+    updateLcfDonateUrl();
+}
+
+function updateLcfDonateUrl() {
+    const input = document.getElementById('lcfDonateUrl');
+    if (!input) {
+        return;
+    }
+    const url = buildLargeCrowdfundingDonateUrl({
+        merchantId,
+        pageId: loadedPageId,
+    });
+    input.value = url || '';
+    input.placeholder = url ? '' : '儲存後產生';
 }
 
 function updateStatusPanel(data) {
@@ -379,6 +400,8 @@ function loadNewProjectForm() {
         milestones: [],
     });
     fillAllListEditors({ contentBlocks: [], milestones: [] });
+    loadedPageId = null;
+    updateLcfDonateUrl();
     updateStatusPanel({ manuallyClosed: false });
     updateSourceHint();
     const keyLabel = document.getElementById('settingsPageKeyLabel');
@@ -423,7 +446,11 @@ async function handleSave() {
         );
         loadSource = result.source === 'api' ? 'api' : 'localDraft';
         updateSourceHint();
-        updateStatusPanel(data);
+        if (result.page) {
+            fillForm({ ...data, ...result.page });
+        } else {
+            updateStatusPanel(data);
+        }
         const hint =
             result.source === 'api'
                 ? '已儲存至伺服器'
@@ -447,7 +474,11 @@ async function handlePublish() {
         );
         loadSource = result.source === 'api' ? 'api' : loadSource;
         updateSourceHint();
-        updateStatusPanel(data);
+        if (result.page) {
+            fillForm({ ...data, ...result.page });
+        } else {
+            updateStatusPanel(data);
+        }
         const hint =
             result.source === 'api'
                 ? '已發布，公開募資頁可正常載入'
@@ -481,6 +512,35 @@ function bindEvents() {
             }
         );
     });
+
+    document
+        .getElementById('btnCopyLcfDonateUrl')
+        .addEventListener('click', function () {
+            const input = document.getElementById('lcfDonateUrl');
+            if (!input || !input.value) {
+                showMessage('請先儲存專案以產生斗內連結', 'error');
+                return;
+            }
+            navigator.clipboard.writeText(input.value).then(
+                function () {
+                    showMessage('已複製大型募資斗內連結', 'ok');
+                },
+                function () {
+                    showMessage('複製失敗', 'error');
+                }
+            );
+        });
+
+    document
+        .getElementById('btnOpenLcfDonate')
+        .addEventListener('click', function () {
+            const input = document.getElementById('lcfDonateUrl');
+            if (!input || !input.value) {
+                showMessage('請先儲存專案以產生斗內連結', 'error');
+                return;
+            }
+            window.open(input.value, '_blank', 'noopener');
+        });
 
     document.getElementById('btnOpenPublic').addEventListener('click', function () {
         const key = getCurrentPageKey();

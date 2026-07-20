@@ -17,6 +17,7 @@ import {
 } from './js/crowdfunding-donor-ui.js';
 import {
     buildCrowdfundingDonorsAllUrl,
+    buildLargeCrowdfundingDonateUrl,
     getCrowdfundingQueryParams,
 } from './js/crowdfunding-page-url.js';
 import {
@@ -214,25 +215,10 @@ function renderBackground(data) {
 }
 
 function buildViewerDonateUrl(data) {
-    const merchantId =
-        data && isNonEmptyString(data.merchantId) ?
-            data.merchantId.trim()
-        :   '';
-    const pageId = data && data.id != null ? Number(data.id) : NaN;
-    if (!merchantId || !Number.isInteger(pageId) || pageId <= 0) {
-        return null;
-    }
-    const path = window.location.pathname.replace(/[^/]*$/, '');
-    const params = new URLSearchParams({
-        merchantId: merchantId,
-        largeCrowdfundingPageId: String(pageId),
+    return buildLargeCrowdfundingDonateUrl({
+        merchantId: data && data.merchantId,
+        pageId: data && data.id,
     });
-    return (
-        window.location.origin +
-        path +
-        'viewer-donate.html?' +
-        params.toString()
-    );
 }
 
 function renderSponsorCta(data, elementId) {

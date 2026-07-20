@@ -310,6 +310,17 @@ import { donateThemeVarMap } from './js/donate-theme-keys.js';
                 largeCrowdfundingPageId != null
             );
         }
+        var lcfWarning = document.getElementById('lcfDonateWarning');
+        if (lcfWarning) {
+            if (largeCrowdfundingPageId != null) {
+                lcfWarning.hidden = false;
+                lcfWarning.textContent =
+                    '請在暱稱寫上票券號碼，不然視為沒搶到票';
+            } else {
+                lcfWarning.hidden = true;
+                lcfWarning.textContent = '';
+            }
+        }
         var data = {};
         try {
             var r = await fetch(

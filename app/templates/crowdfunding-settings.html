@@ -285,6 +285,41 @@
                             開啟榜單
                         </button>
                     </section>
+
+                    <section class="cfs-panel">
+                        <h2 class="cfs-panel-title">大型募資斗內連結</h2>
+                        <p class="cfs-panel-lead">
+                            專給其他網站／文案使用的斗內入口（僅含商店代號與募資頁
+                            id，不含 Hash Key／IV）。訪客點入後會看到警語並可直接付款；入帳歸本專案。
+                            請先儲存專案後才會產生連結。
+                        </p>
+                        <div class="cfs-url-row">
+                            <input
+                                type="text"
+                                id="lcfDonateUrl"
+                                class="cfs-url-input"
+                                readonly
+                                placeholder="儲存後產生"
+                            />
+                            <button
+                                type="button"
+                                class="btn cfs-btn-copy"
+                                id="btnCopyLcfDonateUrl"
+                            >
+                                複製
+                            </button>
+                        </div>
+                        <button
+                            type="button"
+                            class="btn cfs-btn-secondary cfs-btn-block"
+                            id="btnOpenLcfDonate"
+                        >
+                            開啟斗內頁
+                        </button>
+                        <p class="cfs-panel-lead cfs-panel-lead--warn">
+                            目前斗內頁警語（寫死）：請在暱稱寫上票券號碼，不然視為沒搶到票
+                        </p>
+                    </section>
                 </aside>
             </div>
         </div>

@@ -134,6 +134,18 @@ body {
     order: 3;
 }
 
+.lcf-donate-warning {
+    margin: 0 0 12px;
+    padding: 10px 12px;
+    border: 1px solid var(--donate-border-light);
+    border-radius: 6px;
+    background: #fff8e6;
+    color: #8a5a00;
+    font-size: 13px;
+    line-height: 1.5;
+    font-family: inherit;
+}
+
 .donate-payments .donate-pay {
     display: block;
     width: 100%;
