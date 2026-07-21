@@ -1,5 +1,6 @@
 import './css/viewer-donate.css';
 import {
+    LCF_POST_DONATE_FORM_ENABLED,
     LCF_POST_DONATE_FORM_URL,
     LCF_POST_DONATE_FORM_TITLE,
     LCF_POST_DONATE_FORM_HINT,
@@ -227,7 +228,11 @@ import { donateThemeVarMap } from './js/donate-theme-keys.js';
     }
 
     function setupLcfFormStep(largeCrowdfundingPageId, onConfirmPayment) {
-        if (!largeCrowdfundingPageId) {
+        if (
+            !LCF_POST_DONATE_FORM_ENABLED ||
+            !largeCrowdfundingPageId ||
+            !LCF_POST_DONATE_FORM_URL
+        ) {
             return null;
         }
 
@@ -249,6 +254,7 @@ import { donateThemeVarMap } from './js/donate-theme-keys.js';
         if (hintEl) {
             hintEl.textContent = LCF_POST_DONATE_FORM_HINT;
         }
+        openLink.hidden = false;
         openLink.href = LCF_POST_DONATE_FORM_URL;
 
         var pendingProvider = null;
