@@ -21,6 +21,7 @@ const DONATION_TYPE = {
     YOUTUBE_SUPER_CHAT: 2,
     PAYUNI: 3,
     OPAY: 4,
+    LARGE_CROWDFUNDING: 5,
 };
 
 /** 寫入 API 需帶 TOTP session token */
@@ -39,6 +40,7 @@ function formatDonationTypeLabel(type) {
     if (n === DONATION_TYPE.PAYUNI) return 'PAYUNi';
     if (n === DONATION_TYPE.OPAY) return '歐付寶';
     if (n === DONATION_TYPE.ECPAY) return '綠界';
+    if (n === DONATION_TYPE.LARGE_CROWDFUNDING) return '大型募資';
     return '—';
 }
 

@@ -10,7 +10,7 @@ let indexState = {
     currentPage: 'home',
     viewerDonateUrl: '',
     viewerDonateYoutubeUrl: '',
-    selectedDonationTypes: [1, 2, 3, 4],
+    selectedDonationTypes: [1, 2, 3, 4, 5],
     largeCrowdfundingEnabled: false,
 };
 
@@ -19,6 +19,7 @@ const DONATION_TYPE = {
     YOUTUBE_SUPER_CHAT: 2,
     PAYUNI: 3,
     OPAY: 4,
+    LARGE_CROWDFUNDING: 5,
 };
 
 const DONATION_TYPE_OPTIONS = [
@@ -26,6 +27,7 @@ const DONATION_TYPE_OPTIONS = [
     { type: DONATION_TYPE.YOUTUBE_SUPER_CHAT, label: 'YT' },
     { type: DONATION_TYPE.PAYUNI, label: 'PAYUNI' },
     { type: DONATION_TYPE.OPAY, label: '歐付寶' },
+    { type: DONATION_TYPE.LARGE_CROWDFUNDING, label: '大型募資' },
 ];
 
 const PAGE_CONFIG = {

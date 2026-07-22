@@ -5,6 +5,7 @@ import {
     LCF_POST_DONATE_FORM_TITLE,
     LCF_POST_DONATE_FORM_HINT,
 } from './js/lcf-post-donate-form.js';
+import { LCF_DONATE_WARNING_TEXT } from './js/crowdfunding-page-url.js';
 import { donateThemeVarMap } from './js/donate-theme-keys.js';
 
 (function () {
@@ -320,8 +321,7 @@ import { donateThemeVarMap } from './js/donate-theme-keys.js';
         if (lcfWarning) {
             if (largeCrowdfundingPageId != null) {
                 lcfWarning.hidden = false;
-                lcfWarning.textContent =
-                    '請在暱稱寫上票券號碼，不然視為沒搶到票';
+                lcfWarning.textContent = LCF_DONATE_WARNING_TEXT;
             } else {
                 lcfWarning.hidden = true;
                 lcfWarning.textContent = '';

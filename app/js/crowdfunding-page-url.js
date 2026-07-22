@@ -84,4 +84,4 @@ export function buildLargeCrowdfundingDonateUrl(opts) {
 
 /** 大型募資斗內頁警語（先寫死；之後可改後台設定） */
 export const LCF_DONATE_WARNING_TEXT =
-    '請在暱稱寫上票券號碼，不然視為沒搶到票';
+    '請在暱稱寫上訂單編號，不然視為沒搶到票';
