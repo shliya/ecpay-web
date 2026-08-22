@@ -9,6 +9,7 @@ const {
     handleCreateEcpaySettingRequest,
     handleGetEcpayMerchantRequest,
     handleGetEcpayDonationsRequest,
+    handleGetEcpayDonationsPublicRequest,
     handleGetEcpayDonationsByStartDateEndDateRequest,
     handleGetEcpayConfigRequest,
     handleGetEcpayConfigPublicRequest,
@@ -56,6 +57,11 @@ router.get(
     handleGetEcpayMerchantRequest
 );
 
+//公開斗內列表（不需 TOTP，供 donate-list 等公開頁面使用；僅回傳展示欄位）
+router.get(
+    '/ecpay/donations/public/id=:merchantId',
+    handleGetEcpayDonationsPublicRequest
+);
 router.get(
     '/ecpay/donations/id=:merchantId',
     requireTotp,

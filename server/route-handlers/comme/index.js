@@ -3,6 +3,7 @@ module.exports = {
     handleCreateEcpaySettingRequest: require('./handle-create-ecpay-setting'),
     handleGetEcpayMerchantRequest: require('./handle-get-ecpay-merchant'),
     handleGetEcpayDonationsRequest: require('./handle-get-ecpay-donation'),
+    handleGetEcpayDonationsPublicRequest: require('./handle-get-ecpay-donations-public'),
     handleGetEcpayDonationsByStartDateEndDateRequest: require('./handle-get-ecpay-donations-by-date-request'),
     handleCreateDonateEcpayRequest: require('./handle-create-donate-ecpay'),
     handleResolveDisplayNameRequest: require('./handle-resolve-display-name'),

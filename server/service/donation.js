@@ -127,6 +127,31 @@ async function getDonationsByEcpayConfigId(merchantId) {
         .slice(0, DonationStore.DONATION_LIST_LIMIT);
 }
 
+/**
+ * 公開列表用的欄位投影：僅保留展示所需，移除 id／merchantId／ecpayConfigId 等內部欄位
+ * @param {object} row
+ * @returns {{ name: string, cost: number, message: string, type: number, created_at: * }}
+ */
+function toPublicDonationRow(row) {
+    return {
+        name: row.name || '',
+        cost: Number(row.cost) || 0,
+        message: row.message || '',
+        type: Number(row.type) || ENUM_DONATION_TYPE.ECPAY,
+        created_at: row.created_at,
+    };
+}
+
+/**
+ * 取得公開斗內列表（不需 TOTP）。商店不存在時回空陣列。
+ * @param {string} merchantId
+ * @returns {Promise<Array<ReturnType<typeof toPublicDonationRow>>>}
+ */
+async function getPublicDonationsByMerchantId(merchantId) {
+    const donations = await getDonationsByEcpayConfigId(merchantId);
+    return donations.map(toPublicDonationRow);
+}
+
 async function getDonationsByStartDateEndDateAndEcpayConfigId(
     startDate,
     endDate,
@@ -146,6 +171,7 @@ async function getDonationsByStartDateEndDateAndEcpayConfigId(
 module.exports = {
     getDonationsByMerchantId: DonationStore.getDonationsByMerchantId,
     getDonationsByEcpayConfigId,
+    getPublicDonationsByMerchantId,
     createDonation,
     getDonationsByStartDateEndDateAndEcpayConfigId,
 };
