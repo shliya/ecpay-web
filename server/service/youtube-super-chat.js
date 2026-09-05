@@ -11,7 +11,9 @@ const { normalizeToDonation } = require('../lib/payment-providers/youtube');
 
 const LOG_PREFIX = '[youtube-super-chat]';
 const MAX_PROCESSED_IDS = 10000;
-const MIN_POLLING_INTERVAL_MS = 30000;
+// 聊天室輪詢間隔下限，直接決定斗內通知的延遲；可用 .env 調整
+const MIN_POLLING_INTERVAL_MS =
+    Number(process.env.YOUTUBE_CHAT_POLL_INTERVAL_MS) || 30000;
 const ERROR_RETRY_BASE_MS = 60000;
 const MAX_RETRY_BACKOFF_MS = 600000;
 
@@ -72,8 +74,9 @@ async function resolveChannelId(merchantId, channelHandle, channelId) {
     return resolved || null;
 }
 
-async function resolveLiveChatId(merchantId, channelId) {
-    const liveStream = await getChannelLiveStreamByChannelId(channelId);
+async function resolveLiveChatId(merchantId, channelId, knownLiveStream) {
+    const liveStream =
+        knownLiveStream || (await getChannelLiveStreamByChannelId(channelId));
     if (!liveStream) {
         console.log(`${LOG_PREFIX} ${merchantId} 目前沒有正在進行的直播`);
         return null;
@@ -82,6 +85,12 @@ async function resolveLiveChatId(merchantId, channelId) {
     console.log(
         `${LOG_PREFIX} ${merchantId} 找到直播: ${liveStream.newLiveStreamTitle}`
     );
+
+    // 偵測直播時的 videos.list 已經帶回 activeLiveChatId，不用再打一次
+    if (liveStream.liveChatId) {
+        return liveStream.liveChatId;
+    }
+
     const liveChatId = await parseYoutubeLiveChatId(liveStream.newLiveStreamId);
     if (!liveChatId) {
         console.error(`${LOG_PREFIX} ${merchantId} 無法獲取聊天室 ID`);
@@ -127,7 +136,12 @@ async function processSuperChatMessage(merchantId, superChatInfo) {
     });
 }
 
-async function startPollingSuperChat(merchantId, config) {
+/**
+ * @param {object} [options]
+ * @param {string} [options.channelId]  已解析好的頻道 ID，省一次 channels.list
+ * @param {object} [options.liveStream] 已偵測到的直播資訊，省一次直播偵測
+ */
+async function startPollingSuperChat(merchantId, config, options = {}) {
     const taskKey = `merchant-${merchantId}`;
 
     if (activePollingTasks.has(taskKey)) {
@@ -156,7 +170,7 @@ async function startPollingSuperChat(merchantId, config) {
         const resolvedChannelId = await resolveChannelId(
             merchantId,
             channelHandle,
-            channelId
+            options.channelId || channelId
         );
         if (!resolvedChannelId) {
             activePollingTasks.delete(taskKey);
@@ -165,7 +179,8 @@ async function startPollingSuperChat(merchantId, config) {
 
         const liveChatId = await resolveLiveChatId(
             merchantId,
-            resolvedChannelId
+            resolvedChannelId,
+            options.liveStream
         );
         if (!liveChatId) {
             activePollingTasks.delete(taskKey);

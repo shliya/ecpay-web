@@ -13,8 +13,8 @@ const CHECK_CACHE = new Map();
 const ACTIVE_MERCHANTS = new Map();
 const ACTIVE_TIMEOUT = 5 * 60 * 1000; // 5分鐘無回應視為不活躍
 
-const CACHE_DURATION_WITH_LIVE = 2 * 60 * 1000;
-const CACHE_DURATION_WITHOUT_LIVE = 5 * 60 * 1000; // 5分鐘檢查一次
+// 偵測直播已不吃 search 配額（RSS + 1~2 quota），可以查得更密、開台反應更快
+const CACHE_DURATION_WITHOUT_LIVE = 60 * 1000; // 1分鐘檢查一次
 
 function isMerchantActive(merchantId) {
     if (process.env.NODE_ENV === 'development') {
@@ -25,25 +25,14 @@ function isMerchantActive(merchantId) {
     return Date.now() - lastActive < ACTIVE_TIMEOUT;
 }
 
-function shouldSkipCheck(merchantId, hasLiveStream) {
-    const cacheKey = merchantId;
-    const cached = CHECK_CACHE.get(cacheKey);
+function shouldSkipCheck(merchantId) {
+    const cached = CHECK_CACHE.get(merchantId);
 
     if (!cached) {
         return false;
     }
 
-    const now = Date.now();
-    const timeSinceLastCheck = now - cached.lastCheckTime;
-    const cacheDuration = hasLiveStream
-        ? CACHE_DURATION_WITH_LIVE
-        : CACHE_DURATION_WITHOUT_LIVE;
-
-    if (timeSinceLastCheck < cacheDuration) {
-        return true;
-    }
-
-    return false;
+    return Date.now() - cached.lastCheckTime < CACHE_DURATION_WITHOUT_LIVE;
 }
 
 function updateCache(merchantId, hasLiveStream) {
@@ -93,26 +82,18 @@ async function checkYoutubeLiveStreams() {
             }
 
             try {
-                const cached = CHECK_CACHE.get(merchantId);
-                const isCurrentlyPolling = activeMerchantIds.has(merchantId);
-
-                if (isCurrentlyPolling) {
-                    const cacheDuration = CACHE_DURATION_WITH_LIVE;
-                    if (
-                        cached &&
-                        cached.hasLiveStream &&
-                        Date.now() - cached.lastCheckTime < cacheDuration
-                    ) {
-                        console.log(
-                            `[Check Live Streams] ${merchantId} 正在輪詢且快取有效 (Live)`
-                        );
-                        continue;
-                    }
-                } else if (
-                    shouldSkipCheck(merchantId, cached?.hasLiveStream || false)
-                ) {
+                // 已在輪詢聊天室的商家完全不用再偵測直播：
+                // 直播結束時 liveChatMessages 會回 liveChatEnded，輪詢自己會收尾。
+                if (activeMerchantIds.has(merchantId)) {
                     console.log(
-                        `[Check Live Streams] ${merchantId} 快取有效 (No Live) 跳過檢查`
+                        `[Check Live Streams] ${merchantId} 輪詢中，略過直播偵測`
+                    );
+                    continue;
+                }
+
+                if (shouldSkipCheck(merchantId)) {
+                    console.log(
+                        `[Check Live Streams] ${merchantId} 快取有效，跳過檢查`
                     );
                     continue;
                 }
@@ -143,16 +124,12 @@ async function checkYoutubeLiveStreams() {
                         `[Check Live Streams] ${merchantId} 發現直播: ${liveStream.newLiveStreamTitle}`
                     );
                     updateCache(merchantId, true);
-                    if (!activeMerchantIds.has(merchantId)) {
-                        console.log(
-                            `[Check Live Streams] ${merchantId} 開始輪詢`
-                        );
-                        await startPollingSuperChat(merchantId, config);
-                    } else {
-                        console.log(
-                            `[Check Live Streams] ${merchantId} 已在輪詢中`
-                        );
-                    }
+                    console.log(`[Check Live Streams] ${merchantId} 開始輪詢`);
+                    // 把已查到的直播資訊帶下去，避免 startPolling 內再查一次
+                    await startPollingSuperChat(merchantId, config, {
+                        channelId,
+                        liveStream,
+                    });
                 } else {
                     console.log(
                         `[Check Live Streams] ${merchantId} 未發現直播`
