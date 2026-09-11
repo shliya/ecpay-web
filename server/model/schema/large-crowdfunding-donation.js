@@ -85,7 +85,7 @@ const LargeCrowdfundingDonation = sequelize.define(
             {
                 name: 'uq_lcf_donations_payment_trade_no',
                 unique: true,
-                fields: ['paymentTradeNo'],
+                fields: ['payment_trade_no'],
             },
         ],
     }
