@@ -6,6 +6,7 @@ let isInitialized = false;
 import './css/common.css';
 import './css/list.css';
 import ActiveStatusKeeper from './js/active-keeper.js';
+import { signOutAll } from './js/auth-logout.js';
 
 // 儲存動畫狀態
 let donationScrollState = {
@@ -46,8 +47,7 @@ async function initializeApp() {
     const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', () => {
-            localStorage.removeItem('merchantId');
-            window.location.href = '/login.html';
+            signOutAll();
         });
     }
 

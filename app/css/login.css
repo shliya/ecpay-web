@@ -177,3 +177,59 @@ body {
         font-size: 1.5rem;
     }
 }
+
+/* Google 登入 */
+.login-divider {
+    display: flex;
+    align-items: center;
+    color: #999;
+    font-size: 13px;
+    margin: 4px 0 20px;
+}
+
+.login-divider::before,
+.login-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #e0e0e0;
+}
+
+.login-divider span {
+    padding: 0 12px;
+}
+
+.btn-google {
+    width: 100%;
+    padding: 12px 20px;
+    background-color: #fff;
+    color: #3c4043;
+    border: 1px solid #dadce0;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.btn-google:hover:not(:disabled) {
+    background-color: #f8f9fa;
+    border-color: #d2d5d9;
+    box-shadow: 0 1px 3px rgba(60, 64, 67, 0.2);
+}
+
+.btn-google:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-google .google-icon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
