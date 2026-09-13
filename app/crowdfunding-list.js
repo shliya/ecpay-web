@@ -1,4 +1,5 @@
 import './css/crowdfunding-list.css';
+import './css/admin-page.css';
 import {
     deleteCrowdfundingPage,
     fetchCrowdfundingList,

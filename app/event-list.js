@@ -5,6 +5,7 @@ let isInitialized = false;
 // 在檔案最上方引入 CSS
 import './css/common.css';
 import './css/event-list.css';
+import './css/admin-page.css';
 import ActiveStatusKeeper from './js/active-keeper.js';
 import { ensureTotpSession, getTotpToken } from './js/totp-guard.js';
 
@@ -546,7 +547,7 @@ function handleShowCreateModal() {
             formatDateForInput(nextMonth);
         document.getElementById('totalAmount').value = '1500';
 
-        modal.style.display = 'block';
+        modal.style.display = 'flex';
 
         setTimeout(() => {
             document.getElementById('eventName').focus();
@@ -975,7 +976,7 @@ function handleShowEditTitleModal(event) {
 
     if (modal && input) {
         input.value = eventName || '';
-        modal.style.display = 'block';
+        modal.style.display = 'flex';
 
         setTimeout(() => {
             input.focus();

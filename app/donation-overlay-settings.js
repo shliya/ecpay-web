@@ -2,6 +2,7 @@ import './css/common.css';
 import './css/donation-overlay.css';
 import './css/donation-overlay-water.css';
 import './css/donation-overlay-settings.css';
+import './css/admin-page.css';
 import { showDonationOverlayAlert } from './js/donation-overlay-alert.js';
 import {
     getDonationBellVolumePercent,

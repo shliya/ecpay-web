@@ -1,102 +1,455 @@
-/* Login 頁面樣式 */
+/*
+ * 登入頁樣式 —— 「鼠鼠小窩」可愛版
+ *
+ * 背景沿用後台 index 的深色底（--idx-bg 系列），卡片則用奶油色圓角，
+ * 讓登入流程跟主後台仍是同一套視覺，但氣氛柔軟一點。
+ * 這支檔案同時被 totp-setup.js 載入，共用變數與按鈕樣式。
+ */
+:root {
+    --cute-bg: #14122e;
+    --cute-bg-deep: #0f0f23;
+    --cute-card: #fffdf7;
+    --cute-card-edge: #ffe1c0;
+    --cute-ink: #4b3a52;
+    --cute-ink-soft: #8a7a90;
+    --cute-primary: #ffb072; /* 倉鼠毛色 */
+    --cute-primary-deep: #ff9a4d;
+    --cute-primary-ink: #5a3113; /* 放在橘底上的字，確保對比 */
+    --cute-lav: #a99bf5; /* 呼應後台的 #4338CA */
+    --cute-lav-soft: #ede9ff;
+    --cute-mint: #7ddfc3;
+    --cute-pink: #ffb3c7;
+    --cute-radius: 28px;
+    --cute-radius-sm: 16px;
+    --cute-font:
+        'Baloo 2', 'Microsoft JhengHei', '微軟正黑體', -apple-system,
+        BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
 body {
-    background-color: #000000;
+    background-color: var(--cute-bg-deep);
+    background-image:
+        radial-gradient(
+            42rem 32rem at 12% 8%,
+            rgba(169, 155, 245, 0.28),
+            transparent 60%
+        ),
+        radial-gradient(
+            38rem 30rem at 88% 18%,
+            rgba(255, 176, 114, 0.22),
+            transparent 60%
+        ),
+        radial-gradient(
+            44rem 34rem at 50% 108%,
+            rgba(125, 223, 195, 0.2),
+            transparent 62%
+        ),
+        linear-gradient(160deg, var(--cute-bg), var(--cute-bg-deep));
+    background-attachment: fixed;
     min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
+    padding: 32px 16px;
+    font-family: var(--cute-font);
 }
 
+/* 飄浮的小瓜子，純裝飾 */
+body::before,
+body::after {
+    content: '';
+    position: fixed;
+    z-index: 0;
+    width: 22px;
+    height: 30px;
+    border-radius: 50% 50% 48% 48% / 62% 62% 38% 38%;
+    background: rgba(255, 224, 190, 0.35);
+    pointer-events: none;
+}
+
+body::before {
+    top: 14%;
+    left: 16%;
+    animation: seedFloat 7s ease-in-out infinite;
+}
+
+body::after {
+    bottom: 16%;
+    right: 14%;
+    transform: rotate(24deg);
+    animation: seedFloat 9s ease-in-out infinite 1.4s;
+}
+
+@keyframes seedFloat {
+    0%,
+    100% {
+        transform: translateY(0) rotate(-8deg);
+    }
+    50% {
+        transform: translateY(-16px) rotate(12deg);
+    }
+}
+
+/* ── 卡片 ── */
 .login-container {
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 12px;
-    padding: 40px;
+    position: relative;
+    z-index: 1;
+    background: var(--cute-card);
+    border: 3px solid var(--cute-card-edge);
+    border-radius: var(--cute-radius);
+    padding: 64px 36px 36px;
     width: 90%;
     max-width: 400px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(10px);
+    box-shadow:
+        0 10px 0 rgba(255, 224, 190, 0.35),
+        0 26px 48px rgba(10, 8, 30, 0.45);
+    animation: cardPop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+@keyframes cardPop {
+    from {
+        opacity: 0;
+        transform: translateY(14px) scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* ── 吉祥物 ── */
+.mascot {
+    position: absolute;
+    top: -46px;
+    left: 50%;
+    transform: translateX(-50%);
+    margin: 0;
+    width: 104px;
+    height: 96px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    filter: drop-shadow(0 6px 10px rgba(10, 8, 30, 0.3));
+}
+
+.mascot-svg {
+    width: 104px;
+    height: 96px;
+    transform-origin: 50% 90%;
+    animation: mascotWiggle 4s ease-in-out infinite;
+}
+
+.ham-face {
+    fill: #ffe2bd;
+    stroke: #e8a463;
+    stroke-width: 3;
+}
+
+.ham-ear {
+    fill: #ffe2bd;
+    stroke: #e8a463;
+    stroke-width: 3;
+}
+
+.ham-ear-inner {
+    fill: var(--cute-pink);
+}
+
+.ham-blush {
+    fill: var(--cute-pink);
+    opacity: 0.75;
+}
+
+.ham-eye {
+    fill: #4b3a52;
+}
+
+.ham-eye-shine {
+    fill: #fffdf7;
+}
+
+.ham-nose {
+    fill: #e07f7f;
+}
+
+.ham-mouth {
+    fill: none;
+    stroke: #a9714a;
+    stroke-width: 2.6;
+    stroke-linecap: round;
+}
+
+.ham-whisker {
+    stroke: #e8a463;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+}
+
+.ham-eyes {
+    transform-origin: 50% 56px;
+    animation: mascotBlink 5.5s ease-in-out infinite;
+}
+
+@keyframes mascotWiggle {
+    0%,
+    100% {
+        transform: rotate(-3deg);
+    }
+    50% {
+        transform: rotate(3deg);
+    }
+}
+
+@keyframes mascotBlink {
+    0%,
+    92%,
+    100% {
+        transform: scaleY(1);
+    }
+    95% {
+        transform: scaleY(0.1);
+    }
+}
+
+/* ── 標題 ── */
 .login-container h1 {
     text-align: center;
-    margin-bottom: 2rem;
-    color: #333;
+    margin: 0 0 4px;
+    color: var(--cute-ink);
     font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.brand-tagline {
+    text-align: center;
+    margin: 0 0 24px;
+    color: var(--cute-ink-soft);
+    font-size: 13px;
+    letter-spacing: 0.5px;
+}
+
+.step-title {
+    text-align: center;
+    margin: 0 0 8px;
+    color: var(--cute-ink);
+    font-size: 1.15rem;
     font-weight: 600;
 }
 
+/* ── 表單 ── */
 .form-group {
-    margin-bottom: 20px;
+    margin-bottom: 16px;
     background: transparent;
     padding: 0;
 }
 
 .form-group label {
     display: block;
-    margin-bottom: 8px;
-    color: #333;
-    font-weight: 500;
+    margin-bottom: 6px;
+    margin-left: 4px;
+    color: var(--cute-ink);
+    font-weight: 600;
     font-size: 14px;
 }
 
 .form-group input {
     width: 100%;
-    padding: 12px 16px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    font-size: 14px;
-    background-color: #fff;
-    color: #333;
+    padding: 13px 16px;
+    border: 2px solid #f0e3d4;
+    border-radius: var(--cute-radius-sm);
+    font-family: var(--cute-font);
+    font-size: 15px;
+    background-color: #fffaf3;
+    color: var(--cute-ink);
     transition:
         border-color 0.2s ease,
-        box-shadow 0.2s ease;
+        box-shadow 0.2s ease,
+        background-color 0.2s ease;
     box-sizing: border-box;
+}
+
+.form-group input::placeholder {
+    color: #c5b6c9;
+}
+
+.form-group input:hover {
+    border-color: #e8d5c2;
 }
 
 .form-group input:focus {
     outline: none;
-    border-color: #2196f3;
-    box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1);
+    background-color: #fff;
+    border-color: var(--cute-lav);
+    box-shadow: 0 0 0 4px var(--cute-lav-soft);
 }
 
+/* ── 按鈕：厚底＋按下去會陷下去 ── */
 .btn-login {
     width: 100%;
-    padding: 12px 20px;
-    background-color: #2196f3;
-    color: white;
+    padding: 13px 20px;
+    background-color: var(--cute-primary);
+    color: var(--cute-primary-ink);
     border: none;
-    border-radius: 6px;
+    border-radius: 999px;
+    font-family: var(--cute-font);
     font-size: 16px;
-    font-weight: 500;
+    font-weight: 700;
+    letter-spacing: 0.5px;
     cursor: pointer;
-    transition: all 0.2s ease;
-    margin-bottom: 20px;
+    box-shadow: 0 4px 0 var(--cute-primary-deep);
+    transition:
+        transform 0.12s ease,
+        box-shadow 0.12s ease,
+        background-color 0.2s ease;
+    margin-top: 8px;
+    margin-bottom: 12px;
 }
 
-.btn-login:hover {
-    background-color: #1976d2;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
+.btn-login:hover:not(:disabled) {
+    background-color: #ffbd87;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 var(--cute-primary-deep);
 }
 
-.message {
-    padding: 12px 16px;
-    border-radius: 6px;
-    margin-bottom: 20px;
+.btn-login:active:not(:disabled) {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 var(--cute-primary-deep);
+}
+
+.btn-login:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    box-shadow: 0 4px 0 rgba(255, 154, 77, 0.4);
+}
+
+.btn-back {
+    display: block;
+    width: 100%;
+    padding: 11px 20px;
+    background-color: #fff;
+    color: #6f5f8a;
+    border: 2px solid #ece6ff;
+    border-radius: 999px;
+    font-family: var(--cute-font);
     font-size: 14px;
+    font-weight: 600;
     text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    transition:
+        transform 0.12s ease,
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease;
+    margin-top: 8px;
+    box-sizing: border-box;
+}
+
+.btn-back:hover {
+    background-color: var(--cute-lav-soft);
+    border-color: var(--cute-lav);
+    color: #4a3d7a;
+    transform: translateY(-1px);
+}
+
+.btn-back:active {
+    transform: translateY(1px);
+}
+
+/* 鍵盤焦點：整頁統一一個柔和的紫色外框 */
+.btn-login:focus-visible,
+.btn-back:focus-visible,
+.btn-google:focus-visible,
+.btn-confirm:focus-visible,
+a:focus-visible {
+    outline: 3px solid var(--cute-lav);
+    outline-offset: 3px;
+}
+
+/* ── 訊息 ── */
+.message {
+    display: none;
+    padding: 12px 16px;
+    border-radius: var(--cute-radius-sm);
+    margin-top: 16px;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+    /* 沒有帶 error／success 時的中性樣式（totp-setup 的提示會走這裡） */
+    background-color: #f7f3ff;
+    color: #5b4b7a;
+    border: 2px solid #ece6ff;
+    animation: msgPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes msgPop {
+    from {
+        opacity: 0;
+        transform: scale(0.94);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 .message.error {
-    background-color: #ffebee;
-    color: #c62828;
-    border: 1px solid #ffcdd2;
+    background-color: #ffeef1;
+    color: #b3455e;
+    border: 2px solid #ffd3dc;
+}
+
+.message.error::before {
+    content: '(๑•́ ₃ •̀๑) ';
 }
 
 .message.success {
-    background-color: #e8f5e8;
-    color: #2e7d32;
-    border: 1px solid #c8e6c9;
+    background-color: #e9faf3;
+    color: #2f7d62;
+    border: 2px solid #c4efdf;
+}
+
+.message.success::before {
+    content: '(๑˃ᴗ˂)ﻭ ';
+}
+
+/* ── 步驟區塊 ── */
+.totp-section {
+    animation: fadeIn 0.35s ease;
+}
+
+.totp-hint {
+    text-align: center;
+    color: var(--cute-ink-soft);
+    margin-bottom: 20px;
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+/* 驗證碼：一格一格的大字 */
+#bindTotpToken,
+#totpToken {
+    text-align: center;
+    font-size: 26px;
+    letter-spacing: 10px;
+    font-weight: 700;
+    text-indent: 10px;
+    padding: 14px 16px;
+    border-style: dashed;
+    border-color: var(--cute-lav);
+    background-color: #fbf9ff;
+}
+
+#bindTotpToken::placeholder,
+#totpToken::placeholder {
+    color: #d9d1f0;
+}
+
+.need-totp-setup {
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 2px dashed #f0e3d4;
 }
 
 .register-link {
@@ -105,54 +458,14 @@ body {
 }
 
 .register-link a {
-    color: #2196f3;
+    color: var(--cute-lav);
     text-decoration: none;
     font-size: 14px;
-    transition: color 0.2s ease;
-}
-
-.register-link a:hover {
-    color: #1976d2;
-    text-decoration: underline;
-}
-
-/* TOTP 驗證區塊 */
-.totp-section {
-    animation: fadeIn 0.3s ease;
-}
-
-.totp-section .totp-hint {
-    text-align: center;
-    color: #666;
-    margin-bottom: 20px;
-    font-size: 14px;
-    line-height: 1.5;
-}
-
-.totp-section .form-group input {
-    text-align: center;
-    font-size: 24px;
-    letter-spacing: 8px;
     font-weight: 600;
 }
 
-.btn-back {
-    width: 100%;
-    padding: 12px 20px;
-    background-color: transparent;
-    color: #666;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    margin-top: 8px;
-}
-
-.btn-back:hover {
-    background-color: #f5f5f5;
-    border-color: #ccc;
-    color: #333;
+.register-link a:hover {
+    text-decoration: underline;
 }
 
 @keyframes fadeIn {
@@ -166,23 +479,11 @@ body {
     }
 }
 
-/* 響應式設計 */
-@media (max-width: 768px) {
-    .login-container {
-        padding: 30px 20px;
-        margin: 20px;
-    }
-
-    .login-container h1 {
-        font-size: 1.5rem;
-    }
-}
-
-/* Google 登入 */
+/* ── Google 登入 ── */
 .login-divider {
     display: flex;
     align-items: center;
-    color: #999;
+    color: var(--cute-ink-soft);
     font-size: 13px;
     margin: 4px 0 20px;
 }
@@ -191,45 +492,93 @@ body {
 .login-divider::after {
     content: '';
     flex: 1;
-    height: 1px;
-    background: #e0e0e0;
+    height: 2px;
+    border-radius: 2px;
+    background: #f0e3d4;
 }
 
 .login-divider span {
     padding: 0 12px;
 }
 
+/* 依 Google 品牌規範：白底、原色圖示不改造，只調整圓角與陰影 */
 .btn-google {
     width: 100%;
-    padding: 12px 20px;
+    padding: 13px 20px;
     background-color: #fff;
     color: #3c4043;
-    border: 1px solid #dadce0;
-    border-radius: 6px;
+    border: 2px solid #ece6ff;
+    border-radius: 999px;
+    font-family: var(--cute-font);
     font-size: 15px;
-    font-weight: 500;
+    font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
-    margin-bottom: 20px;
+    box-shadow: 0 4px 0 #ece6ff;
+    transition:
+        transform 0.12s ease,
+        box-shadow 0.12s ease,
+        border-color 0.2s ease;
+    margin-bottom: 8px;
 }
 
 .btn-google:hover:not(:disabled) {
-    background-color: #f8f9fa;
-    border-color: #d2d5d9;
-    box-shadow: 0 1px 3px rgba(60, 64, 67, 0.2);
+    border-color: var(--cute-lav);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 #ddd4ff;
+}
+
+.btn-google:active:not(:disabled) {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 #ddd4ff;
 }
 
 .btn-google:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+    box-shadow: 0 4px 0 #f3f0ff;
 }
 
 .btn-google .google-icon {
     width: 18px;
     height: 18px;
     flex-shrink: 0;
+}
+
+/* ── 響應式 ── */
+@media (max-width: 768px) {
+    .login-container {
+        padding: 58px 22px 28px;
+        margin: 20px 0;
+    }
+
+    .login-container h1 {
+        font-size: 1.6rem;
+    }
+
+    .mascot,
+    .mascot-svg {
+        width: 88px;
+        height: 82px;
+    }
+
+    .mascot {
+        top: -40px;
+    }
+}
+
+/* 使用者關閉動態效果時，只留下靜態樣式 */
+@media (prefers-reduced-motion: reduce) {
+    body::before,
+    body::after,
+    .mascot-svg,
+    .ham-eyes,
+    .login-container,
+    .totp-section,
+    .message {
+        animation: none;
+    }
 }

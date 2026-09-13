@@ -28,7 +28,7 @@ import './css/totp-setup.css';
 
     async function loadQrCode(hashKey, payuniHashKey) {
         loadingMsg.style.display = 'block';
-        loadingMsg.textContent = '載入中...';
+        loadingMsg.textContent = '鼠鼠努力載入中';
         messageDiv.style.display = 'none';
 
         try {

@@ -1,5 +1,6 @@
 import './css/common.css';
 import './css/crowdfunding-settings.css';
+import './css/admin-page.css';
 import {
     fetchLargeCrowdfundingEnabled,
     getCrowdfundingActivityStatus,

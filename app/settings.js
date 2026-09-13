@@ -1,5 +1,6 @@
 import './css/common.css';
 import './css/settings.css';
+import './css/admin-page.css';
 import { requireTotpVerification, getTotpToken } from './js/totp-guard.js';
 
 (function () {

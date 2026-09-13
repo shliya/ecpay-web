@@ -71,8 +71,8 @@ import { signOutAll } from './js/auth-logout.js';
         showOnly('choose');
         hideMessage();
         chooseHint.textContent =
-            `已使用 Google 帳號登入：${email}。` +
-            '這個帳號還沒有商店，請選擇要進行的動作。';
+            `已用 ${email} 登入囉～` +
+            '這個帳號還沒有商店，選一個方式往下走吧。';
     }
 
     function showCreateMerchantStep() {
@@ -86,7 +86,7 @@ import { signOutAll } from './js/auth-logout.js';
         hideMessage();
         needTotpSetup.style.display = 'none';
         bindHint.textContent =
-            '請輸入商店代號與驗證碼，證明這間商店是你的，即可綁定到目前的 Google 帳號。';
+            '輸入商店代號與驗證碼，證明這間商店是你的，就能接到現在的 Google 帳號。';
         bindMerchantIdInput.focus();
     }
 

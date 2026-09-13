@@ -1,0 +1,764 @@
+/*
+ * 後台頁面共用底座 —— 可愛風統一版
+ *
+ * 目的：後台每一頁（募資條、一番賞、大型募資、斗內頁顏色、OBS 設定、商店設定…）
+ * 原本各自寫版面，寬度、標題大小、卡片圓角、按鈕形狀都差一點點，
+ * 併在同一個 iframe 殼裡看起來就會歪歪的。這支檔案把「版面骨架」收斂成一套。
+ *
+ * 使用方式：在各頁 entry 的 CSS import 之後引入即可。
+ * 選擇器一律加上 `body ` 前綴，是為了用權重蓋過各頁舊規則 ——
+ * webpack 會把這支共用樣式抽成獨立 chunk，<link> 排在各頁自己的樣式「之前」，
+ * 同權重的話反而會被蓋掉，所以不能只靠載入順序。
+ * 色系沿用原本既有的值（#212121 底、#37474f 面板、#e0e0e0 文字…），
+ * 只調整尺寸、圓角、間距、動態，以及修掉幾處讀不到字的對比問題。
+ */
+
+:root {
+    /* 顏色：全部沿用原本頁面已在用的值 */
+    --adm-bg: #212121;
+    --adm-surface: #37474f;
+    --adm-surface-2: #455a64;
+    --adm-surface-soft: rgba(255, 255, 255, 0.06);
+    --adm-border: rgba(255, 255, 255, 0.1);
+    --adm-border-strong: rgba(255, 255, 255, 0.18);
+    --adm-text: #e0e0e0;
+    --adm-text-strong: #eceff1;
+    --adm-text-muted: #b0bec5;
+    --adm-text-dim: #90a4ae;
+    --adm-accent: #3498db;
+    --adm-accent-soft: rgba(52, 152, 219, 0.16);
+    --adm-good: #4caf50;
+    --adm-warn: #e1a205;
+    --adm-bad: #d32f2f;
+
+    /* 版面骨架：這幾個是「對稱」的關鍵，各頁都吃同一組 */
+    --adm-page-max: 1280px;
+    --adm-page-max-narrow: 960px;
+    --adm-page-pad-x: 24px;
+    --adm-page-pad-top: 20px;
+    --adm-page-pad-bottom: 32px;
+    --adm-gap: 20px;
+
+    /* 圓角：可愛感主要來自這裡，統一三級 */
+    --adm-radius-lg: 20px;
+    --adm-radius: 16px;
+    --adm-radius-sm: 10px;
+
+    --adm-shadow: 0 4px 0 rgba(0, 0, 0, 0.28), 0 10px 24px rgba(0, 0, 0, 0.35);
+    --adm-shadow-hover:
+        0 6px 0 rgba(0, 0, 0, 0.28), 0 16px 32px rgba(0, 0, 0, 0.42);
+    --adm-spring: 220ms cubic-bezier(0.34, 1.4, 0.64, 1);
+    --adm-font:
+        'Baloo 2', 'Microsoft JhengHei', '微軟正黑體', 'PingFang TC',
+        -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* ── 基礎 ── */
+html body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--adm-bg);
+    color: var(--adm-text);
+    font-family: var(--adm-font);
+    line-height: 1.6;
+}
+
+/* ── 版面外框：所有頁面共用同一組寬度與內距 ── */
+body .container,
+body .cfl-container,
+body .cfs-page,
+body .donate-theme-page,
+body .settings-page {
+    width: 100%;
+    max-width: var(--adm-page-max);
+    margin: 0 auto;
+    padding: var(--adm-page-pad-top) var(--adm-page-pad-x)
+        var(--adm-page-pad-bottom);
+    box-sizing: border-box;
+}
+
+/* 單欄表單頁維持窄版，但內距與上面同一組 */
+body .donation-overlay-settings-page {
+    width: 100%;
+    max-width: var(--adm-page-max-narrow);
+    margin: 0 auto;
+    padding: var(--adm-page-pad-top) var(--adm-page-pad-x)
+        var(--adm-page-pad-bottom);
+    box-sizing: border-box;
+}
+
+/* 這兩塊原本各自置中，外框統一後改由外層 wrapper 控制寬度 */
+body .settings-container,
+body .settings-header {
+    max-width: none;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+/* ── 頁首：原本有的 25px / 20px / 無 padding 三種寫法，統一成一種 ── */
+body .container > .header,
+body .cfl-header,
+body .cfs-header,
+body .theme-header,
+body .dos-header,
+body .settings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px 16px;
+    margin: 0 0 24px;
+    padding: 0 0 16px;
+    border-bottom: 2px solid var(--adm-border);
+}
+
+/* 設定頁的頁首是「返回連結 + 標題」，兩者要靠在一起 */
+body .settings-header {
+    justify-content: flex-start;
+}
+
+/* 標題＋說明是上下堆疊的那幾頁，讓文字區塊自己佔一行 */
+body .theme-header,
+body .dos-header,
+body .cfs-header {
+    display: block;
+}
+
+body .container > .header h1,
+body .container > .header .page-title,
+body .cfl-header h1,
+body .cfs-header h1,
+body .theme-header h1,
+body .dos-header h1,
+body .settings-header h1 {
+    margin: 0;
+    font-size: 1.6rem;
+    font-weight: 700;
+    line-height: 1.35;
+    letter-spacing: 0.5px;
+    color: var(--adm-text-strong);
+}
+
+body .theme-desc,
+body .dos-desc,
+body .cfs-desc,
+body .cfl-lead {
+    margin: 8px 0 0;
+    color: var(--adm-text-muted);
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+/* 頁首右側的按鈕群：三頁各自寫 gap，統一 */
+body .header-buttons,
+body .header-controls,
+body .cfl-header-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+/* ── 面板／卡片 ── */
+body .event-card,
+body .cfl-card,
+body .cfs-panel,
+body .dos-panel,
+body .theme-form,
+body .settings-container,
+body .cfl-payment-panel,
+body .event-details {
+    background: var(--adm-surface);
+    border: 1px solid var(--adm-border);
+    border-radius: var(--adm-radius);
+    box-shadow: var(--adm-shadow);
+    /* 原本各頁 16／20／24／30px 都有，統一成一個值 */
+    padding: 22px;
+}
+
+body .event-card,
+body .cfl-card {
+    transition:
+        transform var(--adm-spring),
+        box-shadow var(--adm-spring),
+        border-color 160ms ease;
+}
+
+body .event-card:hover,
+body .cfl-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--adm-shadow-hover);
+    border-color: var(--adm-border-strong);
+}
+
+/* 一番賞的活動卡可以被選取，選到的那張留一圈亮邊 */
+body .event-card.selected {
+    border-color: var(--adm-good);
+    box-shadow:
+        var(--adm-shadow),
+        0 0 0 2px rgba(76, 175, 80, 0.45);
+}
+
+/* 「新增」卡：虛線框，跟一般卡同樣尺寸才不會參差 */
+body .create-event-card {
+    background: var(--adm-surface-soft);
+    border: 2px dashed var(--adm-accent);
+    box-shadow: none;
+}
+
+body .create-event-card:hover {
+    background: var(--adm-accent-soft);
+    border-color: var(--adm-accent);
+    transform: translateY(-3px);
+    box-shadow: var(--adm-shadow);
+}
+
+body .create-event-card .card-content p {
+    color: var(--adm-text-muted);
+}
+
+/* 預覽區塊的圓角也跟著統一 */
+body .preview-wrapper,
+body .cfs-fieldset {
+    border-radius: var(--adm-radius);
+}
+
+/* 卡片網格：募資條原本 400px、一番賞 300px，換行點不同看起來就會錯開 */
+body .event-list,
+body .events-grid,
+body .cfl-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: var(--adm-gap);
+    align-items: stretch;
+}
+
+body .events-section {
+    padding: 0;
+    margin-bottom: var(--adm-gap);
+}
+
+body .events-section h2,
+body .event-details .event-header h3,
+body .cards-header h4,
+body .dos-panel-title,
+body .cfs-panel h2,
+body .cfl-payment-panel h2 {
+    margin: 0 0 12px;
+    color: var(--adm-text-strong);
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+body .event-details .event-header,
+body .cards-header {
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid var(--adm-border);
+}
+
+body .cards-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+body .cards-header h4 {
+    margin: 0;
+}
+
+/* 卡片內的標題列 */
+body .event-card .event-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 14px;
+    padding: 0;
+    border: none;
+}
+
+body .event-name {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 700;
+    line-height: 1.35;
+    color: #e1f5fe;
+}
+
+/* ── 狀態膠囊：兩頁原本一個淡底一個實心、圓角也不同 ── */
+body .event-status,
+body .cfs-status-badge,
+body .cfl-status {
+    display: inline-block;
+    padding: 5px 14px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.5;
+    white-space: nowrap;
+    border: 1px solid transparent;
+}
+
+body .event-status.active {
+    background: rgba(76, 175, 80, 0.18);
+    border-color: rgba(76, 175, 80, 0.5);
+    color: #a5d6a7;
+}
+
+body .event-status.inactive,
+body .event-status.ended {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--adm-border-strong);
+    color: var(--adm-text-muted);
+}
+
+body .event-status.pause,
+body .event-status.paused {
+    background: rgba(225, 162, 5, 0.18);
+    border-color: rgba(225, 162, 5, 0.5);
+    color: #ffd54f;
+}
+
+/* 類型標籤原本是白底灰字貼在深色卡上，改成同一套深色膠囊 */
+body .event-type {
+    display: inline-block;
+    margin-bottom: 8px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: var(--adm-surface-soft);
+    border: 1px solid var(--adm-border);
+    color: var(--adm-text-muted);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+body .event-info,
+body .event-progress {
+    margin-bottom: 14px;
+}
+
+body .event-dates,
+body .progress-text,
+body .event-info-item {
+    color: var(--adm-text-muted);
+    font-size: 13px;
+}
+
+body .event-description {
+    margin-bottom: 14px;
+    padding: 12px 14px;
+    border-radius: var(--adm-radius-sm);
+    background: var(--adm-surface-soft);
+    border: 1px solid var(--adm-border);
+    color: var(--adm-text-muted);
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+/* 進度條：加高＋全圓角，跟卡片的圓潤感一致 */
+body .progress-bar,
+body .cfl-progress-bar {
+    height: 12px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.35);
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+body .progress-fill,
+body .cfl-progress-fill {
+    height: 100%;
+    border-radius: 999px;
+    transition: width 400ms cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+body .event-actions {
+    margin-top: 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+/* ── 數據小方塊 ── */
+body .stat-item {
+    padding: 14px 16px;
+    border-radius: var(--adm-radius-sm);
+    background: var(--adm-surface-soft);
+    border: 1px solid var(--adm-border);
+    border-left: 4px solid var(--adm-accent);
+    text-align: center;
+}
+
+body .stat-label {
+    color: var(--adm-text-muted);
+    font-size: 13px;
+}
+
+body .stat-value {
+    color: #81d4fa;
+    font-size: 1.4rem;
+    font-weight: 700;
+}
+
+/* ── 按鈕：圓潤膠囊＋厚底，按下去會陷下去 ── */
+body .btn,
+body .tab-button {
+    font-family: var(--adm-font);
+    border-radius: 999px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
+
+body .btn {
+    padding: 9px 20px;
+    border: none;
+    box-shadow: 0 3px 0 rgba(0, 0, 0, 0.35);
+    transition:
+        transform 120ms ease,
+        box-shadow 120ms ease,
+        background-color 180ms ease,
+        color 180ms ease;
+}
+
+body .btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 0 rgba(0, 0, 0, 0.35);
+}
+
+body .btn:active:not(:disabled) {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
+}
+
+body .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: 0 3px 0 rgba(0, 0, 0, 0.2);
+}
+
+/* 分頁標籤：做成一排小膠囊 */
+body .settings-tabs {
+    display: flex;
+    border-bottom: none;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+    padding: 6px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid var(--adm-border);
+}
+
+body .tab-button {
+    position: static;
+    bottom: auto;
+    padding: 8px 18px;
+    border: none;
+    background: transparent;
+    color: var(--adm-text-muted);
+    font-size: 14px;
+    cursor: pointer;
+    transition:
+        background-color 180ms ease,
+        color 180ms ease;
+}
+
+body .tab-button:hover {
+    background: var(--adm-surface-soft);
+    color: var(--adm-text);
+}
+
+body .tab-button.active {
+    background: var(--adm-accent);
+    color: #fff;
+}
+
+/* ── 表單 ── */
+body .form-group {
+    margin-bottom: 18px;
+}
+
+body .form-group label,
+body .cfs-field label,
+body .dos-field label {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--adm-text);
+    font-weight: 600;
+    font-size: 14px;
+}
+
+body .form-group input,
+body .form-group select,
+body .form-group textarea,
+body .cfs-input,
+body .dos-input {
+    width: 100%;
+    padding: 10px 14px;
+    box-sizing: border-box;
+    border: 2px solid var(--adm-border);
+    border-radius: var(--adm-radius-sm);
+    background: rgba(0, 0, 0, 0.25);
+    color: var(--adm-text);
+    font-family: var(--adm-font);
+    font-size: 14px;
+    transition:
+        border-color 180ms ease,
+        box-shadow 180ms ease;
+}
+
+/* 下拉選單用純色，半透明底會讓展開的選項看不清楚 */
+body .form-group select,
+body .form-group option {
+    background-color: var(--adm-surface);
+    color: var(--adm-text);
+}
+
+body .form-group input::placeholder,
+body .form-group textarea::placeholder {
+    color: var(--adm-text-dim);
+}
+
+body .form-group input:focus,
+body .form-group select:focus,
+body .form-group textarea:focus,
+body .cfs-input:focus,
+body .dos-input:focus {
+    outline: none;
+    border-color: var(--adm-accent);
+    box-shadow: 0 0 0 3px var(--adm-accent-soft);
+}
+
+body .form-group textarea {
+    resize: vertical;
+    min-height: 90px;
+}
+
+body .required {
+    color: #ef9a9a;
+}
+
+/* ── 彈出視窗：原本白底配淺灰字，標題與欄位標籤幾乎看不到 ── */
+body .modal {
+    padding: 20px;
+    box-sizing: border-box;
+    backdrop-filter: blur(2px);
+}
+
+body .modal-content {
+    background: var(--adm-surface);
+    border: 1px solid var(--adm-border-strong);
+    border-radius: var(--adm-radius-lg);
+    color: var(--adm-text);
+    box-shadow: 0 20px 48px rgba(0, 0, 0, 0.55);
+    animation: admModalPop 260ms cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+@keyframes admModalPop {
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.97);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+body .modal-header {
+    padding: 18px 24px;
+    border-bottom: 2px solid var(--adm-border);
+}
+
+body .modal-header h2,
+body .modal-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--adm-text-strong);
+}
+
+body .modal-close,
+body .close-btn {
+    font-size: 1.5rem;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    color: var(--adm-text-muted);
+    transition:
+        background-color 180ms ease,
+        color 180ms ease,
+        transform 180ms ease;
+}
+
+body .modal-close:hover,
+body .close-btn:hover {
+    background: var(--adm-surface-soft);
+    color: var(--adm-text);
+    transform: rotate(90deg);
+}
+
+body .modal-body {
+    padding: 22px 24px;
+}
+
+/* 兩種寫法都有：一種是 .modal-content 的直接子層，一種包在 .modal-body 表單裡 */
+body .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+body .modal-content > .modal-footer {
+    padding: 0 24px 22px;
+    margin: 0;
+    border-top: none;
+}
+
+body .modal-body .modal-footer {
+    padding: 18px 0 0;
+    margin-top: 18px;
+    border-top: 2px solid var(--adm-border);
+}
+
+/* ── 載入中／空狀態：原本是 #666，在 #212121 上幾乎看不見 ── */
+body .loading,
+body .empty-state {
+    color: var(--adm-text-muted);
+    text-align: center;
+}
+
+body .loading {
+    padding: 40px 20px;
+    font-size: 16px;
+}
+
+body .empty-state {
+    padding: 56px 20px;
+}
+
+body .empty-state p {
+    margin: 0;
+    font-size: 16px;
+}
+
+body .error {
+    padding: 12px 16px;
+    margin-bottom: 18px;
+    border: 1px solid rgba(211, 47, 47, 0.5);
+    border-left: 4px solid var(--adm-bad);
+    border-radius: var(--adm-radius-sm);
+    background: rgba(211, 47, 47, 0.14);
+    color: #ffcdd2;
+    font-size: 14px;
+}
+
+/* 一番賞的連線狀態文字原本 #666，跟底色糊在一起 */
+body .status-text {
+    color: var(--adm-text-muted);
+    font-weight: 600;
+    font-size: 13px;
+}
+
+/* ── 返回連結 ── */
+body .back-link,
+body .cfs-back-link {
+    display: inline-block;
+    color: #81d4fa;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+body .back-link:hover,
+body .cfs-back-link:hover {
+    text-decoration: underline;
+}
+
+/* ── 焦點：整個後台同一個可辨識的外框 ── */
+body .btn:focus-visible,
+body .tab-button:focus-visible,
+body a:focus-visible,
+body input:focus-visible,
+body select:focus-visible,
+body textarea:focus-visible {
+    outline: 3px solid var(--adm-accent);
+    outline-offset: 2px;
+}
+
+/* ── 捲軸 ── */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--adm-surface-2) transparent;
+}
+
+*::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+*::-webkit-scrollbar-thumb {
+    background: var(--adm-surface-2);
+    border-radius: 999px;
+    border: 2px solid var(--adm-bg);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+    background: #607d8b;
+}
+
+/* ── 響應式：換行點也統一，避免各頁在同一個寬度下表現不同 ── */
+@media (max-width: 768px) {
+    :root {
+        --adm-page-pad-x: 16px;
+    }
+
+    /* 窄螢幕時每一頁的頁首都用同一種堆疊方式，
+       原本募資條是置中、一番賞 gap 20px、大型募資根本沒處理 */
+    body .container > .header,
+    body .cfl-header,
+    body .settings-header {
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+        gap: 12px;
+    }
+
+    body .header-buttons,
+    body .header-controls,
+    body .cfl-header-actions {
+        width: 100%;
+    }
+
+    body .event-list,
+    body .events-grid,
+    body .cfl-list {
+        grid-template-columns: 1fr;
+    }
+
+    body .container > .header h1,
+    body .container > .header .page-title,
+    body .cfl-header h1,
+    body .cfs-header h1,
+    body .theme-header h1,
+    body .dos-header h1,
+    body .settings-header h1 {
+        font-size: 1.35rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body .modal-content {
+        animation: none;
+    }
+
+    body .event-card,
+    body .btn {
+        transition: none;
+    }
+}
