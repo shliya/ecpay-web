@@ -71,7 +71,8 @@ module.exports = async (req, res) => {
             totpRestored,
             warning: totpRestored
                 ? null
-                : '這間商店沒有 TOTP 金鑰可還原，解綁後將無人能登入，請盡快重新綁定',
+                : '這間商店沒有 TOTP 金鑰可還原，解綁後將無人能登入，' +
+                  '請用 POST /api/v1/admin/merchant-members 指定新的擁有者',
         });
     } catch (error) {
         console.error('[admin] 解除綁定失敗:', error);
