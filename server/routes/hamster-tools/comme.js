@@ -51,9 +51,11 @@ router.post(
     handleCreatePayuniSettingRequest
 );
 
-//取得商戶是否存在（供 donate-list 等已登入頁面使用，不含 rate limit）
+// 取得商戶是否存在。回傳 totpEnabled／googleBound，等於告訴呼叫端哪些商店
+// 還沒遷移到 Google（可猜 TOTP 的目標），所以要跟登入端點一樣限流
 router.get(
     '/ecpay/check-merchant/id=:merchantId',
+    loginRateLimiter,
     handleGetEcpayMerchantRequest
 );
 
@@ -76,10 +78,12 @@ router.get(
     requireMerchantAuth,
     handleGetEcpayDonationsByStartDateEndDateRequest
 );
+// 限流要掛在驗證之前：掛在後面的話，驗證失敗會直接回 401，
+// 根本走不到計數器，等於沒限流
 router.get(
     '/ecpay/config/id=:merchantId',
-    requireMerchantAuth,
     loginRateLimiter,
+    requireMerchantAuth,
     handleGetEcpayConfigRequest
 );
 router.patch(

@@ -4,6 +4,11 @@ const { getTotpSessionSecret } = require('../../lib/totp-session-secret');
 const { getEcpayConfigByMerchantId } = require('../../store/ecpay-config');
 const { decryptTotpSecret } = require('../../service/totp-crypto');
 const { isTestMerchantId } = require('../../lib/test-merchants');
+const {
+    checkTotpAttempt,
+    recordTotpFailure,
+    recordTotpSuccess,
+} = require('../../lib/totp-attempt-limiter');
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 const SESSION_SECRET = getTotpSessionSecret();
@@ -32,6 +37,17 @@ module.exports = async (req, res) => {
         }
 
         const trimmedMerchantId = merchantId.trim();
+        const ip = req.ip || null;
+
+        const gate = checkTotpAttempt({ merchantId: trimmedMerchantId, ip });
+        if (!gate.allowed) {
+            res.set('Retry-After', String(gate.retryAfterSec));
+            res.status(429).json({
+                error: '驗證碼錯誤次數過多，請稍後再試',
+                retryAfterSec: gate.retryAfterSec,
+            });
+            return;
+        }
 
         if (isTestMerchantId(trimmedMerchantId)) {
             const numericToken = String(token).replace(/\s/g, '');
@@ -66,10 +82,12 @@ module.exports = async (req, res) => {
         });
 
         if (!isValid) {
+            recordTotpFailure({ merchantId: trimmedMerchantId, ip });
             res.status(401).json({ error: '驗證碼錯誤或已過期' });
             return;
         }
 
+        recordTotpSuccess({ merchantId: trimmedMerchantId, ip });
         const session = createSessionToken(trimmedMerchantId);
 
         res.json({

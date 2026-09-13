@@ -3,7 +3,15 @@ const {
     getEcpayConfigByMerchantId,
     updateEcpayConfig,
 } = require('../../store/ecpay-config');
-const { verifyMerchantToken } = require('../../lib/merchant-totp-verify');
+const {
+    VERIFY_REASON,
+    verifyMerchantToken,
+} = require('../../lib/merchant-totp-verify');
+const {
+    checkTotpAttempt,
+    recordTotpFailure,
+    recordTotpSuccess,
+} = require('../../lib/totp-attempt-limiter');
 const {
     BIND_ERROR,
     bindMerchant,
@@ -51,6 +59,27 @@ module.exports = async (req, res) => {
             return;
         }
 
+        // 綁定是接管商店的最後一步，與後台驗證共用同一組失敗計數：
+        // 攻擊者無法先在沒有限制的端點猜到碼，再回來這裡一次用掉
+        const gate = checkTotpAttempt({ merchantId, ip: ipAddress });
+        if (!gate.allowed) {
+            await recordBindAudit({
+                userId,
+                merchantId,
+                action: 'bind',
+                result: 'failed',
+                reason: 'rate_limited',
+                ipAddress,
+                userAgent,
+            });
+            res.set('Retry-After', String(gate.retryAfterSec));
+            res.status(429).json({
+                error: '驗證碼錯誤次數過多，請稍後再試',
+                retryAfterSec: gate.retryAfterSec,
+            });
+            return;
+        }
+
         const config = await getEcpayConfigByMerchantId(merchantId);
         if (!config) {
             await recordBindAudit({
@@ -73,6 +102,9 @@ module.exports = async (req, res) => {
         });
 
         if (!verification.ok) {
+            if (verification.reason === VERIFY_REASON.INVALID_TOKEN) {
+                recordTotpFailure({ merchantId, ip: ipAddress });
+            }
             await recordBindAudit({
                 userId,
                 merchantId,
@@ -87,6 +119,8 @@ module.exports = async (req, res) => {
             });
             return;
         }
+
+        recordTotpSuccess({ merchantId, ip: ipAddress });
 
         const result = await bindMerchant({
             userId,
