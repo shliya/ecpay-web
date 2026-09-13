@@ -337,7 +337,12 @@ function showOverlay(merchantId) {
                     overlay.remove();
                     resolve(true);
                 } else {
-                    errorDiv.textContent = data.error || '驗證失敗';
+                    // 被鎖定時補上還要等多久，否則使用者只會一直重試
+                    const waitMin =
+                        response.status === 429 && data.retryAfterSec
+                            ? `（約 ${Math.ceil(data.retryAfterSec / 60)} 分鐘後可再試）`
+                            : '';
+                    errorDiv.textContent = `${data.error || '驗證失敗'}${waitMin}`;
                     submitBtn.disabled = false;
                     submitBtn.textContent = '驗證';
                     input.value = '';
