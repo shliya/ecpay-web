@@ -2,7 +2,7 @@ const express = require('express');
 const router = new express.Router();
 const registrationRateLimiter = require('../../middleware/rate-limit-registration');
 const loginRateLimiter = require('../../middleware/rate-limit-login');
-const requireTotp = require('../../middleware/require-totp');
+const requireMerchantAuth = require('../../middleware/require-merchant-auth');
 const { beforeCheckTestAccount } = require('../../route-hooks/comme');
 const {
     handleGetEcpayRequest,
@@ -64,7 +64,7 @@ router.get(
 );
 router.get(
     '/ecpay/donations/id=:merchantId',
-    requireTotp,
+    requireMerchantAuth,
     handleGetEcpayDonationsRequest
 );
 router.get(
@@ -73,12 +73,12 @@ router.get(
 );
 router.get(
     '/ecpay/donations/startDate=:startDate/endDate=:endDate/id=:merchantId',
-    requireTotp,
+    requireMerchantAuth,
     handleGetEcpayDonationsByStartDateEndDateRequest
 );
 router.get(
     '/ecpay/config/id=:merchantId',
-    requireTotp,
+    requireMerchantAuth,
     loginRateLimiter,
     handleGetEcpayConfigRequest
 );
@@ -86,12 +86,12 @@ router.patch(
     '/ecpay/config/id=:merchantId',
     beforeCheckTestAccount,
     loginRateLimiter,
-    requireTotp,
+    requireMerchantAuth,
     handlePatchEcpayConfigRequest
 );
 router.patch(
     '/ecpay/theme/id=:merchantId',
-    requireTotp,
+    requireMerchantAuth,
     handlePatchEcpayThemeRequest
 );
 router.post('/donate/ecpay', loginRateLimiter, handleCreateDonateEcpayRequest);
@@ -133,37 +133,37 @@ router.get(
 );
 router.get(
     '/crowdfunding/id=:merchantId',
-    requireTotp,
+    requireMerchantAuth,
     handleListCrowdfundingPagesRequest
 );
 router.get(
     '/crowdfunding/payment-config/id=:merchantId',
-    requireTotp,
+    requireMerchantAuth,
     handleGetLcfPaymentConfigRequest
 );
 router.patch(
     '/crowdfunding/payment-config/id=:merchantId',
-    requireTotp,
+    requireMerchantAuth,
     handlePatchLcfPaymentConfigRequest
 );
 router.get(
     '/crowdfunding/id=:merchantId/pageKey=:pageKey',
-    requireTotp,
+    requireMerchantAuth,
     handleGetCrowdfundingPageRequest
 );
 router.put(
     '/crowdfunding/id=:merchantId/pageKey=:pageKey',
-    requireTotp,
+    requireMerchantAuth,
     handlePutCrowdfundingPageRequest
 );
 router.post(
     '/crowdfunding/id=:merchantId/pageKey=:pageKey/publish',
-    requireTotp,
+    requireMerchantAuth,
     handlePublishCrowdfundingPageRequest
 );
 router.delete(
     '/crowdfunding/id=:merchantId/pageKey=:pageKey',
-    requireTotp,
+    requireMerchantAuth,
     handleDeleteCrowdfundingPageRequest
 );
 
