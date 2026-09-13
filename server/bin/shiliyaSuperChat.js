@@ -68,7 +68,7 @@ const TARGET_HANDLE = '@shiliyahamster';
                             const currency = superChatInfo.currency;
                             const displayName = superChatInfo.displayName;
                             const displayMessage =
-                                superChatInfo.displayMessage || '(無留言)';
+                                superChatInfo.displayMessage || '';
 
                             console.log(
                                 `[Super Chat] ${displayName} 贊助了 ${amount} ${currency}: ${displayMessage}`
