@@ -582,3 +582,25 @@ a:focus-visible {
         animation: none;
     }
 }
+
+/* 頁尾的隱私權政策連結：Google OAuth 同意畫面會連到同一頁 */
+.login-footer {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    margin-top: 20px;
+    text-align: center;
+}
+
+.login-footer a {
+    color: rgba(255, 253, 247, 0.7);
+    font-size: 13px;
+    text-decoration: none;
+    padding: 4px 10px;
+    border-radius: 999px;
+}
+
+.login-footer a:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+}

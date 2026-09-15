@@ -33,7 +33,10 @@ module.exports = {
             'app/youtube-donation-settings.js'
         ),
         crowdfundingPage: path.resolve(__dirname, 'app/crowdfunding-page.js'),
-        crowdfundingDonors: path.resolve(__dirname, 'app/crowdfunding-donors.js'),
+        crowdfundingDonors: path.resolve(
+            __dirname,
+            'app/crowdfunding-donors.js'
+        ),
         crowdfundingList: path.resolve(__dirname, 'app/crowdfunding-list.js'),
         crowdfundingSettings: path.resolve(
             __dirname,
@@ -95,6 +98,20 @@ module.exports = {
             chunks: ['login'],
             inject: true,
             scriptLoading: 'defer',
+            minify: {
+                removeComments: true,
+                collapseWhitespace: true,
+            },
+            cache: false,
+        }),
+        // 隱私權政策：純靜態頁，不掛任何 chunk。
+        // Google OAuth 要把應用程式切換成外部正式環境模式時，
+        // 會要求一個與首頁同網域、可直接瀏覽的隱私權政策網址。
+        new HtmlWebpackPlugin({
+            template: path.resolve(__dirname, 'app/templates/privacy.html'),
+            filename: 'privacy.html',
+            chunks: [],
+            inject: false,
             minify: {
                 removeComments: true,
                 collapseWhitespace: true,
@@ -361,11 +378,7 @@ module.exports = {
                 directory: path.join(__dirname, 'public'),
             },
             {
-                directory: path.join(
-                    __dirname,
-                    'static',
-                    'crowdfunding-data'
-                ),
+                directory: path.join(__dirname, 'static', 'crowdfunding-data'),
                 publicPath: '/crowdfunding-data',
             },
             {
