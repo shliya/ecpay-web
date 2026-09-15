@@ -38,3 +38,5 @@ docs
 app.js
 backup.js
 tools
+# 資料庫備份檔：含金流金鑰、TOTP 金鑰與 OAuth token，絕不進版控
+/backups
