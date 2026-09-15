@@ -9,6 +9,8 @@ const port = process.env.PORT || 3001;
 const cors = require('cors');
 const { scheduler } = require('./server/lib/scheduler');
 const IchibanWebSocketServer = require('./server/web-socket/server');
+const { toNodeHandler } = require('better-auth/node');
+const { auth, authPool } = require('./server/lib/auth');
 
 const server = http.createServer(app);
 
@@ -25,12 +27,25 @@ app.use((req, res, next) => {
     console.log(`${req.method} ${req.originalUrl}`);
     next();
 });
-const corsOrigin = process.env.ALLOWED_ORIGINS
-    ? process.env.ALLOWED_ORIGINS.split(',')
-          .map(s => s.trim())
-          .filter(Boolean)
-    : true;
-app.use(cors({ origin: corsOrigin }));
+// 只有明確設定 ALLOWED_ORIGINS 時才允許「帶 cookie」的跨來源請求。
+// 未設定時維持原本的寬鬆來源，但不開 credentials —— 否則任何網站都能
+// 帶著使用者的 session cookie 打這支 API（CSRF）。
+const allowedOrigins = String(process.env.ALLOWED_ORIGINS || '')
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean);
+const hasOriginAllowList = allowedOrigins.length > 0;
+app.use(
+    cors({
+        origin: hasOriginAllowList ? allowedOrigins : true,
+        credentials: hasOriginAllowList,
+    })
+);
+
+// better-auth 的路由必須掛在 express.json() 之前：
+// toNodeHandler 要自己讀原始 request body，先被 express.json() 解析掉會失敗。
+app.all('/api/auth/*', toNodeHandler(auth));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/api/v1', apiRoute);
@@ -71,7 +86,7 @@ sequelize
 process.on('SIGINT', () => {
     console.log('\n接收到 SIGINT，正在優雅關閉...');
     scheduler.stop();
-    sequelize.close().then(() => {
+    Promise.all([sequelize.close(), authPool.end()]).then(() => {
         console.log('資料庫連線已關閉');
         process.exit(0);
     });
@@ -81,7 +96,7 @@ process.on('SIGTERM', () => {
     console.log('\n接收到 SIGTERM，正在優雅關閉...');
     scheduler.stop();
     ichibanWebSocketServer.stop();
-    sequelize.close().then(() => {
+    Promise.all([sequelize.close(), authPool.end()]).then(() => {
         console.log('資料庫連線已關閉');
         process.exit(0);
     });

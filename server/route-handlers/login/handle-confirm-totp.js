@@ -2,6 +2,11 @@ const speakeasy = require('speakeasy');
 const { getEcpayConfigByMerchantId } = require('../../store/ecpay-config');
 const { updateEcpayConfig } = require('../../store/ecpay-config');
 const { decryptTotpSecret } = require('../../service/totp-crypto');
+const {
+    checkTotpAttempt,
+    recordTotpFailure,
+    recordTotpSuccess,
+} = require('../../lib/totp-attempt-limiter');
 
 module.exports = async (req, res) => {
     try {
@@ -11,7 +16,20 @@ module.exports = async (req, res) => {
             return;
         }
 
-        const config = await getEcpayConfigByMerchantId(merchantId.trim());
+        const trimmedMerchantId = merchantId.trim();
+        const ip = req.ip || null;
+
+        const gate = checkTotpAttempt({ merchantId: trimmedMerchantId, ip });
+        if (!gate.allowed) {
+            res.set('Retry-After', String(gate.retryAfterSec));
+            res.status(429).json({
+                error: '驗證碼錯誤次數過多，請稍後再試',
+                retryAfterSec: gate.retryAfterSec,
+            });
+            return;
+        }
+
+        const config = await getEcpayConfigByMerchantId(trimmedMerchantId);
         if (!config) {
             res.status(404).json({ error: '商店不存在' });
             return;
@@ -36,11 +54,13 @@ module.exports = async (req, res) => {
         });
 
         if (!isValid) {
+            recordTotpFailure({ merchantId: trimmedMerchantId, ip });
             res.status(400).json({ error: '驗證碼錯誤' });
             return;
         }
 
-        await updateEcpayConfig(merchantId.trim(), { totpEnabled: true });
+        recordTotpSuccess({ merchantId: trimmedMerchantId, ip });
+        await updateEcpayConfig(trimmedMerchantId, { totpEnabled: true });
 
         res.json({ success: true });
     } catch (error) {

@@ -1,5 +1,6 @@
 import './css/common.css';
 import './css/donate-theme.css';
+import './css/admin-page.css';
 import { ensureTotpSession, getTotpToken } from './js/totp-guard.js';
 import {
     donateThemeDefaults,

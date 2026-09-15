@@ -1,6 +1,6 @@
 const express = require('express');
 const router = new express.Router();
-const requireTotp = require('../../middleware/require-totp');
+const requireMerchantAuth = require('../../middleware/require-merchant-auth');
 const {
     handleCreateIchibanEventRequest,
     handleGetIchibanEventsRequest,
@@ -11,10 +11,10 @@ const {
 router.get('/merchantId=:merchantId', handleGetIchibanEventsRequest);
 router.get('/id=:id/merchantId=:merchantId', handleGetIchibanEventRequest);
 
-router.post('/', requireTotp, handleCreateIchibanEventRequest);
+router.post('/', requireMerchantAuth, handleCreateIchibanEventRequest);
 router.put(
     '/id=:id/merchantId=:merchantId',
-    requireTotp,
+    requireMerchantAuth,
     handleUpdateIchibanEventRequest
 );
 

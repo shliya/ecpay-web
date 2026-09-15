@@ -20,7 +20,9 @@
     --idx-nav-active-bg: rgba(56, 189, 248, 0.12);
     --idx-merchant-badge: #22d3ee;
     --idx-focus-ring: #38bdf8;
-    --idx-font: 'Fira Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --idx-font:
+        'Baloo 2', 'Fira Sans', 'Microsoft JhengHei', system-ui, -apple-system,
+        'Segoe UI', sans-serif;
     --idx-transition: 200ms ease;
 }
 
@@ -60,7 +62,9 @@ body {
 .skip-link:focus-visible {
     left: 16px;
     top: 12px;
-    box-shadow: 0 0 0 3px var(--idx-bg), 0 0 0 5px var(--idx-focus-ring);
+    box-shadow:
+        0 0 0 3px var(--idx-bg),
+        0 0 0 5px var(--idx-focus-ring);
 }
 
 .app-layout {
@@ -543,7 +547,9 @@ body {
 }
 
 .btn-copy-link:focus-visible {
-    box-shadow: 0 0 0 2px var(--idx-bg), 0 0 0 4px var(--idx-cta);
+    box-shadow:
+        0 0 0 2px var(--idx-bg),
+        0 0 0 4px var(--idx-cta);
 }
 
 /* ── Footer ── */
@@ -635,7 +641,9 @@ body {
 }
 
 .btn-logout:focus-visible {
-    box-shadow: 0 0 0 2px var(--idx-bg), 0 0 0 4px rgba(248, 113, 113, 0.6);
+    box-shadow:
+        0 0 0 2px var(--idx-bg),
+        0 0 0 4px rgba(248, 113, 113, 0.6);
 }
 
 .nav-item:focus-visible {
@@ -702,5 +710,162 @@ body {
 
     .home-empty-narrow {
         display: block;
+    }
+}
+
+/* ──────────────────────────────────────────────────────────────
+ * 可愛風微調
+ * 只動形狀（圓角、間距、動態），色票沿用上面既有的 --idx-* 變數。
+ * 同時修掉側欄收合成 64px 時，選單圖示仍靠左而不置中的問題。
+ * ────────────────────────────────────────────────────────────── */
+
+.merchant-info,
+.btn-settings,
+.btn-logout,
+.btn-copy-link,
+.skip-link {
+    border-radius: 999px;
+}
+
+.btn-settings,
+.btn-logout {
+    font-weight: 600;
+    transition:
+        background var(--idx-transition),
+        color var(--idx-transition),
+        border-color var(--idx-transition),
+        transform 120ms ease;
+}
+
+.btn-settings:hover,
+.btn-logout:hover,
+.btn-copy-link:hover {
+    transform: translateY(-1px);
+}
+
+.btn-settings:active,
+.btn-logout:active,
+.btn-copy-link:active {
+    transform: translateY(1px);
+}
+
+/* 選單項目改成圓角膠囊，選中的那顆左邊長一顆小圓點 */
+.nav-item {
+    position: relative;
+    margin: 4px 10px;
+    padding: 12px 14px;
+    border-left: none;
+    border-radius: 14px;
+    transition:
+        background var(--idx-transition),
+        color var(--idx-transition),
+        transform 160ms ease;
+}
+
+.nav-item:hover {
+    transform: translateX(3px);
+}
+
+.nav-item.active {
+    border-left: none;
+    box-shadow: inset 0 0 0 1px rgba(56, 189, 248, 0.28);
+}
+
+.nav-item.active::before {
+    content: '';
+    position: absolute;
+    left: -6px;
+    top: 50%;
+    width: 4px;
+    height: 18px;
+    border-radius: 999px;
+    background: var(--idx-nav-active);
+    transform: translateY(-50%);
+}
+
+/* 收合狀態：圖示置中，小圓點收起來 */
+.sidebar.collapsed .nav-item {
+    margin: 4px 8px;
+    padding: 12px 0;
+    gap: 0;
+    justify-content: center;
+}
+
+.sidebar.collapsed .nav-item.active::before {
+    display: none;
+}
+
+.sidebar-toggle {
+    transition:
+        background var(--idx-transition),
+        color var(--idx-transition),
+        transform 260ms cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+.sidebar-toggle:hover {
+    transform: translateX(-50%) scale(1.12);
+}
+
+.sidebar.collapsed .sidebar-toggle:hover {
+    transform: translateX(-50%) rotate(180deg) scale(1.12);
+}
+
+/* 首頁提示做成一張虛線小卡，不再是飄在中間的一行字 */
+.home-empty-hint {
+    max-width: 420px;
+    padding: 32px 28px;
+    border: 2px dashed var(--idx-border);
+    border-radius: 20px;
+    background: rgba(248, 250, 252, 0.03);
+    line-height: 1.8;
+}
+
+.toolbar-link-input,
+.donate-link-input {
+    border-radius: 12px;
+}
+
+.content-toolbar {
+    border-radius: 0 0 20px 20px;
+}
+
+.app-footer a {
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: rgba(56, 189, 248, 0.12);
+}
+
+/* 捲軸 */
+.nav-list,
+.sidebar-links,
+.content-page {
+    scrollbar-width: thin;
+    scrollbar-color: var(--idx-secondary) transparent;
+}
+
+.nav-list::-webkit-scrollbar,
+.sidebar-links::-webkit-scrollbar,
+.content-page::-webkit-scrollbar {
+    width: 8px;
+}
+
+.nav-list::-webkit-scrollbar-thumb,
+.sidebar-links::-webkit-scrollbar-thumb,
+.content-page::-webkit-scrollbar-thumb {
+    background: var(--idx-secondary);
+    border-radius: 999px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .nav-item:hover,
+    .btn-settings:hover,
+    .btn-logout:hover,
+    .btn-copy-link:hover,
+    .sidebar-toggle:hover {
+        transform: none;
+    }
+
+    .sidebar.collapsed .sidebar-toggle:hover {
+        transform: translateX(-50%) rotate(180deg);
     }
 }

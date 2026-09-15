@@ -4,13 +4,51 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>綁定 Google Authenticator</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700&display=swap"
+            rel="stylesheet"
+        />
     </head>
     <body>
+        <!-- 跟登入頁同一隻倉鼠，讓兩頁看起來是同一個地方 -->
+        <svg style="display: none" aria-hidden="true">
+            <symbol id="hamsterMascot" viewBox="0 0 120 112">
+                <ellipse cx="30" cy="34" rx="15" ry="15" class="ham-ear" />
+                <ellipse cx="90" cy="34" rx="15" ry="15" class="ham-ear" />
+                <ellipse cx="30" cy="34" rx="8" ry="8" class="ham-ear-inner" />
+                <ellipse cx="90" cy="34" rx="8" ry="8" class="ham-ear-inner" />
+                <ellipse cx="60" cy="60" rx="44" ry="38" class="ham-face" />
+                <ellipse cx="24" cy="68" rx="10" ry="7" class="ham-blush" />
+                <ellipse cx="96" cy="68" rx="10" ry="7" class="ham-blush" />
+                <g class="ham-eyes">
+                    <ellipse cx="44" cy="56" rx="6" ry="7.5" class="ham-eye" />
+                    <ellipse cx="76" cy="56" rx="6" ry="7.5" class="ham-eye" />
+                    <circle cx="46" cy="53" r="2.2" class="ham-eye-shine" />
+                    <circle cx="78" cy="53" r="2.2" class="ham-eye-shine" />
+                </g>
+                <ellipse cx="60" cy="70" rx="5" ry="3.6" class="ham-nose" />
+                <path
+                    d="M60 74 q-7 8 -13 2 M60 74 q7 8 13 2"
+                    class="ham-mouth"
+                />
+                <path
+                    d="M14 58 L2 54 M14 65 L2 66 M106 58 L118 54 M106 65 L118 66"
+                    class="ham-whisker"
+                />
+            </symbol>
+        </svg>
+
         <div class="totp-setup-container">
+            <figure class="mascot" aria-hidden="true">
+                <svg class="mascot-svg"><use href="#hamsterMascot" /></svg>
+            </figure>
+
             <h1>綁定 Google Authenticator</h1>
             <p class="totp-hint">
-                為保障帳號安全，請先以金流 Hash Key 驗證商店所有權，再綁定
-                Google Authenticator
+                鼠鼠先確認一下這間商店是你的：填入金流 Hash Key 驗證所有權，
+                再綁定 Google Authenticator
             </p>
             <form id="ownershipForm" class="ownership-form">
                 <div class="form-group">
@@ -45,16 +83,19 @@
                 </p>
             </div>
             <div id="loadingMsg" class="loading-msg" style="display: none">
-                載入中...
+                鼠鼠努力載入中
             </div>
             <form id="confirmForm" style="display: none">
                 <div class="form-group">
+                    <label for="totpToken">驗證碼</label>
                     <input
                         type="text"
                         id="totpToken"
                         name="totpToken"
                         maxlength="6"
-                        placeholder="請輸入6位數驗證碼"
+                        inputmode="numeric"
+                        pattern="[0-9]*"
+                        placeholder="000000"
                         autocomplete="one-time-code"
                     />
                 </div>

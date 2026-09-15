@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="zh-TW">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>隱私權政策 · 鼠做小工具</title>
+        <meta
+            name="description"
+            content="鼠做小工具的隱私權政策：說明我們收集哪些資料、如何使用，以及如何要求刪除。"
+        />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700&display=swap"
+            rel="stylesheet"
+        />
+        <!--
+            這一頁刻意不掛任何 JS 與外部樣式表（字型除外），樣式直接內嵌：
+            Google 要求隱私權政策必須是可直接瀏覽的 HTML，
+            且與首頁同網域、網址不同，所以它不走一般頁面的 webpack entry。
+        -->
+        <style>
+            :root {
+                --bg: #0f0f23;
+                --card: #fffdf7;
+                --card-edge: #ffe1c0;
+                --ink: #4b3a52;
+                --ink-soft: #6f6276;
+                --lav: #a99bf5;
+                --font:
+                    'Baloo 2', 'Microsoft JhengHei', '微軟正黑體',
+                    -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            }
+
+            body {
+                margin: 0;
+                padding: 40px 16px 64px;
+                background-color: var(--bg);
+                background-image:
+                    radial-gradient(
+                        42rem 32rem at 12% 8%,
+                        rgba(169, 155, 245, 0.28),
+                        transparent 60%
+                    ),
+                    radial-gradient(
+                        38rem 30rem at 88% 18%,
+                        rgba(255, 176, 114, 0.22),
+                        transparent 60%
+                    );
+                background-attachment: fixed;
+                font-family: var(--font);
+                color: var(--ink);
+                line-height: 1.85;
+            }
+
+            main {
+                max-width: 760px;
+                margin: 0 auto;
+                padding: 40px 32px 44px;
+                background: var(--card);
+                border: 3px solid var(--card-edge);
+                border-radius: 28px;
+                box-shadow:
+                    0 10px 0 rgba(255, 224, 190, 0.35),
+                    0 26px 48px rgba(10, 8, 30, 0.45);
+            }
+
+            h1 {
+                margin: 0 0 4px;
+                font-size: 1.8rem;
+                letter-spacing: 0.5px;
+            }
+
+            .meta {
+                margin: 0 0 28px;
+                color: var(--ink-soft);
+                font-size: 14px;
+            }
+
+            h2 {
+                margin: 32px 0 10px;
+                font-size: 1.2rem;
+                padding-bottom: 8px;
+                border-bottom: 2px dashed var(--card-edge);
+            }
+
+            h3 {
+                margin: 20px 0 6px;
+                font-size: 1rem;
+            }
+
+            p,
+            li {
+                font-size: 15px;
+            }
+
+            ul {
+                padding-left: 22px;
+            }
+
+            li {
+                margin-bottom: 6px;
+            }
+
+            .note {
+                margin: 24px 0 0;
+                padding: 16px 18px;
+                border-radius: 16px;
+                background: #f7f3ff;
+                border: 2px solid #ece6ff;
+                font-size: 14px;
+                color: #5b4b7a;
+            }
+
+            a {
+                color: #7a63e8;
+                font-weight: 600;
+            }
+
+            footer {
+                max-width: 760px;
+                margin: 20px auto 0;
+                text-align: center;
+                color: rgba(255, 253, 247, 0.65);
+                font-size: 13px;
+            }
+
+            footer a {
+                color: var(--lav);
+            }
+
+            @media (max-width: 768px) {
+                main {
+                    padding: 28px 20px 32px;
+                    border-radius: 22px;
+                }
+
+                h1 {
+                    font-size: 1.45rem;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <main>
+            <h1>隱私權政策</h1>
+            <p class="meta">
+                適用服務：鼠做小工具（山老鼠斗內工具）· 最後更新：2026 年 9 月
+                15 日
+            </p>
+
+            <p>
+                鼠做小工具是提供給實況主的斗內與互動工具，包含斗內紀錄、募資條、一番賞與
+                OBS
+                顯示元件。這份政策說明我們會收集哪些資料、用來做什麼、會不會給別人，以及你要怎麼把資料刪掉。
+            </p>
+
+            <h2>一、我們收集哪些資料</h2>
+
+            <h3>1. Google 帳號資料（實況主登入時）</h3>
+            <p>
+                你使用 Google 登入時，我們會從 Google 取得並儲存：電子郵件地址、
+                姓名、大頭貼網址、Google 帳號識別碼，以及該信箱是否已被 Google
+                驗證。
+                我們只要求最基本的三項授權範圍（<code>email</code>、<code>profile</code>、<code>openid</code>），
+                不會讀取你的 Gmail、雲端硬碟、行事曆或 YouTube 帳號內容。
+            </p>
+
+            <h3>2. 登入狀態與安全稽核</h3>
+            <ul>
+                <li>
+                    登入工作階段：工作階段識別碼、到期時間、IP 位址、瀏覽器資訊
+                </li>
+                <li>Google 核發的存取權杖，用於完成登入流程</li>
+                <li>
+                    商店綁定與解除綁定的紀錄：時間、對象商店、操作結果、IP
+                    位址與瀏覽器資訊。無論成功或失敗都會記錄，這是為了在帳號被盜用時能追查
+                </li>
+            </ul>
+
+            <h3>3. 商店設定</h3>
+            <p>
+                你自行填寫的商店代號、顯示名稱、金流服務（綠界、PayUni、歐付寶）的
+                商店代號與串接金鑰、YouTube 頻道資訊、頁面配色與封鎖關鍵字等。
+                金流串接金鑰僅用於與金流服務溝通及驗證回傳通知的真偽，不會顯示在任何公開頁面。
+            </p>
+
+            <h3>4. 斗內紀錄（觀眾提供）</h3>
+            <p>
+                當觀眾透過本服務贊助時，我們會儲存金流業者回傳的贊助者暱稱、金額、留言與時間。
+                這些資料由觀眾在付款頁面自行填寫。我們<strong>不會</strong>收到、也不會儲存
+                觀眾的信用卡號、銀行帳號或其他付款資訊，那些完全由金流業者處理。
+            </p>
+            <p>
+                請注意：斗內紀錄會顯示在實況主的後台與 OBS
+                畫面上，可能被直播觀眾看到，
+                這是本服務的主要用途。請勿在留言中填寫個人機敏資訊。
+            </p>
+
+            <h2>二、我們如何使用這些資料</h2>
+            <ul>
+                <li>確認你的身分，並判斷你可以管理哪一間商店</li>
+                <li>顯示斗內紀錄、募資進度、一番賞狀態等服務內容</li>
+                <li>與金流業者串接，接收並驗證付款通知</li>
+                <li>記錄安全稽核，防止帳號與商店被盜用</li>
+                <li>在你主動聯絡時提供技術支援</li>
+            </ul>
+
+            <h2>三、Google 使用者資料的有限使用</h2>
+            <p>
+                本服務對透過 Google API 取得之資料的使用與轉移，皆遵守
+                <a
+                    href="https://developers.google.com/terms/api-services-user-data-policy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    >Google API 服務使用者資料政策</a
+                >，包含其中的「有限使用」規定。具體而言，我們
+                <strong>不會</strong>：
+            </p>
+            <ul>
+                <li>販售 Google 使用者資料，或提供給資料仲介</li>
+                <li>將 Google 使用者資料用於廣告投放或廣告成效評估</li>
+                <li>將 Google 使用者資料用於訓練人工智慧或機器學習模型</li>
+                <li>在提供或改善本服務功能以外的目的使用 Google 使用者資料</li>
+            </ul>
+
+            <h2>四、資料會分享給誰</h2>
+            <p>
+                我們不販售、不出租你的個人資料。以下情況資料會被傳送給第三方：
+            </p>
+            <ul>
+                <li><strong>Google</strong>：完成登入驗證所需</li>
+                <li>
+                    <strong>金流服務業者</strong>（綠界科技、PayUni
+                    統一金流、歐付寶）：處理贊助付款所需
+                </li>
+                <li>
+                    <strong>主機與資料庫服務商</strong
+                    >：本服務運行於雲端主機，資料儲存於雲端資料庫
+                </li>
+                <li><strong>法律要求</strong>：依法令、法院或主管機關要求時</li>
+            </ul>
+
+            <h2>五、資料保留與刪除</h2>
+            <p>
+                帳號與商店資料在你使用服務期間會持續保留。斗內紀錄與稽核紀錄基於帳務查詢與
+                安全追查需要，會保留較長時間。
+            </p>
+            <p>
+                你可以隨時透過下方聯絡方式要求刪除你的帳號與相關資料。你也可以隨時到
+                <a
+                    href="https://myaccount.google.com/permissions"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    >Google 帳戶的第三方應用程式設定</a
+                >
+                解除本服務的授權；解除授權後你將無法再登入後台。
+            </p>
+
+            <h2>六、Cookie</h2>
+            <p>
+                我們只使用維持登入狀態所必需的 Cookie。沒有廣告 Cookie，
+                也沒有第三方追蹤或分析工具。
+            </p>
+
+            <h2>七、兒童隱私</h2>
+            <p>
+                本服務並非以未滿 18
+                歲者為對象。若你未成年，請在監護人同意下使用贊助功能。
+            </p>
+
+            <h2>八、政策變更</h2>
+            <p>
+                本政策若有修改，會更新本頁上方的「最後更新」日期。涉及 Google
+                使用者資料用途的重大變更，我們會在服務內另行告知。
+            </p>
+
+            <h2>九、聯絡我們</h2>
+            <p>
+                對本政策有疑問，或要求查詢、更正、刪除你的資料，請聯絡：<br />
+                <strong>shiliyahamster@gmail.com</strong>
+            </p>
+
+            <p class="note">
+                本頁網址為
+                <code>https://ecpay-web.onrender.com/privacy.html</code>，
+                與服務首頁同網域，供 Google OAuth 同意畫面連結使用。
+            </p>
+        </main>
+
+        <footer>
+            <a href="/login.html">回到登入頁</a>
+        </footer>
+    </body>
+</html>

@@ -38,8 +38,42 @@ function saveSession(merchantId, sessionToken, expiresAt) {
 }
 
 /**
- * 檢查商戶是否存在且已綁定 TOTP，未綁定則導向綁定頁
- * 不要求輸入驗證碼，僅做狀態檢查
+ * 同一次頁面載入只問一次 /api/v1/me，避免每個守衛各打一次。
+ * @type {Promise<object|null>|null}
+ */
+let mePromise = null;
+
+function fetchMe() {
+    if (!mePromise) {
+        mePromise = fetch('/api/v1/me', { credentials: 'same-origin' })
+            .then(response => (response.ok ? response.json() : null))
+            .catch(() => null);
+    }
+    return mePromise;
+}
+
+/**
+ * 這個瀏覽器是否已用 Google 登入，且該帳號擁有這間商店。
+ * 成立的話身分已經確認，不需要再問 TOTP。
+ * @param {string} merchantId
+ * @returns {Promise<boolean>}
+ */
+async function hasGoogleAccess(merchantId) {
+    const me = await fetchMe();
+    if (!me || !Array.isArray(me.merchants)) {
+        return false;
+    }
+    const target = String(merchantId).trim();
+    return me.merchants.some(m => String(m.merchantId).trim() === target);
+}
+
+/**
+ * 檢查商戶是否存在且可進入後台。
+ *
+ * 順序很重要：Google 必須排在 totpEnabled 之前。商店綁定 Google 後
+ * totpEnabled 會被關掉，若先看 totpEnabled 會把已遷移的使用者
+ * 誤導到 totp-setup，等於逼他回頭再綁一次 TOTP。
+ *
  * @param {string} merchantId
  * @returns {Promise<boolean>}
  */
@@ -49,10 +83,21 @@ async function checkTotpBinding(merchantId) {
         return false;
     }
 
+    if (await hasGoogleAccess(merchantId)) {
+        return true;
+    }
+
     try {
         const result = await fetchMerchantStatus(merchantId);
 
         if (!result.exists) {
+            window.location.href = '/login.html';
+            return false;
+        }
+
+        // 已遷移到 Google 但這個瀏覽器沒有登入 → 回登入頁用 Google 登入，
+        // 不是導去 totp-setup
+        if (result.googleBound) {
             window.location.href = '/login.html';
             return false;
         }
@@ -75,6 +120,12 @@ async function checkTotpBinding(merchantId) {
  * @returns {Promise<boolean>}
  */
 async function requireTotpVerification(merchantId) {
+    // 已用 Google 登入且擁有這間店 → 身分已確認，不再要求驗證碼。
+    // 遷移後這間店已經沒有 TOTP 可問，硬要問只會卡死使用者。
+    if (await hasGoogleAccess(merchantId)) {
+        return true;
+    }
+
     const bindingOk = await checkTotpBinding(merchantId);
     if (!bindingOk) {
         return false;
@@ -92,6 +143,12 @@ async function requireTotpVerification(merchantId) {
  * @returns {Promise<boolean>}
  */
 async function ensureTotpSession(merchantId) {
+    // 新版登入：Google session + 商店成員身分即可進入後台。
+    // 後端 requireMerchantAuth 同樣認這個身分，API 呼叫不必帶 x-totp-token。
+    if (await hasGoogleAccess(merchantId)) {
+        return true;
+    }
+
     const bindingOk = await checkTotpBinding(merchantId);
     if (!bindingOk) {
         return false;
@@ -280,7 +337,12 @@ function showOverlay(merchantId) {
                     overlay.remove();
                     resolve(true);
                 } else {
-                    errorDiv.textContent = data.error || '驗證失敗';
+                    // 被鎖定時補上還要等多久，否則使用者只會一直重試
+                    const waitMin =
+                        response.status === 429 && data.retryAfterSec
+                            ? `（約 ${Math.ceil(data.retryAfterSec / 60)} 分鐘後可再試）`
+                            : '';
+                    errorDiv.textContent = `${data.error || '驗證失敗'}${waitMin}`;
                     submitBtn.disabled = false;
                     submitBtn.textContent = '驗證';
                     input.value = '';
@@ -303,8 +365,7 @@ function getTotpToken(merchantId) {
     if (resolvedToken) {
         return resolvedToken;
     }
-    const mid =
-        merchantId != null ? String(merchantId).trim() : '';
+    const mid = merchantId != null ? String(merchantId).trim() : '';
     if (!mid) {
         return null;
     }

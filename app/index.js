@@ -2,6 +2,7 @@ import './css/common.css';
 import './css/index.css';
 import { ensureTotpSession } from './js/totp-guard.js';
 import { buildDonationOverlayPageUrl } from './js/donation-overlay-url.js';
+import { signOutAll } from './js/auth-logout.js';
 
 let isInitialized = false;
 
@@ -567,9 +568,9 @@ function handleLogout() {
     if (!confirm('確定要登出嗎？')) {
         return;
     }
-    localStorage.removeItem('merchantId');
     indexState.merchantId = null;
-    redirectToLogin();
+    // 必須連 Google session 一起登出，只清 localStorage 會被登入頁直接導回來
+    signOutAll();
 }
 
 function handleSettings() {

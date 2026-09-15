@@ -1,15 +1,46 @@
 import './css/common.css';
 import './css/login.css';
+import { signOutAll } from './js/auth-logout.js';
 
+/**
+ * 登入頁。
+ *
+ * 單一入口：一律先用 Google 登入，再依帳號狀態分流。
+ * 商店代號 + 驗證碼只在「綁定既有商店」時出現，用來證明商店所有權，
+ * 不再是登入方式本身。
+ */
 (function () {
-    const loginForm = document.getElementById('loginForm');
-    const totpSection = document.getElementById('totpSection');
-    const totpForm = document.getElementById('totpForm');
-    const btnBack = document.getElementById('btnBack');
-    const messageDiv = document.getElementById('message');
-    const merchantIdInput = document.getElementById('merchantId');
+    const googleLoginSection = document.getElementById('googleLoginSection');
+    const btnGoogleLogin = document.getElementById('btnGoogleLogin');
 
-    let currentMerchantId = '';
+    const chooseSection = document.getElementById('chooseSection');
+    const chooseHint = document.getElementById('chooseHint');
+    const btnGoCreate = document.getElementById('btnGoCreate');
+    const btnGoBind = document.getElementById('btnGoBind');
+    const btnSignOutChoose = document.getElementById('btnSignOutChoose');
+
+    const createMerchantSection = document.getElementById(
+        'createMerchantSection'
+    );
+    const createMerchantForm = document.getElementById('createMerchantForm');
+    const createMerchantIdInput = document.getElementById('createMerchantId');
+    const createDisplayNameInput = document.getElementById('createDisplayName');
+    const btnCreateBack = document.getElementById('btnCreateBack');
+
+    const bindSection = document.getElementById('bindSection');
+    const bindHint = document.getElementById('bindHint');
+    const bindForm = document.getElementById('bindForm');
+    const bindMerchantIdInput = document.getElementById('bindMerchantId');
+    const bindTotpTokenInput = document.getElementById('bindTotpToken');
+    const btnBindBack = document.getElementById('btnBindBack');
+    const btnSignOut = document.getElementById('btnSignOut');
+    const needTotpSetup = document.getElementById('needTotpSetup');
+    const needTotpSetupHint = document.getElementById('needTotpSetupHint');
+    const linkTotpSetup = document.getElementById('linkTotpSetup');
+
+    const messageDiv = document.getElementById('message');
+
+    let currentUserEmail = '';
 
     function showMessage(text, type) {
         messageDiv.className = `message ${type}`;
@@ -21,32 +52,54 @@ import './css/login.css';
         messageDiv.style.display = 'none';
     }
 
-    function isTestMerchantId(merchantId) {
-        if (!merchantId) {
-            return false;
-        }
-        const id = String(merchantId).trim();
-        return id === '3002599' || id === 'S008915545';
+    /** 一次只顯示一個區塊 */
+    function showOnly(section) {
+        googleLoginSection.style.display =
+            section === 'google' ? 'block' : 'none';
+        chooseSection.style.display = section === 'choose' ? 'block' : 'none';
+        createMerchantSection.style.display =
+            section === 'create' ? 'block' : 'none';
+        bindSection.style.display = section === 'bind' ? 'block' : 'none';
     }
 
-    function showTotpStep() {
-        loginForm.style.display = 'none';
-        totpSection.style.display = 'block';
+    function showGoogleLoginStep() {
+        showOnly('google');
         hideMessage();
-        const totpInput = document.getElementById('totpToken');
-        if (isTestMerchantId(currentMerchantId)) {
-            totpInput.placeholder = '測試帳號:123456';
-        } else {
-            totpInput.placeholder = '請輸入6位數驗證碼';
-        }
-        totpInput.focus();
     }
 
-    function showLoginStep() {
-        totpSection.style.display = 'none';
-        loginForm.style.display = 'block';
+    function showChooseStep(email) {
+        showOnly('choose');
         hideMessage();
-        currentMerchantId = '';
+        chooseHint.textContent =
+            `已用 ${email} 登入囉～` +
+            '這個帳號還沒有商店，選一個方式往下走吧。';
+    }
+
+    function showCreateMerchantStep() {
+        showOnly('create');
+        hideMessage();
+        createMerchantIdInput.focus();
+    }
+
+    function showBindStep() {
+        showOnly('bind');
+        hideMessage();
+        needTotpSetup.style.display = 'none';
+        bindHint.textContent =
+            '輸入商店代號與驗證碼，證明這間商店是你的，就能接到現在的 Google 帳號。';
+        bindMerchantIdInput.focus();
+    }
+
+    /**
+     * 商店存在但還沒設定驗證碼 —— 無法用驗證碼證明所有權。
+     * 導去設定頁（該頁用金流 Hash Key 驗證所有權），完成後再回來綁定。
+     */
+    function showNeedTotpSetup(merchantId) {
+        needTotpSetup.style.display = 'block';
+        needTotpSetupHint.textContent =
+            `商店 ${merchantId} 尚未設定驗證碼，無法直接綁定。` +
+            '請先完成驗證碼設定，再回到這裡綁定 Google 帳號。';
+        linkTotpSetup.href = `totp-setup.html?merchantId=${encodeURIComponent(merchantId)}`;
     }
 
     function redirectToMain(merchantId) {
@@ -54,104 +107,226 @@ import './css/login.css';
         window.location.href = `index.html?merchantId=${encodeURIComponent(merchantId)}`;
     }
 
-    // 與 totp-guard.js 的 session 格式一致，登入後後台頁面不必重複驗證
-    function saveTotpSession(merchantId, data) {
-        if (!data || !data.sessionToken) {
-            return;
-        }
-        const expiresAt =
-            typeof data.expiresAt === 'number'
-                ? data.expiresAt
-                : Date.now() + 24 * 60 * 60 * 1000;
+    async function fetchMe() {
         try {
-            localStorage.setItem(
-                `totpSession_${String(merchantId).trim()}`,
-                JSON.stringify({ sessionToken: data.sessionToken, expiresAt })
-            );
+            const response = await fetch('/api/v1/me', {
+                credentials: 'same-origin',
+            });
+            return response.ok ? await response.json() : null;
         } catch {
-            // ignore storage error
+            return null;
         }
     }
 
     async function checkMerchant(merchantId) {
-        const response = await fetch(
-            `/api/v1/login/check-merchant/id=${encodeURIComponent(merchantId)}`
-        );
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-        return response.json().catch(() => ({}));
-    }
-
-    async function verifyTotp(merchantId, token) {
-        const response = await fetch('/api/v1/login/verify-totp', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ merchantId, token }),
-        });
-        const data = await response.json();
-        return { ok: response.ok, data };
-    }
-
-    loginForm.addEventListener('submit', async e => {
-        e.preventDefault();
-        hideMessage();
-
-        const merchantId = merchantIdInput.value.trim();
-        if (!merchantId) {
-            return;
-        }
-
         try {
-            const result = await checkMerchant(merchantId);
+            const response = await fetch(
+                `/api/v1/login/check-merchant/id=${encodeURIComponent(merchantId)}`
+            );
+            return response.ok ? await response.json() : { exists: false };
+        } catch {
+            return null;
+        }
+    }
 
-            if (!result.exists) {
-                showMessage('商店不存在，請先至設定頁面填寫資料', 'error');
-                setTimeout(() => {
-                    window.location.href = 'ecpay-setting.html';
-                }, 1500);
+    /**
+     * 建立新商店。只送商店代號與顯示名稱 ——
+     * 金流金鑰要先到綠界／PayUni／歐富寶各自的後台申請，
+     * 拿到之後在設定頁填，不卡在建立這一步。
+     */
+    async function createMerchant(merchantId, displayName) {
+        try {
+            const response = await fetch('/api/v1/me/merchants', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ merchantId, displayName }),
+            });
+            const data = await response.json().catch(() => ({}));
+            return {
+                ok: response.ok,
+                nextUrl: data.nextUrl,
+                merchantId: data.merchantId,
+                error: data.error || '建立商店失敗',
+            };
+        } catch {
+            return { ok: false, error: '無法連線至伺服器，請稍後再試' };
+        }
+    }
+
+    async function bindMerchant(merchantId, token) {
+        try {
+            const response = await fetch('/api/v1/me/bind-merchant', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-totp-token': token,
+                },
+                body: JSON.stringify({ merchantId }),
+            });
+            const data = await response.json().catch(() => ({}));
+            return { ok: response.ok, error: data.error || '綁定失敗' };
+        } catch {
+            return { ok: false, error: '無法連線至伺服器，請稍後再試' };
+        }
+    }
+
+    /**
+     * 向 better-auth 取得 Google 授權網址後跳轉。
+     * 必須由瀏覽器自己發這個請求：回應會設 better-auth 的 state cookie，
+     * Google 導回時要拿它比對，從別處代發會得到 state_mismatch。
+     */
+    async function startGoogleLogin(button) {
+        hideMessage();
+        button.disabled = true;
+        try {
+            const response = await fetch('/api/auth/sign-in/social', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    provider: 'google',
+                    callbackURL: '/login.html',
+                }),
+            });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok || !data.url) {
+                showMessage(data.message || 'Google 登入初始化失敗', 'error');
+                button.disabled = false;
                 return;
             }
-
-            currentMerchantId = merchantId;
-
-            if (result.totpEnabled) {
-                showTotpStep();
-            } else {
-                window.location.href = `totp-setup.html?merchantId=${encodeURIComponent(merchantId)}`;
-            }
+            window.location.href = data.url;
         } catch {
-            showMessage('檢查商店時發生錯誤，請稍後再試', 'error');
+            showMessage('無法連線至登入服務，請稍後再試', 'error');
+            button.disabled = false;
         }
-    });
+    }
 
-    totpForm.addEventListener('submit', async e => {
-        e.preventDefault();
-        hideMessage();
+    /**
+     * 進站時決定停在哪一個畫面：
+     *   沒有 Google session → Google 登入
+     *   已登入且有商店      → 直接進後台
+     *   已登入但沒有商店    → 建立或綁定
+     */
+    async function init() {
+        const me = await fetchMe();
 
-        const token = document.getElementById('totpToken').value.trim();
-        if (!token || token.length !== 6) {
-            if (isTestMerchantId(currentMerchantId)) {
-                showMessage('測試帳號:123456', 'error');
-            } else {
-                showMessage('請輸入6位數驗證碼', 'error');
-            }
+        if (!me) {
+            showGoogleLoginStep();
             return;
         }
 
-        try {
-            const { ok, data } = await verifyTotp(currentMerchantId, token);
+        currentUserEmail = me.user.email;
 
-            if (ok && data.success) {
-                saveTotpSession(currentMerchantId, data);
-                redirectToMain(currentMerchantId);
-            } else {
-                showMessage(data.error || '驗證失敗', 'error');
-            }
-        } catch {
-            showMessage('驗證時發生錯誤，請稍後再試', 'error');
+        if (Array.isArray(me.merchants) && me.merchants.length > 0) {
+            redirectToMain(me.merchants[0].merchantId);
+            return;
         }
+
+        showChooseStep(me.user.email);
+    }
+
+    btnGoogleLogin.addEventListener('click', () =>
+        startGoogleLogin(btnGoogleLogin)
+    );
+
+    btnGoCreate.addEventListener('click', showCreateMerchantStep);
+    btnGoBind.addEventListener('click', showBindStep);
+    btnSignOutChoose.addEventListener('click', signOutAll);
+    btnCreateBack.addEventListener('click', () =>
+        showChooseStep(currentUserEmail)
+    );
+    btnBindBack.addEventListener('click', () =>
+        showChooseStep(currentUserEmail)
+    );
+    btnSignOut.addEventListener('click', signOutAll);
+
+    createMerchantForm.addEventListener('submit', async e => {
+        e.preventDefault();
+        hideMessage();
+
+        const merchantId = createMerchantIdInput.value.trim();
+        if (!merchantId) {
+            showMessage('請輸入商店代號', 'error');
+            return;
+        }
+
+        const submitButton = createMerchantForm.querySelector(
+            'button[type="submit"]'
+        );
+        submitButton.disabled = true;
+        const result = await createMerchant(
+            merchantId,
+            createDisplayNameInput.value.trim()
+        );
+        submitButton.disabled = false;
+
+        if (!result.ok) {
+            showMessage(result.error, 'error');
+            return;
+        }
+
+        // 建立成功即為擁有者，直接帶去填各家金流的 Hash Key 與 IV
+        localStorage.setItem('merchantId', result.merchantId);
+        window.location.href =
+            result.nextUrl ||
+            `settings.html?merchantId=${encodeURIComponent(result.merchantId)}`;
     });
 
-    btnBack.addEventListener('click', showLoginStep);
+    bindForm.addEventListener('submit', async e => {
+        e.preventDefault();
+        hideMessage();
+        needTotpSetup.style.display = 'none';
+
+        const merchantId = bindMerchantIdInput.value.trim();
+        const token = bindTotpTokenInput.value.trim();
+        if (!merchantId || !token) {
+            showMessage('請輸入商店代號與驗證碼', 'error');
+            return;
+        }
+
+        const submitButton = bindForm.querySelector('button[type="submit"]');
+        submitButton.disabled = true;
+
+        // 先查商店狀態，才能給出具體原因，而不是一律「綁定失敗」
+        const status = await checkMerchant(merchantId);
+        if (!status) {
+            submitButton.disabled = false;
+            showMessage('無法連線至伺服器，請稍後再試', 'error');
+            return;
+        }
+        if (!status.exists) {
+            submitButton.disabled = false;
+            showMessage(
+                '找不到這間商店。如果是新商店，請返回選擇「建立新商店」',
+                'error'
+            );
+            return;
+        }
+        if (status.googleBound) {
+            submitButton.disabled = false;
+            showMessage(
+                '這間商店已經綁定其他 Google 帳號，如有疑問請聯絡管理者',
+                'error'
+            );
+            return;
+        }
+        if (!status.totpEnabled) {
+            submitButton.disabled = false;
+            showNeedTotpSetup(merchantId);
+            return;
+        }
+
+        const result = await bindMerchant(merchantId, token);
+        submitButton.disabled = false;
+
+        if (result.ok) {
+            redirectToMain(merchantId);
+            return;
+        }
+        showMessage(result.error, 'error');
+    });
+
+    init();
 })();

@@ -2,7 +2,7 @@ const express = require('express');
 const router = new express.Router();
 const registrationRateLimiter = require('../../middleware/rate-limit-registration');
 const loginRateLimiter = require('../../middleware/rate-limit-login');
-const requireTotp = require('../../middleware/require-totp');
+const requireMerchantAuth = require('../../middleware/require-merchant-auth');
 const { beforeCheckTestAccount } = require('../../route-hooks/comme');
 const {
     handleGetEcpayRequest,
@@ -51,9 +51,11 @@ router.post(
     handleCreatePayuniSettingRequest
 );
 
-//取得商戶是否存在（供 donate-list 等已登入頁面使用，不含 rate limit）
+// 取得商戶是否存在。回傳 totpEnabled／googleBound，等於告訴呼叫端哪些商店
+// 還沒遷移到 Google（可猜 TOTP 的目標），所以要跟登入端點一樣限流
 router.get(
     '/ecpay/check-merchant/id=:merchantId',
+    loginRateLimiter,
     handleGetEcpayMerchantRequest
 );
 
@@ -64,7 +66,7 @@ router.get(
 );
 router.get(
     '/ecpay/donations/id=:merchantId',
-    requireTotp,
+    requireMerchantAuth,
     handleGetEcpayDonationsRequest
 );
 router.get(
@@ -73,25 +75,27 @@ router.get(
 );
 router.get(
     '/ecpay/donations/startDate=:startDate/endDate=:endDate/id=:merchantId',
-    requireTotp,
+    requireMerchantAuth,
     handleGetEcpayDonationsByStartDateEndDateRequest
 );
+// 限流要掛在驗證之前：掛在後面的話，驗證失敗會直接回 401，
+// 根本走不到計數器，等於沒限流
 router.get(
     '/ecpay/config/id=:merchantId',
-    requireTotp,
     loginRateLimiter,
+    requireMerchantAuth,
     handleGetEcpayConfigRequest
 );
 router.patch(
     '/ecpay/config/id=:merchantId',
     beforeCheckTestAccount,
     loginRateLimiter,
-    requireTotp,
+    requireMerchantAuth,
     handlePatchEcpayConfigRequest
 );
 router.patch(
     '/ecpay/theme/id=:merchantId',
-    requireTotp,
+    requireMerchantAuth,
     handlePatchEcpayThemeRequest
 );
 router.post('/donate/ecpay', loginRateLimiter, handleCreateDonateEcpayRequest);
@@ -133,37 +137,37 @@ router.get(
 );
 router.get(
     '/crowdfunding/id=:merchantId',
-    requireTotp,
+    requireMerchantAuth,
     handleListCrowdfundingPagesRequest
 );
 router.get(
     '/crowdfunding/payment-config/id=:merchantId',
-    requireTotp,
+    requireMerchantAuth,
     handleGetLcfPaymentConfigRequest
 );
 router.patch(
     '/crowdfunding/payment-config/id=:merchantId',
-    requireTotp,
+    requireMerchantAuth,
     handlePatchLcfPaymentConfigRequest
 );
 router.get(
     '/crowdfunding/id=:merchantId/pageKey=:pageKey',
-    requireTotp,
+    requireMerchantAuth,
     handleGetCrowdfundingPageRequest
 );
 router.put(
     '/crowdfunding/id=:merchantId/pageKey=:pageKey',
-    requireTotp,
+    requireMerchantAuth,
     handlePutCrowdfundingPageRequest
 );
 router.post(
     '/crowdfunding/id=:merchantId/pageKey=:pageKey/publish',
-    requireTotp,
+    requireMerchantAuth,
     handlePublishCrowdfundingPageRequest
 );
 router.delete(
     '/crowdfunding/id=:merchantId/pageKey=:pageKey',
-    requireTotp,
+    requireMerchantAuth,
     handleDeleteCrowdfundingPageRequest
 );
 

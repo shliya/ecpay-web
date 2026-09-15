@@ -4,51 +4,184 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>商店登入</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700&display=swap"
+            rel="stylesheet"
+        />
     </head>
     <body>
+        <!-- Google 品牌圖示：定義一次，兩個按鈕共用 -->
+        <svg style="display: none" aria-hidden="true">
+            <symbol id="googleIcon" viewBox="0 0 18 18">
+                <path
+                    fill="#4285F4"
+                    d="M17.64 9.2045c0-.6381-.0573-1.2518-.1636-1.8409H9v3.4814h4.8436c-.2086 1.125-.8427 2.0782-1.7959 2.7164v2.2581h2.9087c1.7018-1.5668 2.6836-3.874 2.6836-6.615z"
+                />
+                <path
+                    fill="#34A853"
+                    d="M9 18c2.43 0 4.4673-.806 5.9564-2.1805l-2.9087-2.2581c-.8059.54-1.8368.8591-3.0477.8591-2.344 0-4.3282-1.5831-5.036-3.7104H.9574v2.3318C2.4382 15.9832 5.4818 18 9 18z"
+                />
+                <path
+                    fill="#FBBC05"
+                    d="M3.964 10.71c-.18-.54-.2822-1.1168-.2822-1.71s.1023-1.17.2823-1.71V4.9582H.9573A8.9965 8.9965 0 0 0 0 9c0 1.4523.3477 2.8268.9573 4.0418L3.964 10.71z"
+                />
+                <path
+                    fill="#EA4335"
+                    d="M9 3.5795c1.3214 0 2.5077.4541 3.4405 1.346l2.5813-2.5814C13.4632.8918 11.426 0 9 0 5.4818 0 2.4382 2.0168.9573 4.9582L3.964 7.29C4.6718 5.1627 6.6559 3.5795 9 3.5795z"
+                />
+            </symbol>
+
+            <!-- 倉鼠吉祥物：登入頁與驗證碼設定頁共用同一隻 -->
+            <symbol id="hamsterMascot" viewBox="0 0 120 112">
+                <ellipse cx="30" cy="34" rx="15" ry="15" class="ham-ear" />
+                <ellipse cx="90" cy="34" rx="15" ry="15" class="ham-ear" />
+                <ellipse cx="30" cy="34" rx="8" ry="8" class="ham-ear-inner" />
+                <ellipse cx="90" cy="34" rx="8" ry="8" class="ham-ear-inner" />
+                <ellipse cx="60" cy="60" rx="44" ry="38" class="ham-face" />
+                <ellipse cx="24" cy="68" rx="10" ry="7" class="ham-blush" />
+                <ellipse cx="96" cy="68" rx="10" ry="7" class="ham-blush" />
+                <g class="ham-eyes">
+                    <ellipse cx="44" cy="56" rx="6" ry="7.5" class="ham-eye" />
+                    <ellipse cx="76" cy="56" rx="6" ry="7.5" class="ham-eye" />
+                    <circle cx="46" cy="53" r="2.2" class="ham-eye-shine" />
+                    <circle cx="78" cy="53" r="2.2" class="ham-eye-shine" />
+                </g>
+                <ellipse cx="60" cy="70" rx="5" ry="3.6" class="ham-nose" />
+                <path
+                    d="M60 74 q-7 8 -13 2 M60 74 q7 8 13 2"
+                    class="ham-mouth"
+                />
+                <path
+                    d="M14 58 L2 54 M14 65 L2 66 M106 58 L118 54 M106 65 L118 66"
+                    class="ham-whisker"
+                />
+            </symbol>
+        </svg>
+
         <div class="login-container">
             <h1>山老鼠</h1>
-            <form id="loginForm">
-                <div class="form-group">
-                    <label for="merchantId">商店代號</label>
-                    <input
-                        type="text"
-                        id="merchantId"
-                        name="merchantId"
-                        required
-                        placeholder="請輸入商店代號"
-                    />
-                </div>
-                <button type="submit" class="btn-login">進入</button>
-            </form>
-            <div id="totpSection" class="totp-section" style="display: none">
-                <p class="totp-hint">此商店已啟用雙重驗證，請輸入驗證碼</p>
-                <form id="totpForm">
+            <p class="brand-tagline">鼠做小工具 · 商店後台</p>
+
+            <!-- 唯一入口：Google 登入 -->
+            <div id="googleLoginSection">
+                <button type="button" id="btnGoogleLogin" class="btn-google">
+                    <svg class="google-icon"><use href="#googleIcon" /></svg>
+                    使用 Google 登入
+                </button>
+            </div>
+
+            <!-- 已 Google 登入但還沒有商店：建新的，還是綁既有的 -->
+            <div id="chooseSection" class="totp-section" style="display: none">
+                <h2 class="step-title">接下來想做什麼呢？</h2>
+                <p class="totp-hint" id="chooseHint"></p>
+                <button type="button" id="btnGoCreate" class="btn-login">
+                    建立新商店
+                </button>
+                <button type="button" id="btnGoBind" class="btn-back">
+                    我已經有商店，要綁定
+                </button>
+                <button type="button" id="btnSignOutChoose" class="btn-back">
+                    登出 Google
+                </button>
+            </div>
+
+            <!--
+                建立新商店：只收商店代號與顯示名稱。
+                綠界／PayUni／歐富寶的 Hash Key 與 IV 要先到各金流後台申請，
+                不卡在這一步，建立後再導到設定頁分別填入。
+            -->
+            <div
+                id="createMerchantSection"
+                class="totp-section"
+                style="display: none"
+            >
+                <h2 class="step-title">來開一間新商店</h2>
+                <p class="totp-hint">
+                    建立後會帶你去填綠界／PayUni／歐富寶的 Hash Key 與 IV。
+                </p>
+                <form id="createMerchantForm">
                     <div class="form-group">
+                        <label for="createMerchantId">商店代號</label>
                         <input
                             type="text"
-                            id="totpToken"
-                            name="totpToken"
-                            maxlength="6"
-                            inputmode="numeric"
-                            pattern="[0-9]*"
-                            placeholder="請輸入6位數驗證碼"
-                            autocomplete="one-time-code"
+                            id="createMerchantId"
                             required
+                            placeholder="例如綠界的商店代號"
                         />
                     </div>
-                    <button type="submit" class="btn-login">驗證登入</button>
-                    <button type="button" id="btnBack" class="btn-back">
+                    <div class="form-group">
+                        <label for="createDisplayName"
+                            >顯示名稱（可略過）</label
+                        >
+                        <input
+                            type="text"
+                            id="createDisplayName"
+                            placeholder="觀眾看到的名稱"
+                        />
+                    </div>
+                    <button type="submit" class="btn-login">建立商店</button>
+                    <button type="button" id="btnCreateBack" class="btn-back">
                         返回
                     </button>
                 </form>
             </div>
-            <div id="message" class="message" style="display: none"></div>
-            <div class="register-link">
-                <a href="ecpay-setting.html"
-                    >＞＞＞請一定要幫我寫麻煩的商店資料＜＜＜</a
+
+            <!-- 綁定既有商店：用商店代號與驗證碼證明所有權 -->
+            <div id="bindSection" class="totp-section" style="display: none">
+                <h2 class="step-title">把商店接回你的帳號</h2>
+                <p class="totp-hint" id="bindHint"></p>
+                <form id="bindForm">
+                    <div class="form-group">
+                        <label for="bindMerchantId">商店代號</label>
+                        <input
+                            type="text"
+                            id="bindMerchantId"
+                            required
+                            placeholder="請輸入商店代號"
+                        />
+                    </div>
+                    <div class="form-group">
+                        <label for="bindTotpToken">驗證碼</label>
+                        <input
+                            type="text"
+                            id="bindTotpToken"
+                            maxlength="6"
+                            inputmode="numeric"
+                            pattern="[0-9]*"
+                            placeholder="000000"
+                            autocomplete="one-time-code"
+                            required
+                        />
+                    </div>
+                    <button type="submit" class="btn-login">完成綁定</button>
+                    <button type="button" id="btnBindBack" class="btn-back">
+                        返回
+                    </button>
+                    <button type="button" id="btnSignOut" class="btn-back">
+                        登出 Google
+                    </button>
+                </form>
+                <!-- 商店還沒設定驗證碼時才出現，導去設定頁而不是讓他卡住 -->
+                <div
+                    id="needTotpSetup"
+                    class="need-totp-setup"
+                    style="display: none"
                 >
+                    <p class="totp-hint" id="needTotpSetupHint"></p>
+                    <a id="linkTotpSetup" class="btn-back" href="#"
+                        >前往設定驗證碼</a
+                    >
+                </div>
             </div>
+
+            <div id="message" class="message" style="display: none"></div>
         </div>
+
+        <!-- Google 同意畫面會連到這一頁，服務內也要看得到 -->
+        <footer class="login-footer">
+            <a href="privacy.html">隱私權政策</a>
+        </footer>
     </body>
 </html>

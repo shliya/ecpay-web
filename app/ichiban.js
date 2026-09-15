@@ -1,6 +1,7 @@
 // 引入CSS
 import './css/common.css';
 import './css/ichiban.css';
+import './css/admin-page.css';
 import { ensureTotpSession, getTotpToken } from './js/totp-guard.js';
 
 function buildAuthHeaders(merchantId, extra = {}) {

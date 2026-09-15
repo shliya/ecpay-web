@@ -1,6 +1,6 @@
 const express = require('express');
 const router = new express.Router();
-const requireTotp = require('../../middleware/require-totp');
+const requireMerchantAuth = require('../../middleware/require-merchant-auth');
 const { safeEqualString } = require('../../lib/safe-equal');
 const {
     handleGetFundraisingEventsRequest,
@@ -25,32 +25,28 @@ function requireInternalApiKey(req, res, next) {
 router.get('/merchantId=:merchantId', handleGetFundraisingEventsRequest);
 router.get('/id=:id/merchantId=:merchantId', handleGetFundraisingEventRequest);
 
-router.post('/', requireTotp, handleCreateFundraisingEventRequest);
+router.post('/', requireMerchantAuth, handleCreateFundraisingEventRequest);
 router.patch(
     '/id=:id/merchantId=:merchantId',
-    requireTotp,
+    requireMerchantAuth,
     handleUpdateFundraisingEventRequest
 );
 router.patch(
     '/id=:id/merchantId=:merchantId/status',
-    requireTotp,
+    requireMerchantAuth,
     handleDisableFundraisingEventRequest
 );
 router.patch(
     '/id=:id/merchantId=:merchantId/status/enable',
-    requireTotp,
+    requireMerchantAuth,
     handleEnableFundraisingEventRequest
 );
 router.patch(
     '/id=:id/merchantId=:merchantId/status/pause',
-    requireTotp,
+    requireMerchantAuth,
     handlePauseFundraisingEventRequest
 );
 
-router.post(
-    '/expire-check',
-    requireInternalApiKey,
-    handleExpireEventsRequest
-);
+router.post('/expire-check', requireInternalApiKey, handleExpireEventsRequest);
 
 module.exports = router;
