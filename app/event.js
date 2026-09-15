@@ -220,55 +220,85 @@ function updateHealthBarColor(healthBar, percentage) {
     }
 }
 
-// 動態計算文字位置，確保 10px 間距
+/** 跑馬燈速度：每秒捲動的像素，跟標題長短無關才不會忽快忽慢 */
+const MARQUEE_PX_PER_SEC = 35;
+
+/**
+ * healthTitleScroll 這組 keyframes 裡真正在移動的比例（其餘是兩端的停留）。
+ * 12% + 10% + 12% 是停留，剩下 66% 分給去程與回程。
+ * 改 CSS 的百分比時這個值要跟著改，否則速度會對不上。
+ */
+const MARQUEE_TRAVEL_FRACTION = 0.66;
+
+/** 位移很短時的最短循環秒數，避免短標題快速抖動 */
+const MARQUEE_MIN_DURATION_SEC = 8;
+
+/** 上一次計算跑馬燈時的狀態，用來判斷這次還要不要重算 */
+const marqueeState = {
+    title: null,
+    viewportWidth: 0,
+};
+
+/**
+ * 標題放得下就靜止置左，放不下才跑馬燈。
+ *
+ * 版面本身交給 CSS flex：標題區會自動縮到剩餘空間，金額不被壓縮，
+ * 所以這裡只需要決定「要不要捲」以及「捲多遠、捲多久」。
+ */
 function calculateTextPositions() {
     const healthTitle = document.getElementById('healthTitle');
-    const healthText = document.getElementById('healthText');
-    const container = document.querySelector('.health-bar-container');
+    const viewport = document.querySelector('.health-title-viewport');
 
-    if (!healthTitle || !healthText || !container) {
+    if (!healthTitle || !viewport) {
         return;
     }
 
-    // 獲取容器寬度
-    const containerWidth = container.offsetWidth;
-    const minGap = 10;
-    const padding = 20;
+    const title = healthTitle.textContent;
+    const viewportWidth = viewport.clientWidth;
 
-    healthTitle.style.left = '0px';
-    healthTitle.style.transform = 'none';
-    healthText.style.left = '0px';
-    healthText.style.transform = 'none';
+    // 血條每秒輪詢一次，每次都重設 class 的話動畫會不斷從頭播放，
+    // 結果就是卡在開頭那段停留、看起來完全不會動。
+    // 只有標題文字或可視寬度真的變了才重新計算。
+    if (
+        title === marqueeState.title &&
+        viewportWidth === marqueeState.viewportWidth
+    ) {
+        return;
+    }
+
+    marqueeState.title = title;
+    marqueeState.viewportWidth = viewportWidth;
+
+    // 先還原，否則會拿到上一次動畫中的寬度
+    healthTitle.classList.remove('is-scrolling');
+    healthTitle.style.removeProperty('--scroll-distance');
+    healthTitle.style.removeProperty('--scroll-duration');
 
     requestAnimationFrame(() => {
-        const titleWidth = healthTitle.offsetWidth;
-        const textWidth = healthText.offsetWidth;
+        // offsetWidth 是標題盒子的實際寬度（CSS 已設 width: max-content）；
+        // 同時取 scrollWidth 的較大值，避免某些情況下盒子寬度被四捨五入
+        const titleWidth = Math.max(
+            healthTitle.offsetWidth,
+            healthTitle.scrollWidth
+        );
+        const overflow = titleWidth - viewport.clientWidth;
 
-        const totalWidth = titleWidth + textWidth + minGap;
-        const availableWidth = containerWidth - padding * 2;
-
-        let titleLeft, textLeft;
-
-        if (totalWidth <= availableWidth) {
-            const startX = (containerWidth - totalWidth) / 2;
-            titleLeft = startX;
-            textLeft = startX + titleWidth + minGap;
-        } else {
-            const gap = Math.max(
-                5,
-                Math.min(minGap, (availableWidth - titleWidth - textWidth) / 2)
-            );
-            titleLeft = padding;
-            textLeft = Math.min(
-                containerWidth - textWidth - padding,
-                titleLeft + titleWidth + gap
-            );
+        // 1px 以內視為放得下，避免因為四捨五入而抖動
+        if (overflow <= 1) {
+            return;
         }
 
-        healthTitle.style.left = `${titleLeft}px`;
-        healthTitle.style.transform = 'none';
-        healthText.style.left = `${textLeft}px`;
-        healthText.style.transform = 'none';
+        // 一個循環是「去 + 回」兩趟，而這兩趟只佔整個循環的 66%，
+        // 其餘是兩端的停留，所以總長要除以那個比例才會是設定的速度
+        const travelSec = (overflow / MARQUEE_PX_PER_SEC) * 2;
+        const duration = Math.max(
+            MARQUEE_MIN_DURATION_SEC,
+            travelSec / MARQUEE_TRAVEL_FRACTION
+        );
+
+        healthTitle.style.setProperty('--scroll-distance', `${overflow}px`);
+        healthTitle.style.setProperty('--scroll-duration', `${duration}s`);
+        healthTitle.classList.add('is-scrolling');
     });
 }
 

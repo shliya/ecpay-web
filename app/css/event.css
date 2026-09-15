@@ -42,35 +42,70 @@ body {
     min-width: 40px;
 }
 
-.health-text {
-    color: white;
-    font-weight: bold;
-    font-size: 20px;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
-    z-index: 10;
+/* ── 文字層：標題可伸縮、金額固定，兩者之間保留間距 ── */
+.health-overlay {
     position: absolute;
-    bottom: 0px;
-    left: 80%;
-    transform: translateX(-50%);
-    width: auto;
-    text-align: left;
+    inset: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 16px;
     pointer-events: none;
-    white-space: nowrap;
+}
+
+/* 標題的可視範圍。min-width: 0 是關鍵：
+   沒有它 flex 子元素不會縮到比內容還窄，標題就會把金額擠出去 */
+.health-title-viewport {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
 }
 
 .health-title {
     color: white;
     font-weight: bold;
     font-size: 20px;
+    line-height: 1.2;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
-    z-index: 10;
-    position: absolute;
-    bottom: 0px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: auto;
-    text-align: left;
-    pointer-events: none;
+    white-space: nowrap;
+    /* 讓盒子等於文字實際寬度。預設的 block 會被撐成跟 viewport 一樣寬、
+       文字只是溢出，量到的寬度就永遠等於容器寬，跑馬燈會判斷成「放得下」 */
+    width: max-content;
+    max-width: none;
+}
+
+/* 只有放不下時 JS 才會加上這個 class，並算好距離與時間 */
+.health-title.is-scrolling {
+    animation: healthTitleScroll var(--scroll-duration, 10s) ease-in-out
+        infinite;
+}
+
+/* 走到底後停一下再走回來：比無縫循環更好讀，
+   而且開頭的字大部分時間看得到 */
+@keyframes healthTitleScroll {
+    0%,
+    12% {
+        transform: translateX(0);
+    }
+    45%,
+    55% {
+        transform: translateX(calc(-1 * var(--scroll-distance, 0px)));
+    }
+    88%,
+    100% {
+        transform: translateX(0);
+    }
+}
+
+/* 金額：永遠不被壓縮，也不換行 */
+.health-text {
+    flex: 0 0 auto;
+    color: white;
+    font-weight: bold;
+    font-size: 20px;
+    line-height: 1.2;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
     white-space: nowrap;
 }
 
@@ -119,15 +154,21 @@ body {
     }
 }
 
-/* 響應式設計 */
+/* 響應式設計：標題與金額現在並排，字級要一起調才不會一大一小 */
 @media (max-width: 480px) {
     .health-bar-container {
         width: 300px;
         height: 30px;
     }
 
+    .health-overlay {
+        gap: 8px;
+        padding: 0 12px;
+    }
+
+    .health-title,
     .health-text {
-        font-size: 24px;
+        font-size: 18px;
     }
 }
 
@@ -138,7 +179,13 @@ body {
         height: 25px;
     }
 
+    .health-overlay {
+        gap: 6px;
+        padding: 0 10px;
+    }
+
+    .health-title,
     .health-text {
-        font-size: 22px;
+        font-size: 15px;
     }
 }

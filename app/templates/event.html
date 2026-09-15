@@ -8,10 +8,18 @@
     <body>
         <div class="container">
             <div class="health-bar-container">
-                <div class="health-title" id="healthTitle"></div>
                 <div class="health-bar" id="healthBar"></div>
                 <div class="health-bar" id="healthBarGd"></div>
-                <div class="health-text" id="healthText"></div>
+                <!--
+                    文字層獨立於血條之上：標題區可伸縮並在超長時跑馬燈，
+                    金額固定寬度不被壓縮，兩者之間永遠留有間距。
+                -->
+                <div class="health-overlay">
+                    <div class="health-title-viewport">
+                        <div class="health-title" id="healthTitle"></div>
+                    </div>
+                    <div class="health-text" id="healthText"></div>
+                </div>
             </div>
         </div>
     </body>
