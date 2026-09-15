@@ -81,12 +81,22 @@ import { signOutAll } from './js/auth-logout.js';
         createMerchantIdInput.focus();
     }
 
-    function showBindStep() {
+    /**
+     * @param {string} [prefillMerchantId]
+     *   從後台被導回來時帶的商店代號，先填好讓使用者只要輸入驗證碼
+     */
+    function showBindStep(prefillMerchantId) {
         showOnly('bind');
         hideMessage();
         needTotpSetup.style.display = 'none';
         bindHint.textContent =
             '輸入商店代號與驗證碼，證明這間商店是你的，就能接到現在的 Google 帳號。';
+
+        if (prefillMerchantId) {
+            bindMerchantIdInput.value = prefillMerchantId;
+            bindTotpTokenInput.focus();
+            return;
+        }
         bindMerchantIdInput.focus();
     }
 
@@ -209,11 +219,35 @@ import { signOutAll } from './js/auth-logout.js';
      *   已登入且有商店      → 直接進後台
      *   已登入但沒有商店    → 建立或綁定
      */
+    /**
+     * 後台守衛把尚未綁定 Google 的使用者導回來時，會帶上 merchantId。
+     * 有它就代表「這個人已經有商店，只是還沒遷移」，不必再問他要建立還是綁定。
+     */
+    function getPendingMerchantId() {
+        try {
+            const value = new URL(window.location.href).searchParams.get(
+                'merchantId'
+            );
+            return value ? value.trim() : '';
+        } catch {
+            return '';
+        }
+    }
+
     async function init() {
         const me = await fetchMe();
+        const pendingMerchantId = getPendingMerchantId();
 
         if (!me) {
             showGoogleLoginStep();
+            // 被導回來的人需要知道自己為什麼突然要登入 Google
+            if (pendingMerchantId) {
+                showMessage(
+                    `商店 ${pendingMerchantId} 已改用 Google 登入，` +
+                        '請先登入 Google，再用驗證碼完成綁定',
+                    ''
+                );
+            }
             return;
         }
 
@@ -221,6 +255,12 @@ import { signOutAll } from './js/auth-logout.js';
 
         if (Array.isArray(me.merchants) && me.merchants.length > 0) {
             redirectToMain(me.merchants[0].merchantId);
+            return;
+        }
+
+        // 已登入 Google 但還沒綁商店，而且知道是哪一間 → 直接進綁定步驟
+        if (pendingMerchantId) {
+            showBindStep(pendingMerchantId);
             return;
         }
 
@@ -232,7 +272,8 @@ import { signOutAll } from './js/auth-logout.js';
     );
 
     btnGoCreate.addEventListener('click', showCreateMerchantStep);
-    btnGoBind.addEventListener('click', showBindStep);
+    // 包一層：直接傳 showBindStep 會把 click 事件當成 merchantId 填進輸入框
+    btnGoBind.addEventListener('click', () => showBindStep());
     btnSignOutChoose.addEventListener('click', signOutAll);
     btnCreateBack.addEventListener('click', () =>
         showChooseStep(currentUserEmail)

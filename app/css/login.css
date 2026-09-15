@@ -48,6 +48,8 @@ body {
     background-attachment: fixed;
     min-height: 100vh;
     display: flex;
+    /* 卡片之外還有頁尾連結，沒有 column 的話兩者會並排在同一列 */
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     padding: 32px 16px;

@@ -107,7 +107,11 @@ async function checkTotpBinding(merchantId) {
             return false;
         }
 
-        return true;
+        // 強制遷移：這間店還有 TOTP，但尚未綁定 Google 帳號。
+        // 舊的 24 小時 TOTP session 不再直接放行，一律回登入頁走 Google。
+        // 帶上 merchantId，登入頁才能直接把人帶到綁定那一步。
+        window.location.href = `/login.html?merchantId=${encodeURIComponent(merchantId)}`;
+        return false;
     } catch {
         window.location.href = '/login.html';
         return false;
