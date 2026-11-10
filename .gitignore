@@ -40,3 +40,11 @@ backup.js
 tools
 # 資料庫備份檔：含金流金鑰、TOTP 金鑰與 OAuth token，絕不進版控
 /backups
+
+# 本機工具與個人筆記（不進版控）
+/.claude/
+/server/notes/
+/server/bin/run-reconcile-lcf-donation.js
+/server/db/test-data/
+/static/crowdfunding-data/
+/app/assest/bellll.wav
