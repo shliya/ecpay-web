@@ -146,14 +146,17 @@ module.exports = async (req, res) => {
             }
         );
 
+        // ecpayConfigId / amount 供金流回調比對：驗簽的店必須是建單的店、金額必須一致
+        // （見 lib/payment-order-binding.js）
         const orderMeta = {
             kind: 'opay-donation',
             fullMessage: orderData.message || '',
             fullName: orderData.name || '',
+            ecpayConfigId: config.id,
+            amount: amountNum,
         };
         if (lcfContext) {
             orderMeta.largeCrowdfundingPageId = lcfContext.pageId;
-            orderMeta.ecpayConfigId = lcfContext.ecpayConfigId;
         }
         if (videoId) {
             orderMeta.youtubeVideoPayload = videoId;

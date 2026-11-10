@@ -134,6 +134,21 @@ module.exports = async (req, res) => {
                 ? await getEcpayConfigByMerchantId(merchantId)
                 : null;
 
+            // getEcpayConfigByMerchantId 會依序比對綠界／PayUni／OPay 三個代號欄位，
+            // 綠界回調只接受「MerchantID 就是這間店的綠界代號」
+            if (
+                config &&
+                String(config.merchantId || '').trim() !==
+                    String(merchantId).trim()
+            ) {
+                console.warn(
+                    '[ecpay-success] MerchantID 不是該店的綠界代號，拒絕',
+                    { merchantId }
+                );
+                res.status(400).send('0|ERROR');
+                return;
+            }
+
             let row = null;
             let matchedConfig = config;
             if (body.Data) {
@@ -190,6 +205,10 @@ module.exports = async (req, res) => {
                             merchantTradeNo: MerchantTradeNo,
                             row,
                             logPrefix: 'ecpay-success',
+                            verified: {
+                                ecpayConfigId: matchedConfig?.id,
+                                provider: 'ecpay',
+                            },
                         });
                     } catch (donationErr) {
                         console.error(

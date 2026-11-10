@@ -13,6 +13,9 @@ const {
 const {
     buildVideoTaskFromVideoIdAndCost,
 } = require('../lib/youtube-donation');
+const {
+    verifyDonationOrderBinding,
+} = require('../lib/payment-order-binding');
 
 function applyPendingDonationMeta(row, pending) {
     if (!pending || !row) {
@@ -64,6 +67,12 @@ function interpretDonationPaymentResult(result) {
 /**
  * 斗內付款成功回調：須有斗內預存（pending / expired）才入帳，避免無 meta 寫入一般 donations。
  * 以條件式 completed 更新搶鎖，避免併發重複入帳；入帳失敗則還原狀態供重試。
+ *
+ * verified 是呼叫端「驗簽成功之後」才知道的事實：哪間店的金鑰驗過、哪家金流。
+ * 預存訂單必須屬於同一間店、同一家金流、同一個金額，否則一律不入帳。
+ * 這是必填參數：漏傳視同驗證失敗，避免日後新增的回調忘了做檢查。
+ *
+ * @param {{ ecpayConfigId: number, provider: 'ecpay'|'payuni'|'opay' }} params.verified
  * @returns {Promise<{ recorded: boolean, skipped?: boolean, reason?: string }>}
  */
 async function processDonationFromPaymentCallback({
@@ -72,6 +81,7 @@ async function processDonationFromPaymentCallback({
     query,
     logPrefix = 'donation-callback',
     youtubeConfig,
+    verified,
 }) {
     if (!row) {
         return { recorded: false, skipped: true, reason: 'no-row' };
@@ -95,6 +105,25 @@ async function processDonationFromPaymentCallback({
             tradeNo || '(無單號)'
         );
         return { recorded: false, skipped: true, reason: 'no-pending-donation' };
+    }
+
+    const binding = verifyDonationOrderBinding(pending, {
+        ecpayConfigId: verified?.ecpayConfigId,
+        provider: verified?.provider,
+        amount: row.cost,
+    });
+    if (!binding.ok) {
+        console.warn(`[${logPrefix}] 回調與預存訂單不相符，拒絕入帳:`, {
+            tradeNo,
+            reason: binding.reason,
+            verifiedConfigId: verified?.ecpayConfigId ?? null,
+            orderConfigId: pending.ecpayConfigId ?? null,
+            provider: verified?.provider ?? null,
+            kind: pending.kind ?? null,
+            paidAmount: row.cost,
+            orderAmount: pending.amount ?? null,
+        });
+        return { recorded: false, skipped: true, reason: binding.reason };
     }
 
     const previousStatus = pending.status;

@@ -12,6 +12,7 @@ const {
     getYoutubeMaxPlaySecFromConfig,
 } = require('../youtube-donation');
 const { getEcpayDonationPaymentFields } = require('../payment-donation-methods');
+const { generateTradeNo } = require('../payment-trade-no');
 
 require('dotenv').config({ path: path.resolve(__dirname, '../../../.env') });
 
@@ -210,7 +211,8 @@ async function getEcPayDonations(ecPayKey) {
 
 async function createPayment(merchantId, orderData) {
     const MerchantTradeDate = dayjs().format('YYYY/MM/DD HH:mm:ss');
-    const MerchantTradeNo = `ECPAY${Date.now()}`;
+    // 隨機單號：不可由建單時間推算，也不會同毫秒撞號（綠界限 20 碼英數字）
+    const MerchantTradeNo = generateTradeNo('ECPAY');
     const { hashKey, hashIV } = await getEcpayConfigByMerchantId(merchantId);
 
     // 綠界全方位金流 CustomField1–4 為 String(50)；超過會被截斷並可能驗證失敗。

@@ -165,15 +165,16 @@ module.exports = async (req, res) => {
         });
         console.log('[Payuni CreateOrder]: ', result.merchantTradeNo);
 
+        // ecpayConfigId / amount 供金流回調比對：驗簽的店必須是建單的店、金額必須一致
+        // （見 lib/payment-order-binding.js）
         await setPaymentOrder(result.merchantTradeNo, {
             kind: 'payuni-donation',
             fullMessage: orderData.message || '',
             fullName: orderData.name || '',
+            ecpayConfigId: row.id,
+            amount: amountNum,
             ...(lcfContext
-                ? {
-                      largeCrowdfundingPageId: lcfContext.pageId,
-                      ecpayConfigId: lcfContext.ecpayConfigId,
-                  }
+                ? { largeCrowdfundingPageId: lcfContext.pageId }
                 : {}),
         });
 

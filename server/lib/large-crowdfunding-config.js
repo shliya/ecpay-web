@@ -29,10 +29,15 @@ async function resolveEcpayConfigFromMerchantKey(merchantKey) {
  */
 async function resolveEcpayConfigIdForLcfPayment(orderInfo, paymentRow) {
     const fromOrder = parseEcpayConfigId(orderInfo?.ecpayConfigId);
+    const fromRow = parseEcpayConfigId(paymentRow?.ecpayConfigId);
+    // 訂單的店（建單時記錄）與回調解析出的店（驗簽所用）都有值卻不同，
+    // 代表有人拿別間店的金鑰結這筆單，寧可不入帳也不要猜要記給誰
+    if (fromOrder != null && fromRow != null && fromOrder !== fromRow) {
+        return null;
+    }
     if (fromOrder != null) {
         return fromOrder;
     }
-    const fromRow = parseEcpayConfigId(paymentRow?.ecpayConfigId);
     if (fromRow != null) {
         return fromRow;
     }

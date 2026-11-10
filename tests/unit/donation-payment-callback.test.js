@@ -27,10 +27,15 @@ const {
 const TRADE_NO = 'ECPAY123';
 const baseRow = { merchantId: 'M1', name: 'A', cost: 100, message: 'hi' };
 
+/** 驗簽成功的店（呼叫端傳入的 verified） */
+const VERIFIED = { ecpayConfigId: 1, provider: 'ecpay' };
+
 function pendingOrder(overrides = {}) {
     return {
         kind: 'ecpay-donation',
         status: 'pending',
+        ecpayConfigId: 1,
+        amount: 100,
         fullName: null,
         fullMessage: null,
         ...overrides,
@@ -41,6 +46,7 @@ describe('processDonationFromPaymentCallback', () => {
     test('無 row 直接略過', async () => {
         const result = await processDonationFromPaymentCallback({
             merchantTradeNo: TRADE_NO,
+            verified: VERIFIED,
             row: null,
         });
         expect(result).toEqual({
@@ -58,6 +64,7 @@ describe('processDonationFromPaymentCallback', () => {
 
         const result = await processDonationFromPaymentCallback({
             merchantTradeNo: TRADE_NO,
+            verified: VERIFIED,
             row: { ...baseRow },
         });
 
@@ -71,6 +78,7 @@ describe('processDonationFromPaymentCallback', () => {
 
         const result = await processDonationFromPaymentCallback({
             merchantTradeNo: TRADE_NO,
+            verified: VERIFIED,
             row: { ...baseRow },
         });
 
@@ -85,6 +93,7 @@ describe('processDonationFromPaymentCallback', () => {
 
         const result = await processDonationFromPaymentCallback({
             merchantTradeNo: TRADE_NO,
+            verified: VERIFIED,
             row: { ...baseRow },
         });
 
@@ -101,6 +110,7 @@ describe('processDonationFromPaymentCallback', () => {
         const row = { ...baseRow };
         const result = await processDonationFromPaymentCallback({
             merchantTradeNo: TRADE_NO,
+            verified: VERIFIED,
             row,
         });
 
@@ -119,6 +129,7 @@ describe('processDonationFromPaymentCallback', () => {
 
         const result = await processDonationFromPaymentCallback({
             merchantTradeNo: TRADE_NO,
+            verified: VERIFIED,
             row: { ...baseRow },
         });
 
@@ -134,6 +145,7 @@ describe('processDonationFromPaymentCallback', () => {
         await expect(
             processDonationFromPaymentCallback({
                 merchantTradeNo: TRADE_NO,
+                verified: VERIFIED,
                 row: { ...baseRow },
             })
         ).rejects.toThrow('db down');
@@ -156,6 +168,7 @@ describe('processDonationFromPaymentCallback', () => {
 
         const result = await processDonationFromPaymentCallback({
             merchantTradeNo: TRADE_NO,
+            verified: VERIFIED,
             row: { ...baseRow },
         });
 
@@ -173,6 +186,7 @@ describe('processDonationFromPaymentCallback', () => {
 
         const result = await processDonationFromPaymentCallback({
             merchantTradeNo: TRADE_NO,
+            verified: VERIFIED,
             row: { ...baseRow },
         });
 

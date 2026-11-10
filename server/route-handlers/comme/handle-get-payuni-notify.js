@@ -20,6 +20,9 @@ const {
     getPaymentOrder,
     deletePaymentOrder,
 } = require('../../store/payment-order');
+const {
+    verifyIchibanOrderBinding,
+} = require('../../lib/payment-order-binding');
 
 module.exports = async (req, res) => {
     try {
@@ -28,6 +31,7 @@ module.exports = async (req, res) => {
         const config = await getPayuniConfigByPayuniMerchantId(merchantId, {
             properties: [
                 'id',
+                'merchantId',
                 'payuniMerchantId',
                 'payuniHashKey',
                 'payuniHashIV',
@@ -73,6 +77,22 @@ module.exports = async (req, res) => {
             orderInfo.eventId != null &&
             orderInfo.cardIndex != null
         ) {
+            // 驗簽用的是網址上那間店的金鑰，但卡片屬於訂單那間店；
+            // 兩者不同代表有人拿自己的金鑰簽回調，想打開別人活動的卡
+            const binding = verifyIchibanOrderBinding(orderInfo, {
+                merchantId: config.merchantId,
+            });
+            if (!binding.ok) {
+                console.warn('[payuni-notify] 一番賞訂單與驗簽商店不符，拒絕開卡', {
+                    merTradeNo,
+                    reason: binding.reason,
+                    verifiedMerchantId: config.merchantId || null,
+                    orderMerchantId: orderInfo.merchantId || null,
+                });
+                res.status(400).send('Error');
+                return;
+            }
+
             const {
                 eventId,
                 cardIndex,
@@ -155,6 +175,7 @@ module.exports = async (req, res) => {
                     row,
                     query: req.query,
                     logPrefix: 'payuni-notify',
+                    verified: { ecpayConfigId: config.id, provider: 'payuni' },
                     youtubeConfig: {
                         pricePerSec: getYoutubePricePerSecFromConfig(config),
                         maxPlaySec: getYoutubeMaxPlaySecFromConfig(config),

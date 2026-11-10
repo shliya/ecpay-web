@@ -8,6 +8,7 @@ const {
     getYoutubeMaxPlaySecFromConfig,
 } = require('../youtube-donation');
 const { getPayuniDonationPaymentFlags } = require('../payment-donation-methods');
+const { generateTradeNo } = require('../payment-trade-no');
 
 require('dotenv').config({ path: path.resolve(__dirname, '../../../.env') });
 
@@ -58,7 +59,8 @@ function createPayment(
     orderData,
     { hashKey, hashIV, extraNotifyQuery = '' }
 ) {
-    const MerchantTradeNo = `PAYUNI${Date.now()}`.slice(0, 20); // PAYUNi 建議 20 碼內
+    // 隨機單號：不可由建單時間推算，也不會同毫秒撞號（PAYUNi 建議 20 碼內）
+    const MerchantTradeNo = generateTradeNo('PAYUNI');
 
     const baseUrl =
         process.env.NODE_ENV === 'production'

@@ -5,10 +5,24 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch: # 允許手動觸發
+
+# 只需要讀取原始碼，不給多餘的權限
+permissions:
+  contents: read
+
+# 同一分支連續 push 時，取消前一個還在跑的測試
+concurrency:
+  group: unit-test-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    env:
+      NODE_ENV: test
 
     steps:
       - name: Checkout
@@ -23,7 +37,15 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run unit tests (API + WebSocket)
-        run: npm run test:unit
-        env:
-          NODE_ENV: test
+      # 金流回調的安全檢查獨立成一步：失敗時在 Actions 頁面一眼就看得出是哪一塊壞了。
+      # 涵蓋：跨店偽造回調、預存訂單綁定（店／金流／金額）、隨機訂單編號、入帳狀態機。
+      - name: Payment callback security tests
+        run: >-
+          npx jest --ci
+          tests/unit/payment-order-binding.test.js
+          tests/unit/payment-callback-cross-merchant.test.js
+          tests/unit/donation-payment-callback.test.js
+          tests/unit/ecpay-checkmac.test.js
+
+      - name: Run all unit tests (API + WebSocket)
+        run: npm run test:unit -- --ci

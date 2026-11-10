@@ -44,6 +44,19 @@ module.exports = async (req, res) => {
             return;
         }
 
+        // getEcpayConfigByMerchantId 會依序比對綠界／PayUni／OPay 三個代號欄位，
+        // 這裡只接受「回調的 MerchantID 就是這間店的 OPay 代號」，避免拿別的欄位對上
+        if (
+            String(config.opayMerchantId || '').trim() !==
+            String(merchantKey).trim()
+        ) {
+            console.warn('[opay-success] MerchantID 不是該店的 OPay 代號，拒絕', {
+                merchantKey,
+            });
+            res.status(400).send('0|ERROR');
+            return;
+        }
+
         const opayMacConfig = {
             hashKey: config.opayHashKey,
             hashIV: config.opayHashIV,
@@ -71,6 +84,7 @@ module.exports = async (req, res) => {
                     merchantTradeNo: MerchantTradeNo,
                     row,
                     logPrefix: 'opay-success',
+                    verified: { ecpayConfigId: config.id, provider: 'opay' },
                     youtubeConfig: {
                         pricePerSec: getYoutubePricePerSecFromConfig(config),
                         maxPlaySec: getYoutubeMaxPlaySecFromConfig(config),

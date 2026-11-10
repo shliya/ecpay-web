@@ -9,6 +9,7 @@ const qs = require('qs');
 const dayjs = require('dayjs');
 const { ENUM_DONATION_TYPE } = require('../enum');
 const { getOpayDonationPaymentFields } = require('../payment-donation-methods');
+const { generateTradeNo } = require('../payment-trade-no');
 
 require('dotenv').config({ path: path.resolve(__dirname, '../../../.env') });
 
@@ -149,7 +150,8 @@ function createPayment(opayMerchantId, orderData, credentials) {
     const hashIV = (credentials.hashIV || '').trim();
 
     const MerchantTradeDate = dayjs().format('YYYY/MM/DD HH:mm:ss');
-    const MerchantTradeNo = `OPAY${Date.now()}`.slice(0, 20);
+    // 隨機單號：不可由建單時間推算，也不會同毫秒撞號（歐付寶限 20 碼英數字）
+    const MerchantTradeNo = generateTradeNo('OPAY');
 
     // OPay（歐付寶）AIO **不支援**綠界的 CustomField1–4，送檢會回「CustomField1 Not In Spec」。
     // 暱稱／全文留言／影音 payload 由建單端寫入 payment_pending_orders，回調再以 fullName/fullMessage/youtubeVideoPayload 串回。

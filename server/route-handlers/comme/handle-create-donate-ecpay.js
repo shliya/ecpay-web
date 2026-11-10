@@ -132,14 +132,17 @@ module.exports = async (req, res) => {
         }
 
         const result = await createPayment(merchantId.trim(), orderData);
+        // ecpayConfigId / amount 供金流回調比對：驗簽的店必須是建單的店、金額必須一致
+        // （見 lib/payment-order-binding.js）
         const orderMeta = {
             kind: 'ecpay-donation',
             fullMessage: orderData.message || '',
             fullName: orderData.name || '',
+            ecpayConfigId: config.id,
+            amount: amountNum,
         };
         if (lcfContext) {
             orderMeta.largeCrowdfundingPageId = lcfContext.pageId;
-            orderMeta.ecpayConfigId = lcfContext.ecpayConfigId;
         }
         await setPaymentOrder(result.merchantTradeNo, orderMeta);
         console.log('[ReturnUrl]: ', result.params.ReturnURL);
