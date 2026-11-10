@@ -366,6 +366,10 @@ function buildCrowdfundingPageUrl(pageKey, preview) {
         window.location.origin + path + 'crowdfunding-page.html'
     );
     url.searchParams.set('name', pageKey || 'default');
+    // 一律帶商店代號：pageKey 只在同一間店內唯一
+    if (indexState.merchantId) {
+        url.searchParams.set('merchantId', indexState.merchantId);
+    }
     if (preview) {
         url.searchParams.set('preview', '1');
     }

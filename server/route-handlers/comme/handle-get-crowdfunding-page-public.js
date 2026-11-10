@@ -12,6 +12,13 @@ module.exports = async (req, res) => {
             res.status(400).json({ error: 'pageKey 無效', code: 'invalid_key' });
             return;
         }
+        if (result.status === 'missing_merchant') {
+            res.status(400).json({
+                error: '募資連結缺少商店代號，請到後台重新複製公開連結',
+                code: 'missing_merchant',
+            });
+            return;
+        }
         if (result.status === 'not_found') {
             res.status(404).json({
                 error: '找不到大型募資頁面',

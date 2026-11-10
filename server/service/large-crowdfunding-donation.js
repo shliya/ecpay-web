@@ -37,7 +37,7 @@ function mapDonorRows(rows) {
     });
 }
 
-async function listDonorsPagedForApi(pageKey, opts = {}) {
+async function listDonorsPagedForApi(pageId, opts = {}) {
     const page = Math.max(1, Math.floor(Number(opts.page)) || 1);
     const limit = Math.min(
         Math.max(
@@ -50,8 +50,8 @@ async function listDonorsPagedForApi(pageKey, opts = {}) {
     const offset = (page - 1) * limit;
 
     const [rows, totalCount] = await Promise.all([
-        DonationStore.listRecentByPageKey(pageKey, { limit, offset }),
-        DonationStore.countByPageKey(pageKey),
+        DonationStore.listRecentByPageId(pageId, { limit, offset }),
+        DonationStore.countByPageId(pageId),
     ]);
 
     const total = Number(totalCount) || 0;
@@ -66,11 +66,11 @@ async function listDonorsPagedForApi(pageKey, opts = {}) {
     };
 }
 
-async function listDonorsTenForApi(pageKey) {
+async function listDonorsTenForApi(pageId) {
     const limit = 10;
     const [rows, totalCount] = await Promise.all([
-        DonationStore.listRecentByPageKey(pageKey, { limit, offset: 0 }),
-        DonationStore.countByPageKey(pageKey),
+        DonationStore.listRecentByPageId(pageId, { limit, offset: 0 }),
+        DonationStore.countByPageId(pageId),
     ]);
     const total = Number(totalCount) || 0;
 
@@ -83,13 +83,13 @@ async function listDonorsTenForApi(pageKey) {
     };
 }
 
-async function listSpecialDonorsForApi(pageKey) {
-    const rows = await DonationStore.listSpecialDonationsByPageKey(pageKey);
+async function listSpecialDonorsForApi(pageId) {
+    const rows = await DonationStore.listSpecialDonationsByPageId(pageId);
     return { donors: mapDonorRows(rows) };
 }
 
-async function listRecentDonorsForApi(pageKey, opts = {}) {
-    const result = await listDonorsPagedForApi(pageKey, {
+async function listRecentDonorsForApi(pageId, opts = {}) {
+    const result = await listDonorsPagedForApi(pageId, {
         page: 1,
         limit: opts.limit,
     });

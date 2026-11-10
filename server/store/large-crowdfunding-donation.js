@@ -90,17 +90,17 @@ async function listRecentByPageId(pageId, opts = {}) {
  * 依 donorName 合併：同名加總 amount（榜十／榜單顯示用）。
  * 排序：累計金額 DESC；同額時依「首次達到目前累計總額」時間 ASC（先達標者在前）。
  * 若之後加碼超過他人則因金額較高而往前，不受 tie-break 影響。
- * @param {string} pageKey
+ * @param {number} pageId large_crowdfunding_pages.id（不用 pageKey：pageKey 只在同店內唯一）
  * @param {{ limit?: number, offset?: number }} [opts]
  */
-async function listRecentByPageKey(pageKey, opts = {}) {
+async function listRecentByPageId(pageId, opts = {}) {
     const { limit, offset } = normalizeListOpts(opts);
     return LargeCrowdfundingDonation.sequelize.query(
         `
         WITH donations AS (
             SELECT id, "donorName", amount, created_at
             FROM large_crowdfunding_donations
-            WHERE "pageKey" = :pageKey
+            WHERE "largeCrowdfundingPageId" = :pageId
         ),
         running AS (
             SELECT
@@ -137,7 +137,7 @@ async function listRecentByPageKey(pageKey, opts = {}) {
         LIMIT :limit OFFSET :offset
         `,
         {
-            replacements: { pageKey, limit, offset },
+            replacements: { pageId, limit, offset },
             type: QueryTypes.SELECT,
         }
     );
@@ -146,11 +146,11 @@ async function listRecentByPageKey(pageKey, opts = {}) {
 /**
  * 特殊主題榜：同名累計達門檻後，依「達標當下」created_at 取最快的前 N 名。
  * 第 5 名以後達標者不列入（即使後來金額更高）。
- * @param {string} pageKey
+ * @param {number} pageId large_crowdfunding_pages.id
  * @param {{ thresholdAmount?: number, limit?: number }} [opts]
  * @returns {Promise<Array<{ donorName: string, amount: number, created_at: Date }>>}
  */
-async function listSpecialDonationsByPageKey(pageKey, opts = {}) {
+async function listSpecialDonationsByPageId(pageId, opts = {}) {
     const threshold =
         Number(opts.thresholdAmount) > 0 ?
             Math.floor(Number(opts.thresholdAmount))
@@ -172,7 +172,7 @@ async function listSpecialDonationsByPageKey(pageKey, opts = {}) {
                 amount,
                 created_at
             FROM large_crowdfunding_donations
-            WHERE "pageKey" = :pageKey
+            WHERE "largeCrowdfundingPageId" = :pageId
         ),
         running AS (
             SELECT
@@ -209,7 +209,7 @@ async function listSpecialDonationsByPageKey(pageKey, opts = {}) {
         LIMIT :limit
         `,
         {
-            replacements: { pageKey, threshold, limit },
+            replacements: { pageId, threshold, limit },
             type: QueryTypes.SELECT,
         }
     );
@@ -218,9 +218,9 @@ async function listSpecialDonationsByPageKey(pageKey, opts = {}) {
 }
 
 /** 榜單上的「人數」（不重複 donorName） */
-async function countByPageKey(pageKey) {
+async function countByPageId(pageId) {
     return LargeCrowdfundingDonation.count({
-        where: { pageKey },
+        where: { largeCrowdfundingPageId: pageId },
         distinct: true,
         col: 'donorName',
     });
@@ -262,9 +262,9 @@ module.exports = {
     listByEcpayConfigId,
     createDonation,
     listRecentByPageId,
-    listRecentByPageKey,
-    listSpecialDonationsByPageKey,
-    countByPageKey,
+    listRecentByPageId,
+    listSpecialDonationsByPageId,
+    countByPageId,
     sumAmountByPageId,
     isDuplicateWithinWindow,
 };

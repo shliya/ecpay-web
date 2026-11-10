@@ -304,22 +304,26 @@ function updateSourceHint() {
     el.textContent = labels[loadSource] || '';
 }
 
-function getPublicPagePath(pageKey) {
+/** 公開連結一律帶商店代號：pageKey 只在同一間店內唯一 */
+function buildPublicPageUrl(pageKey) {
     const path = window.location.pathname.replace(/[^/]*$/, '');
     const url = new URL(
         window.location.origin + path + 'crowdfunding-page.html'
     );
     url.searchParams.set('name', pageKey);
+    if (merchantId) {
+        url.searchParams.set('merchantId', merchantId);
+    }
+    return url;
+}
+
+function getPublicPagePath(pageKey) {
+    const url = buildPublicPageUrl(pageKey);
     return url.pathname.split('/').pop() + url.search;
 }
 
 function getPublicPageFullUrl(pageKey) {
-    const path = window.location.pathname.replace(/[^/]*$/, '');
-    const url = new URL(
-        window.location.origin + path + 'crowdfunding-page.html'
-    );
-    url.searchParams.set('name', pageKey);
-    return url.toString();
+    return buildPublicPageUrl(pageKey).toString();
 }
 
 /** 後台檢視榜單：preview=1 略過訪客終止畫面，仍載入公開 API 即時累計／榜單 */

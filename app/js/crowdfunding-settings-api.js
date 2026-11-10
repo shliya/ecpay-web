@@ -62,23 +62,38 @@ function parseDonorsFromBody(body) {
 }
 
 /**
- * GET /api/v1/comme/crowdfunding/donors/pageKey=:pageKey?page=&limit=
+ * 榜單 API 的基礎網址。一律帶商店代號：pageKey 只在同一間店內唯一，
+ * 只用 pageKey 查會在兩間店同名時混到別間店的斗內。
+ * @param {string} pageKey
+ * @param {string} merchantId
+ * @returns {string|null} 缺商店代號時回 null
+ */
+function buildDonorsApiBase(pageKey, merchantId) {
+    const key = String(pageKey || 'default').trim() || 'default';
+    const mid = String(merchantId || '').trim();
+    if (!mid) {
+        return null;
+    }
+    return (
+        '/api/v1/comme/crowdfunding/donors/id=' +
+        encodeURIComponent(mid) +
+        '/pageKey=' +
+        encodeURIComponent(key)
+    );
+}
+
+/**
+ * GET /api/v1/comme/crowdfunding/donors/id=:merchantId/pageKey=:pageKey?page=&limit=
  * @returns {Promise<{ donors: Array, page: number, limit: number, totalCount: number, totalPages: number }>}
  */
-export async function fetchDonorsPaged(pageKey, opts) {
-    const key = String(pageKey || 'default').trim() || 'default';
+export async function fetchDonorsPaged(pageKey, merchantId, opts) {
+    const base = buildDonorsApiBase(pageKey, merchantId);
     const options = opts || {};
     const params = new URLSearchParams();
     const page = Math.max(1, Math.floor(Number(options.page)) || 1);
     const limit = Math.max(1, Math.floor(Number(options.limit)) || 20);
     params.set('page', String(page));
     params.set('limit', String(limit));
-
-    const url =
-        '/api/v1/comme/crowdfunding/donors/pageKey=' +
-        encodeURIComponent(key) +
-        '?' +
-        params.toString();
 
     const empty = {
         donors: [],
@@ -87,6 +102,10 @@ export async function fetchDonorsPaged(pageKey, opts) {
         totalCount: 0,
         totalPages: 0,
     };
+    if (!base) {
+        return empty;
+    }
+    const url = base + '?' + params.toString();
 
     try {
         const res = await fetch(url, { cache: 'no-store' });
@@ -117,15 +136,11 @@ export const CROWDFUNDING_ALL_DONORS_PAGE_SIZE = 10;
 export const CROWDFUNDING_SPECIAL_THEME_DONOR_LIMIT = 4;
 
 /**
- * GET /api/v1/comme/crowdfunding/donors/pageKey=:pageKey/ten
+ * GET /api/v1/comme/crowdfunding/donors/id=:merchantId/pageKey=:pageKey/ten
  * 榜十大哥固定前 10 名。
  */
-export async function fetchDonorsTen(pageKey) {
-    const key = String(pageKey || 'default').trim() || 'default';
-    const url =
-        '/api/v1/comme/crowdfunding/donors/pageKey=' +
-        encodeURIComponent(key) +
-        '/ten';
+export async function fetchDonorsTen(pageKey, merchantId) {
+    const base = buildDonorsApiBase(pageKey, merchantId);
 
     const empty = {
         donors: [],
@@ -134,6 +149,10 @@ export async function fetchDonorsTen(pageKey) {
         totalCount: 0,
         totalPages: 0,
     };
+    if (!base) {
+        return empty;
+    }
+    const url = base + '/ten';
 
     try {
         const res = await fetch(url, { cache: 'no-store' });
@@ -159,27 +178,28 @@ export async function fetchDonorsTen(pageKey) {
 
 /**
  * @param {string} pageKey
+ * @param {string} merchantId
  * @returns {Promise<Array<{ name: string, amount: number }>>}
  */
-export async function fetchRecentDonors(pageKey) {
-    const result = await fetchDonorsTen(pageKey);
+export async function fetchRecentDonors(pageKey, merchantId) {
+    const result = await fetchDonorsTen(pageKey, merchantId);
     return result.donors;
 }
 
-export async function resolveRecentDonors(pageKey) {
-    return fetchRecentDonors(pageKey);
+export async function resolveRecentDonors(pageKey, merchantId) {
+    return fetchRecentDonors(pageKey, merchantId);
 }
 
 /**
- * GET /api/v1/comme/crowdfunding/donors/pageKey=:pageKey/special
+ * GET /api/v1/comme/crowdfunding/donors/id=:merchantId/pageKey=:pageKey/special
  * 累計達 21210、依達標時間最快的前 4 名。
  */
-export async function fetchDonorsSpecial(pageKey) {
-    const key = String(pageKey || 'default').trim() || 'default';
-    const url =
-        '/api/v1/comme/crowdfunding/donors/pageKey=' +
-        encodeURIComponent(key) +
-        '/special';
+export async function fetchDonorsSpecial(pageKey, merchantId) {
+    const base = buildDonorsApiBase(pageKey, merchantId);
+    if (!base) {
+        return [];
+    }
+    const url = base + '/special';
 
     try {
         const res = await fetch(url, { cache: 'no-store' });
@@ -313,21 +333,23 @@ export async function fetchCrowdfundingFromApi(merchantId, pageKey) {
 }
 
 /**
- * GET /api/v1/comme/crowdfunding/pageKey=:pageKey（已發布）
- * 或 /crowdfunding/public/id=:merchantId/pageKey=:pageKey
+ * GET /api/v1/comme/crowdfunding/public/id=:merchantId/pageKey=:pageKey（已發布）
+ * 一律帶商店代號；缺少時丟出 Error('missing_merchant')，由頁面顯示提示。
  * @param {string} pageKey
- * @param {string} [merchantId]
+ * @param {string} merchantId
  * @returns {Promise<object|null>}
  */
 export async function fetchCrowdfundingPublic(pageKey, merchantId) {
     const key = String(pageKey || '').trim();
     const mid = merchantId ? String(merchantId).trim() : '';
-    const url = mid
-        ? '/api/v1/comme/crowdfunding/public/id=' +
-          encodeURIComponent(mid) +
-          '/pageKey=' +
-          encodeURIComponent(key)
-        : '/api/v1/comme/crowdfunding/pageKey=' + encodeURIComponent(key);
+    if (!mid) {
+        throw new Error('missing_merchant');
+    }
+    const url =
+        '/api/v1/comme/crowdfunding/public/id=' +
+        encodeURIComponent(mid) +
+        '/pageKey=' +
+        encodeURIComponent(key);
     try {
         const res = await fetch(url, { cache: 'no-store' });
         if (res.status === 403) {

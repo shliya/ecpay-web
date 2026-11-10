@@ -17,6 +17,7 @@ const POLL_MS = 8000;
 let pollTimer = null;
 let pageDataCache = null;
 let pageKeyCache = DEFAULT_KEY;
+let merchantIdCache = '';
 let currentDonorPage = 1;
 let paginationMeta = {
     totalCount: 0,
@@ -141,7 +142,7 @@ async function loadDonorPage(page) {
 
     let targetPage = Math.max(1, Math.floor(Number(page)) || 1);
 
-    const result = await fetchDonorsPaged(pageKeyCache, {
+    const result = await fetchDonorsPaged(pageKeyCache, merchantIdCache, {
         page: targetPage,
         limit: CROWDFUNDING_ALL_DONORS_PAGE_SIZE,
     });
@@ -212,6 +213,7 @@ async function init() {
         getCrowdfundingDonorsQueryParams();
     const key = pageKey || DEFAULT_KEY;
     pageKeyCache = key;
+    merchantIdCache = merchantId;
     currentDonorPage = donorPage;
 
     try {
@@ -234,9 +236,11 @@ async function init() {
 
         await loadDonorPage(currentDonorPage);
         startPolling();
-    } catch {
+    } catch (err) {
         showLoadError(
-            '載入斗內列表失敗，請確認 pageKey 是否正確且募資頁已發布。'
+            err && err.message === 'missing_merchant'
+                ? '募資連結缺少商店代號，請到後台重新複製公開連結。'
+                : '載入斗內列表失敗，請確認 pageKey 是否正確且募資頁已發布。'
         );
     }
 }

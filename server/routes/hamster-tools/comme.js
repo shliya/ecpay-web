@@ -111,28 +111,22 @@ router.post('/donate/opay', loginRateLimiter, handleCreateDonateOpayRequest);
 router.get('/resolve-name', handleResolveDisplayNameRequest);
 
 /** Phase 2：大型募資落地頁 */
-router.get(
-    '/crowdfunding/pageKey=:pageKey',
-    handleGetCrowdfundingPagePublicRequest
-);
-router.get(
-    '/crowdfunding/public/pageKey=:pageKey',
-    handleGetCrowdfundingPagePublicRequest
-);
+// 公開頁與榜單一律帶商店代號：pageKey 只在同一間店內唯一，
+// 只用 pageKey 查會在兩間店同名時混到別間店
 router.get(
     '/crowdfunding/public/id=:merchantId/pageKey=:pageKey',
     handleGetCrowdfundingPagePublicRequest
 );
 router.get(
-    '/crowdfunding/donors/pageKey=:pageKey',
+    '/crowdfunding/donors/id=:merchantId/pageKey=:pageKey',
     handleGetCrowdfundingDonorsRequest
 );
 router.get(
-    '/crowdfunding/donors/pageKey=:pageKey/ten',
+    '/crowdfunding/donors/id=:merchantId/pageKey=:pageKey/ten',
     handleGetCrowdfundingDonorsTenRequest
 );
 router.get(
-    '/crowdfunding/donors/pageKey=:pageKey/special',
+    '/crowdfunding/donors/id=:merchantId/pageKey=:pageKey/special',
     handleGetCrowdfundingDonorsSpecialRequest
 );
 router.get(

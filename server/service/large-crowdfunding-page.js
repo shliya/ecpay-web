@@ -53,9 +53,15 @@ async function getPageByMerchantIdAndPageKey(merchantId, pageKey) {
 }
 
 /**
+ * 公開募資頁：一律以「商店＋pageKey」查詢。
+ *
+ * pageKey 只在同一間店內唯一（unique index 是 ecpayConfigId + pageKey），
+ * 只用 pageKey 查會在兩間店同名（例如都用預設的 default）時隨機挑一間，
+ * 觀眾可能看到別人的頁面、斗內付到別間店。所以沒有帶 merchantId 一律拒絕。
+ *
  * @param {string} pageKey
- * @param {string} [merchantId]
- * @returns {Promise<{ status: 'ok', data: object }|{ status: 'not_found'|'not_published'|'invalid_key' }>}
+ * @param {string} merchantId
+ * @returns {Promise<{ status: 'ok', data: object }|{ status: 'not_found'|'not_published'|'invalid_key'|'missing_merchant' }>}
  */
 async function getPublicPageByPageKey(pageKey, merchantId) {
     const key = normalizePageKey(pageKey);
@@ -64,19 +70,18 @@ async function getPublicPageByPageKey(pageKey, merchantId) {
     }
 
     const mid = merchantId ? String(merchantId).trim() : '';
-    let row = null;
-    if (mid) {
-        const resolved = await resolveEcpayConfigFromMerchantKey(mid);
-        if (!resolved) {
-            return { status: 'not_found' };
-        }
-        row = await PageStore.findByEcpayConfigIdAndPageKey(
-            resolved.ecpayConfigId,
-            key
-        );
-    } else {
-        row = await PageStore.findByPageKey(key);
+    if (!mid) {
+        return { status: 'missing_merchant' };
     }
+
+    const resolved = await resolveEcpayConfigFromMerchantKey(mid);
+    if (!resolved) {
+        return { status: 'not_found' };
+    }
+    const row = await PageStore.findByEcpayConfigIdAndPageKey(
+        resolved.ecpayConfigId,
+        key
+    );
 
     if (!row) {
         return { status: 'not_found' };
@@ -94,11 +99,6 @@ async function getPublicPageByPageKey(pageKey, merchantId) {
     return { status: 'ok', data: json };
 }
 
-/** @deprecated 使用 getPublicPageByPageKey */
-async function getPublishedPageByPageKey(pageKey) {
-    const result = await getPublicPageByPageKey(pageKey);
-    return result.status === 'ok' ? result.data : null;
-}
 
 async function upsertPage(merchantId, pageKey, body) {
     const key = normalizePageKey(pageKey);
@@ -217,7 +217,6 @@ module.exports = {
     listPageSummariesByMerchantId,
     getPageByMerchantIdAndPageKey,
     getPublicPageByPageKey,
-    getPublishedPageByPageKey,
     upsertPage,
     publishPage,
     deletePage,

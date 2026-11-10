@@ -76,7 +76,11 @@ async function fetchPageData(pageKey) {
             return fromApi;
         }
     } catch (err) {
-        if (err && err.message === 'not_published') {
+        if (
+            err &&
+            (err.message === 'not_published' ||
+                err.message === 'missing_merchant')
+        ) {
             throw err;
         }
     }
@@ -985,9 +989,10 @@ async function renderPage(data, pageKey) {
     applyTheme(data.theme || {});
     renderBackground(data);
     renderSponsorCta(data);
+    const merchantId = getMerchantIdFromQuery();
     const [donors, specialDonors] = await Promise.all([
-        resolveRecentDonors(key),
-        fetchDonorsSpecial(key),
+        resolveRecentDonors(key, merchantId),
+        fetchDonorsSpecial(key, merchantId),
     ]);
     renderLeaderboardBackgrounds(data);
     renderDonors(data, donors);
@@ -1021,8 +1026,8 @@ async function refreshLiveSections() {
     try {
         const [publicData, tenResult, specialDonors] = await Promise.all([
             fetchCrowdfundingPublic(key, merchantId),
-            fetchDonorsTen(key),
-            fetchDonorsSpecial(key),
+            fetchDonorsTen(key, merchantId),
+            fetchDonorsSpecial(key, merchantId),
         ]);
         if (!publicData) {
             return;
@@ -1092,7 +1097,9 @@ async function init() {
         const msg =
             err && err.message === 'not_published'
                 ? '此募資頁尚未發布，請至後台大型募資設定按「發布」後再開啟。'
-                : '載入募資資料失敗，請確認 pageKey 是否正確且已發布。';
+                : err && err.message === 'missing_merchant'
+                  ? '募資連結缺少商店代號，請到後台重新複製公開連結。'
+                  : '載入募資資料失敗，請確認 pageKey 是否正確且已發布。';
         showLoadError(msg);
     }
 }

@@ -28,7 +28,10 @@ function parseQueryLimit(raw) {
 
 module.exports = async (req, res) => {
     try {
-        const access = await assertPublicDonorPageAccess(req.params.pageKey);
+        const access = await assertPublicDonorPageAccess(
+            req.params.merchantId,
+            req.params.pageKey
+        );
         if (!access.ok) {
             res.status(access.status).json({ error: access.error });
             return;
@@ -37,7 +40,7 @@ module.exports = async (req, res) => {
         const page = parseQueryPage(req.query.page);
         const limit = parseQueryLimit(req.query.limit);
 
-        const result = await listDonorsPagedForApi(access.pageKey, {
+        const result = await listDonorsPagedForApi(access.pageId, {
             page,
             limit,
         });

@@ -20,22 +20,6 @@ async function findByMerchantIdAndPageKey(merchantId, pageKey) {
     });
 }
 
-async function findByPageKey(pageKey) {
-    return LargeCrowdfundingPage.findOne({
-        where: { pageKey },
-    });
-}
-
-async function findPublishedByPageKey(pageKey) {
-    return LargeCrowdfundingPage.findOne({
-        where: {
-            pageKey,
-            publishedAt: { [Op.ne]: null },
-            status: LCF_PAGE_STATUS.ACTIVE,
-        },
-    });
-}
-
 async function findById(id) {
     return LargeCrowdfundingPage.findByPk(id);
 }
@@ -170,8 +154,6 @@ module.exports = {
     getTransaction,
     findByEcpayConfigIdAndPageKey,
     findByMerchantIdAndPageKey,
-    findByPageKey,
-    findPublishedByPageKey,
     findById,
     findByIdAndEcpayConfigId,
     findByIdAndMerchantId,

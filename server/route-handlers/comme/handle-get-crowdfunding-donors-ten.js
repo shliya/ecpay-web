@@ -8,13 +8,16 @@ const {
 
 module.exports = async (req, res) => {
     try {
-        const access = await assertPublicDonorPageAccess(req.params.pageKey);
+        const access = await assertPublicDonorPageAccess(
+            req.params.merchantId,
+            req.params.pageKey
+        );
         if (!access.ok) {
             res.status(access.status).json({ error: access.error });
             return;
         }
 
-        const result = await listDonorsTenForApi(access.pageKey);
+        const result = await listDonorsTenForApi(access.pageId);
         res.status(200).json({
             recentDonors: result.donors,
             page: result.page,
