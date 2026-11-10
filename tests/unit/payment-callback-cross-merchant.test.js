@@ -256,6 +256,38 @@ describe('PayUni notify：一番賞', () => {
 });
 
 // ========================================================================
+describe('PayUni notify：商店代號撞名', () => {
+    // A 店把自己的 payuniMerchantId 設成 B 店的「綠界代號」，
+    // 回調網址是 /payuni/id=VICTIM，驗簽查到的是 A 店
+    const SHADOW = { ...ATTACKER, payuniMerchantId: 'VICTIM' };
+
+    test('[重現] 入帳用的 merchantId 必須是驗簽那間店的正式代號，不能是網址上的字串', async () => {
+        getPayuniConfigByPayuniMerchantId.mockResolvedValue(
+            payuniConfigRow(SHADOW)
+        );
+        const ownOrder = {
+            kind: 'payuni-donation',
+            status: 'pending',
+            ecpayConfigId: SHADOW.id,
+            amount: 500,
+        };
+        getPaymentOrder.mockResolvedValue(ownOrder);
+        getPaymentOrderForCallback.mockResolvedValue(ownOrder);
+
+        await handlePayuniNotify(
+            forgePayuniNotify(SHADOW, { merTradeNo: 'PAYUNIOWNORDER000001', amount: 500 }),
+            mockRes()
+        );
+
+        // 修正前 row.merchantId 是 'VICTIM'，下游用它查商店會先比對綠界欄位，
+        // 斗內通知與募資進度就落到 B 店
+        expect(completeDonationFromPayment).toHaveBeenCalledTimes(1);
+        const [row] = completeDonationFromPayment.mock.calls[0];
+        expect(row.merchantId).toBe('ATTACKER');
+    });
+});
+
+// ========================================================================
 describe('綠界 ecpay-success：大型募資', () => {
     const ECPAY_TRADE_NO = 'ECPAY1762750000000';
 

@@ -67,7 +67,12 @@ module.exports = async (req, res) => {
             res.status(400).send('Error');
             return;
         }
-        row.merchantId = urlMerchantId;
+        // 下游（募資進度、overlay 通知）會再用 row.merchantId 查商店，而查商店會
+        // 先比對綠界代號欄位。若沿用網址上的字串，一旦它剛好是別間店的綠界代號，
+        // 款項就會落到那間店。這裡改用「驗簽這間店」自己的正式代號。
+        row.merchantId = String(
+            config.merchantId || config.payuniMerchantId
+        ).trim();
 
         const merTradeNo = row.merTradeNo;
         const orderInfo = merTradeNo ? await getPaymentOrder(merTradeNo) : null;

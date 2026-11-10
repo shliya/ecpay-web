@@ -1,7 +1,51 @@
 const ecpayConfigStore = require('../store/ecpay-config');
 const { ECPAY_CONFIG_DUPLICATE_CODE } = require('../lib/error/code');
 
-async function createConfigWithTransaction(row) {
+/** 三種代號欄位；同一個值在全站只能出現在其中一格 */
+const IDENTIFIER_FIELDS = ['merchantId', 'payuniMerchantId', 'opayMerchantId'];
+
+/**
+ * 商店代號跨欄位唯一檢查。
+ *
+ * 資料表的 unique 只保證「欄位內」不重複，但查商店時
+ * （getEcpayConfigByMerchantId）會依序比對三個欄位。若 A 店把 payuniMerchantId
+ * 設成 B 店的綠界代號，PayUni 回調查到 A 店、下游卻用同一個字串查到 B 店，
+ * 斗內通知與募資進度就會落到 B 店；反過來也能讓 B 店的回調查錯店而被拒收。
+ *
+ * @param {object} values 準備寫入的欄位（只檢查代號欄位，空值略過）
+ * @param {number|null} ownId 更新時為自己的 id，允許與自己的其他欄位相同
+ */
+async function assertIdentifiersAvailable(values, ownId = null) {
+    const wanted = IDENTIFIER_FIELDS.map(field => values[field])
+        .filter(v => v != null && String(v).trim() !== '')
+        .map(v => String(v).trim());
+
+    for (const identifier of new Set(wanted)) {
+        const users = await ecpayConfigStore.findConfigsUsingIdentifier(
+            identifier
+        );
+        const usedByOther = users.some(row => Number(row.id) !== Number(ownId));
+        if (usedByOther) {
+            throw new Error(ECPAY_CONFIG_DUPLICATE_CODE.message);
+        }
+    }
+}
+
+/** 代號一律去頭尾空白再存，避免 'ABC ' 與 'ABC' 被當成兩個代號 */
+function trimIdentifiers(values) {
+    const result = { ...values };
+    for (const field of IDENTIFIER_FIELDS) {
+        if (typeof result[field] === 'string') {
+            result[field] = result[field].trim();
+        }
+    }
+    return result;
+}
+
+async function createConfigWithTransaction(rawRow) {
+    const row = trimIdentifiers(rawRow);
+    await assertIdentifiersAvailable(row);
+
     const txn = await ecpayConfigStore.getTransaction();
     try {
         const result = await ecpayConfigStore.createEcpayConfig(row, {
@@ -10,10 +54,11 @@ async function createConfigWithTransaction(row) {
         await txn.commit();
         return result;
     } catch (error) {
+        // 不論哪種錯誤都要先 rollback，否則交易與連線會一直被佔住
+        await txn.rollback();
         if (error.name === 'SequelizeUniqueConstraintError') {
             throw new Error(ECPAY_CONFIG_DUPLICATE_CODE.message);
         }
-        await txn.rollback();
         throw error;
     }
 }
@@ -163,8 +208,21 @@ async function updateEcpayConfig(merchantId, updates) {
         return ecpayConfigStore.getEcpayConfigByMerchantId(merchantId);
     }
 
+    const normalized = trimIdentifiers(updateData);
+    if (
+        Object.hasOwn(normalized, 'payuniMerchantId') ||
+        Object.hasOwn(normalized, 'opayMerchantId')
+    ) {
+        const current =
+            await ecpayConfigStore.getEcpayConfigByMerchantId(merchantId);
+        if (!current) {
+            return null;
+        }
+        await assertIdentifiersAvailable(normalized, current.id);
+    }
+
     try {
-        return await ecpayConfigStore.updateEcpayConfig(merchantId, updateData);
+        return await ecpayConfigStore.updateEcpayConfig(merchantId, normalized);
     } catch (error) {
         if (error.name === 'SequelizeUniqueConstraintError') {
             throw new Error(ECPAY_CONFIG_DUPLICATE_CODE.message);

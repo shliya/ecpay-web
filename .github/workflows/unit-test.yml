@@ -38,12 +38,14 @@ jobs:
         run: npm ci
 
       # 金流回調的安全檢查獨立成一步：失敗時在 Actions 頁面一眼就看得出是哪一塊壞了。
-      # 涵蓋：跨店偽造回調、預存訂單綁定（店／金流／金額）、隨機訂單編號、入帳狀態機。
+      # 涵蓋：跨店偽造回調、預存訂單綁定（店／金流／金額）、隨機訂單編號、入帳狀態機、
+      # 商店代號跨欄位撞名。
       - name: Payment callback security tests
         run: >-
           npx jest --ci
           tests/unit/payment-order-binding.test.js
           tests/unit/payment-callback-cross-merchant.test.js
+          tests/unit/merchant-identifier-conflict.test.js
           tests/unit/donation-payment-callback.test.js
           tests/unit/ecpay-checkmac.test.js
 

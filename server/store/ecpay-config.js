@@ -99,6 +99,26 @@ async function getPayuniConfigByPayuniMerchantId(
     });
 }
 
+/**
+ * 找出三種代號欄位（綠界 merchantId／payuniMerchantId／opayMerchantId）中
+ * 任何一欄等於 identifier 的商店。供寫入前檢查跨欄位撞名使用。
+ * @param {string} identifier
+ * @returns {Promise<Array<{ id: number }>>}
+ */
+async function findConfigsUsingIdentifier(identifier) {
+    return EcpayConfigModel.findAll({
+        where: {
+            [Op.or]: [
+                { merchantId: identifier },
+                { payuniMerchantId: identifier },
+                { opayMerchantId: identifier },
+            ],
+        },
+        attributes: ['id'],
+        raw: true,
+    });
+}
+
 async function getOpayConfigByOpayMerchantId(
     opayMerchantId,
     { properties }
@@ -121,4 +141,5 @@ module.exports = {
     getPayuniConfigByPayuniMerchantId,
     getPayuniMerchantIdByMerchantId,
     getOpayConfigByOpayMerchantId,
+    findConfigsUsingIdentifier,
 };
